@@ -40,6 +40,7 @@ is judgement, not code.
 
 | Item | Shipped | Notes |
 |---|---|---|
+| Single screen, no scroll, with a camera | 2026-07-25 | Field owns the viewport; the wire rises over it when you tap a gap and the camera pushes in on that spot. Same panel shows the board after the reveal. |
 | Broadcast redesign — everything except the field | 2026-07-25 | Score bug, colour spines, self-hosted Barlow, no monospace anywhere. Signature is the live "need" figure that falls as you fill each opening. |
 | Full-bleed stadium treatment — the page *is* the field | 2026-07-25 | Turf gradient owns the whole stage, translucent panels over it, mown stripes, floodlight, grain, head shadows. |
 | Opponent matchup — named team, full lineup, win/loss result | 2026-07-25 | Picks change the outcome 53% of weeks; best-vs-worst picks swing the win rate 24%→76%. |
@@ -50,7 +51,7 @@ is judgement, not code.
 | Selection through the field itself | 2026-07-25 | Tap an open head to choose which opening the wire fills. No popups, no tooltips. |
 | Waiver-wire redesign — field, two openings, hidden outcomes | 2026-07-25 | Replaced the single-slot season puzzle. |
 | `MockAdapter` — a fictional gridiron league | 2026-07-25 | Invented players and clubs, real football positions. |
-| 74 Vitest tests + a 39-check browser play-through | 2026-07-25 | Written test-first. Includes tests pinning the design bets: form must beat guessing without being the answer, projections must not see the future, the need figure must fall as you pick, and the page must never scroll sideways on a phone. |
+| 74 Vitest tests + a 48-check browser play-through | 2026-07-25 | Written test-first. Includes tests pinning the design bets: form must beat guessing without being the answer, projections must not see the future, the need figure must fall as you pick, every candidate must be visible without scrolling a panel, the zoomed field must still cover its frame, and no state may scroll in either direction. |
 | Vite + React + TS scaffold, Vitest, `0.0.0.0` dev server | 2026-07-25 | |
 | Streak persisted in `localStorage` | 2026-07-25 | Survives refresh, including a half-filled lineup. Corrupt storage degrades to a fresh game. |
 | First prototype — single slot, season scoring | 2026-07-25 | Superseded the same day. Proved the loop and the adapter seam. |

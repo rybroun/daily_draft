@@ -361,6 +361,50 @@ the gap is seen rather than computed. The pick score dropped out entirely; the b
 The reveal headline stopped repeating the margin — that's in the score bug now — and says the
 thing the number can't: whether the week was ever yours to win.
 
+## 2026-07-25 — One screen, and a camera
+
+Ryan: *"maybe it's more of an animation, you click on WR and it zooms in and gives you your
+options. Would love it as 1 page no scroll."*
+
+### The field is the page; detail comes to you
+
+Nothing scrolls. `.screen` owns `100dvh` as a flex column and the field takes whatever height
+is left over, so there is no fold and nothing below it. The waiver list — the one thing that
+can't fit alongside the field — lives in a panel that rises over the bottom of the pitch when
+you tap a gap, and drops when you've picked.
+
+This turned out to fix a structural problem rather than just a visual one. Previously the
+field and the wire competed for the same vertical space and both lost: the field was cropped
+to make room, and the wire still ran off the bottom. Now each gets a full turn.
+
+### The camera
+
+Tapping a gap scales the field 1.45× about the tapped spot and carries it up the frame, while
+every other spot drops to 28% opacity. Scaling about the spot itself matters — anchoring
+anywhere else slides the target out from under the finger mid-animation.
+
+The pan is clamped to the touchline. Centring on a wide receiver at x=17% would otherwise pull
+the turf away from the left edge and show the black behind it, so the camera pans as far as
+the ground allows and stops, which is what a real one does. A browser check asserts the field
+still covers its frame on every run.
+
+### The reveal reuses the same panel
+
+After the week, tapping either of your picks opens its board in the same sheet. One gesture,
+two meanings, both "show me this spot in detail" — so there is nothing new to learn between
+the decision and the payoff. The summary that stays on screen is the verdict and the ledger;
+the boards are now something you go and look at rather than scroll past.
+
+### Two bugs the layout exposed
+
+The sheet initially cut off the fifth candidate — which is frequently the injured trap, so it
+was hiding the puzzle rather than just some data. There is now a check that measures every
+candidate row against the panel's visible box.
+
+And a screenshot is not proof of "no scroll": the page can fit while a panel inside it
+silently scrolls. Every state in the play-through now asserts `scrollHeight <= innerHeight`
+*and* that the rows are within their container.
+
 ## Open — deliberately not decided
 
 Which sport ships first and where real data comes from. Logged in `BRIEF.md`. Agents must not
