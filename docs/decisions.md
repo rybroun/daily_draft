@@ -445,6 +445,46 @@ now reserved for the two you actually picked; everyone else gets a neutral chip.
 Worth noting this was equally wrong in the dark theme and had shipped unnoticed. Rebuilding
 the palette is what surfaced it.
 
+## 2026-07-25 — One field, two teams
+
+Ryan: condense it, put both teams on the field facing each other instead of behind two tabs,
+and line the positions up by what they do.
+
+### The matchup is the picture
+
+Both lineups now sit on one pitch, the opponent's being the same formation rotated 180° about
+the centre so they face you across the halfway line. The tab switch is gone.
+
+This is strictly better than the toggle it replaces. Their injuries were previously a tap
+away, which meant the information that most changes your decision was the information you had
+to remember to go and look at. It is now simply on screen: four tagged players on their side,
+readable without touching anything.
+
+The mirror is presentational — the adapter still describes one half, and the UI rotates the
+other. One formation, one source of truth.
+
+### The formation says what each player does
+
+Three bands instead of a scattered spread: catchers on the front line, the backfield behind
+with the passer in the middle, the kicking game apart at the back. Position is now legible
+from where somebody stands, which is the whole point of putting them on a field rather than
+in a list.
+
+### Sides, said three ways
+
+A bold halfway line, a warm wash on your end against a cool one on theirs, and a chip at each
+sideline. Any one of the three alone was ambiguous at a glance; together it's unmistakable
+without a word of explanation.
+
+### The mark
+
+A "D" in a solid block, top left, drawn as a path rather than set in type so it renders
+identically before the webfont lands and at any size.
+
+Ryan asked for The Athletic's logo. Declined: it's a real publication's trademark, and putting
+it on this would read as their product. The mark above is the same idea — a single bold
+letterform in a solid block — belonging to this game.
+
 ## Open — deliberately not decided
 
 Which sport ships first and where real data comes from. Logged in `BRIEF.md`. Agents must not

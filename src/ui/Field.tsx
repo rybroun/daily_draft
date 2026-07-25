@@ -1,12 +1,8 @@
 import type { FieldEntry, FieldSpot, Opponent, Player, RosterSlot, SpotId } from '../core/types';
 
-export type Side = 'you' | 'them';
-
 interface FieldProps {
   entries: FieldEntry[];
   opponent: Opponent;
-  side: Side;
-  onSideChange: (side: Side) => void;
   /** Who the player has slotted into each opening, by spot. */
   filled: Map<SpotId, Player>;
   /** The spot the camera is pushed in on, if any. */
@@ -23,6 +19,9 @@ const onCard = (name: string) => {
   const [first, ...rest] = name.split(' ');
   return rest.length === 0 ? name : `${first[0]}. ${rest.join(' ')}`;
 };
+
+/** Broadcast shorthand: a manager's team becomes three letters. */
+const code = (name: string) => name.split(' ')[0].slice(0, 3).toUpperCase();
 
 /** A head: circle for the skull, arc for the shoulders. Deliberately anonymous. */
 function Head() {
@@ -42,7 +41,7 @@ const ZOOM = 1.45;
  * How far the camera may pan before the turf runs out.
  *
  * Centring on a spot near an edge would otherwise pull the field away from that
- * edge and show the black behind it. Panning as far as the ground allows and no
+ * edge and show what's behind it. Panning as far as the ground allows and no
  * further is what a real camera does anyway.
  */
 const pan = (from: number, to: number) => {
@@ -52,11 +51,17 @@ const pan = (from: number, to: number) => {
   return Math.max(least, Math.min(most, wanted));
 };
 
+interface Placed {
+  spot: FieldSpot;
+  player: Player | null;
+  /** Where to draw it — the opponent's half is this rotated about the centre. */
+  at: { x: number; y: number };
+  theirs: boolean;
+}
+
 export function Field({
   entries,
   opponent,
-  side,
-  onSideChange,
   filled,
   zoomedOn,
   figureFor,
@@ -64,13 +69,26 @@ export function Field({
   colorFor,
   onSpotTap,
 }: FieldProps) {
-  const showing: FieldEntry[] =
-    side === 'you' ? entries : opponent.lineup.map((e) => ({ spot: e.spot, player: e.player }));
-
   /*
-   * Push in on the tapped spot: scale about the spot itself so it doesn't slide
-   * out from under the finger, then carry it up the frame to make room.
+   * Both lineups on one pitch. The opponent's is the same formation rotated
+   * 180° about the centre, so they face you across the halfway line — which is
+   * what a matchup looks like, and it replaces a tab you had to remember to tap.
    */
+  const placed: Placed[] = [
+    ...entries.map((e) => ({
+      spot: e.spot,
+      player: e.player,
+      at: { x: e.spot.x, y: e.spot.y },
+      theirs: false,
+    })),
+    ...opponent.lineup.map((e) => ({
+      spot: e.spot,
+      player: e.player,
+      at: { x: 100 - e.spot.x, y: 100 - e.spot.y },
+      theirs: true,
+    })),
+  ];
+
   const camera = zoomedOn
     ? ({
         '--ox': zoomedOn.x,
@@ -83,40 +101,28 @@ export function Field({
 
   return (
     <div className="pitch">
-      {/* The same two chips as the score bug, so the identities stay learned. */}
-      <div className="sides" role="tablist" aria-label="Which lineup to show">
-        {(['you', 'them'] as const).map((option) => (
-          <button
-            key={option}
-            type="button"
-            role="tab"
-            aria-selected={side === option}
-            className={`sides-tab is-${option}${side === option ? ' is-on' : ''}`}
-            onClick={() => onSideChange(option)}
-          >
-            {option === 'you' ? 'Your lineup' : opponent.name}
-          </button>
-        ))}
-      </div>
-
       <div className="field-frame">
         <div
           className={`field${zoomedOn ? ' is-zoomed' : ''}`}
           style={camera}
           role="group"
-          aria-label={side === 'you' ? 'Your lineup' : opponent.name}
+          aria-label="The matchup"
         >
           <div className="field-turf" aria-hidden="true" />
+          <div className="halfway" aria-hidden="true" />
+          <span className="half-tag is-them">{code(opponent.name)}</span>
+          <span className="half-tag is-you">You</span>
 
-          {showing.map(({ spot, player }) => {
-            const chosen = filled.get(spot.id) ?? null;
+          {placed.map(({ spot, player, at, theirs }) => {
+            const chosen = theirs ? null : (filled.get(spot.id) ?? null);
             const occupant = player ?? chosen;
-            const isOpening = side === 'you' && player === null;
+            const isOpening = !theirs && player === null;
             const color = colorFor(spot.slot);
-            const focused = zoomedOn?.id === spot.id;
+            const focused = !theirs && zoomedOn?.id === spot.id;
 
             const classes = [
               'spot',
+              theirs ? 'is-theirs' : 'is-ours',
               isOpening ? 'is-opening' : 'is-set',
               occupant ? 'is-filled' : 'is-empty',
               focused ? 'is-focused' : '',
@@ -128,20 +134,35 @@ export function Field({
               .join(' ');
 
             // Before the week only your openings are tappable; after, any spot
-            // with a board behind it is.
-            const tappable = side === 'you' && (isOpening || (revealed && chosen !== null));
+            // of yours with a board behind it is.
+            const tappable = !theirs && (isOpening || (revealed && chosen !== null));
 
             return (
-              <div key={spot.id} className={classes} style={{ left: `${spot.x}%`, top: `${spot.y}%` }}>
+              <div
+                key={`${theirs ? 'x' : 'o'}-${spot.id}`}
+                className={classes}
+                style={{ left: `${at.x}%`, top: `${at.y}%` }}
+              >
                 <button
                   type="button"
                   className="spot-head"
                   style={{ '--slot-color': color } as React.CSSProperties}
-                  aria-label={occupant ? `${spot.slot} ${occupant.name}` : `Empty ${spot.slot}`}
+                  aria-label={
+                    occupant
+                      ? `${theirs ? opponent.name : 'You'}, ${spot.slot} ${occupant.name}`
+                      : `Empty ${spot.slot}`
+                  }
                   disabled={!tappable}
                   onClick={() => onSpotTap(spot.id)}
                 >
+                  {/* Keyed on the occupant so a fresh pick visibly drops into the slot. */}
                   {occupant ? <Head key={occupant.id} /> : <span className="spot-plus">+</span>}
+
+                  {occupant && (
+                    <span className={`spot-figure${revealed ? ' is-final' : ''}`}>
+                      {figureFor(occupant, spot.slot).toFixed(1)}
+                    </span>
+                  )}
                 </button>
 
                 <span className="spot-name">
@@ -152,12 +173,6 @@ export function Field({
                     </span>
                   )}
                 </span>
-
-                {occupant && (
-                  <span className={`spot-figure${revealed ? ' is-final' : ''}`}>
-                    {figureFor(occupant, spot.slot).toFixed(1)}
-                  </span>
-                )}
               </div>
             );
           })}

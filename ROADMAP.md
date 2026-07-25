@@ -39,6 +39,7 @@ is judgement, not code.
 
 | Item | Shipped | Notes |
 |---|---|---|
+| Both teams on one field, facing off | 2026-07-25 | Opponent's formation rotated about the centre; tabs gone. Positions grouped into three bands by role. Their injuries are now on screen rather than a tap away. |
 | Light theme, with dark as a token swap | 2026-07-25 | Same match at three o'clock instead of under floodlights. Palette on light/dark tokens; `slotColor` returns CSS vars so the theme owns position colours. Both schemes play through green. |
 | Live on the tailnet | 2026-07-25 | https://bananas-mac-mini.tail6d208c.ts.net — LaunchAgent keeps `vite preview` on 4173, `tailscale serve` proxies 443. `npm run build` is the deploy. Verified by playing the live URL through in a browser. |
 | Single screen, no scroll, with a camera | 2026-07-25 | Field owns the viewport; the wire rises over it when you tap a gap and the camera pushes in on that spot. Same panel shows the board after the reveal. |

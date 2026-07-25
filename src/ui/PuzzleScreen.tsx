@@ -10,8 +10,8 @@ import type {
   StatLine,
 } from '../core/types';
 import { Field } from './Field';
-import type { Side } from './Field';
 import { explainSlot } from './explainSlot';
+import { Mark } from './Mark';
 import { ResultSummary, SlotBoard } from './Result';
 import { ScoreBug } from './ScoreBug';
 import { Sheet } from './Sheet';
@@ -44,7 +44,6 @@ export function PuzzleScreen({
   onFill,
   onPlayWeek,
 }: PuzzleScreenProps) {
-  const [side, setSide] = useState<Side>('you');
   const [openSpotId, setOpenSpotId] = useState<SpotId | null>(null);
 
   const byId = useMemo(
@@ -93,6 +92,7 @@ export function PuzzleScreen({
   return (
     <main className="screen">
       <header className="masthead">
+        <Mark />
         <p className="masthead-title">Daily Draft</p>
         <p className="masthead-week">{puzzle.season} season</p>
         <p className="streak" title={`Longest streak: ${streak.best}`}>
@@ -116,11 +116,6 @@ export function PuzzleScreen({
         <Field
           entries={puzzle.field}
           opponent={puzzle.opponent}
-          side={side}
-          onSideChange={(next) => {
-            setSide(next);
-            setOpenSpotId(null);
-          }}
           filled={filled}
           zoomedOn={openSpot}
           figureFor={figureFor}

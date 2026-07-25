@@ -14,17 +14,27 @@ export const LAST_SEASON = 2019;
 export const FIRST_WEEK = 4;
 export const LAST_WEEK = 14;
 
-/** Coordinates are percentages of the field graphic: x across, y downfield. */
+/**
+ * Coordinates are percentages of the field graphic: x across, y downfield.
+ *
+ * This is your half only — everything from the halfway line back. The opponent
+ * is the same shape rotated about the centre, so the two lineups face each
+ * other across the halfway line the way a matchup actually reads.
+ *
+ * Three bands, by what each does: catchers on the front line, the backfield
+ * behind them with the passer in the middle, and the kicking game apart at the
+ * back where it belongs.
+ */
 export const FORMATION: FieldSpot[] = [
-  { id: 'wr1', slot: 'WR', x: 17, y: 15 },
-  { id: 'wr2', slot: 'WR', x: 83, y: 15 },
-  { id: 'wr3', slot: 'WR', x: 32, y: 33 },
-  { id: 'te1', slot: 'TE', x: 68, y: 33 },
-  { id: 'qb1', slot: 'QB', x: 50, y: 52 },
-  { id: 'rb1', slot: 'RB', x: 32, y: 70 },
-  { id: 'rb2', slot: 'RB', x: 68, y: 70 },
-  { id: 'k1', slot: 'K', x: 32, y: 88 },
-  { id: 'dst1', slot: 'DST', x: 68, y: 88 },
+  { id: 'wr1', slot: 'WR', x: 13, y: 59 },
+  { id: 'wr2', slot: 'WR', x: 38, y: 59 },
+  { id: 'te1', slot: 'TE', x: 62, y: 59 },
+  { id: 'wr3', slot: 'WR', x: 87, y: 59 },
+  { id: 'rb1', slot: 'RB', x: 27, y: 76 },
+  { id: 'qb1', slot: 'QB', x: 50, y: 76 },
+  { id: 'rb2', slot: 'RB', x: 73, y: 76 },
+  { id: 'k1', slot: 'K', x: 35, y: 91 },
+  { id: 'dst1', slot: 'DST', x: 65, y: 91 },
 ];
 
 /** The positions you actually stream off waivers. */
