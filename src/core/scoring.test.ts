@@ -1,89 +1,127 @@
 import { describe, expect, it } from 'vitest';
 import { stubAdapter } from './__fixtures__/stubAdapter';
-import { scorePick } from './scoring';
-import type { Puzzle } from './types';
+import { scorePicks } from './scoring';
+import type { FieldSpot, Player, Puzzle } from './types';
 
-/** A slate whose candidates are worth exactly the values given, best unknown to core. */
-const slate = (values: number[]): Puzzle => ({
+const SPOT_A: FieldSpot = { id: 'a1', slot: 'SLOT_A', x: 0, y: 0 };
+const SPOT_B: FieldSpot = { id: 'b1', slot: 'SLOT_B', x: 0, y: 0 };
+
+const candidate = (slot: string, i: number, outcome: number): Player => ({
+  id: `${slot}-${i}`,
+  name: `Player ${slot}${i}`,
+  team: 'T',
+  slot,
+  form: [{ label: 'BEFORE', stats: { alpha: 0 } }],
+  outcome: { label: 'WEEK', stats: { alpha: outcome } },
+});
+
+/** A two-opening puzzle whose candidates produced exactly the values given. */
+const puzzleWith = (slotA: number[], slotB: number[]): Puzzle => ({
   date: '2026-07-25',
   sportId: 'stub',
   season: 1990,
-  slot: 'SLOT_A',
-  statKeys: ['alpha'],
-  candidates: values.map((alpha, i) => ({
-    id: `p${i}`,
-    name: `Player ${i}`,
-    team: 'T',
-    stats: { alpha },
-  })),
+  week: 4,
+  field: [
+    { spot: SPOT_A, player: null },
+    { spot: SPOT_B, player: null },
+  ],
+  openings: [SPOT_A, SPOT_B],
+  waivers: [
+    ...slotA.map((v, i) => candidate('SLOT_A', i, v)),
+    ...slotB.map((v, i) => candidate('SLOT_B', i, v)),
+  ],
 });
 
 const adapter = stubAdapter();
 
-describe('scorePick', () => {
-  it('gives full points for the best player on the slate', () => {
-    const score = scorePick(adapter, slate([10, 90, 40]), 'p1');
+describe('scorePicks', () => {
+  it('gives a perfect score for taking the best at every opening', () => {
+    const score = scorePicks(adapter, puzzleWith([10, 50, 30], [4, 8]), ['SLOT_A-1', 'SLOT_B-1']);
 
     expect(score.points).toBe(100);
-    expect(score.picked.rank).toBe(1);
-    expect(score.isBest).toBe(true);
-    expect(score.valueBehindBest).toBe(0);
+    expect(score.isPerfect).toBe(true);
+    expect(score.total).toBe(58);
+    expect(score.bestPossible).toBe(58);
   });
 
-  it('gives no points for the worst player on the slate', () => {
-    const score = scorePick(adapter, slate([10, 90, 40]), 'p0');
+  it('gives no points for taking the worst at every opening', () => {
+    const score = scorePicks(adapter, puzzleWith([10, 50, 30], [4, 8]), ['SLOT_A-0', 'SLOT_B-0']);
 
     expect(score.points).toBe(0);
-    expect(score.picked.rank).toBe(3);
-    expect(score.isBest).toBe(false);
+    expect(score.isPerfect).toBe(false);
   });
 
-  it('scores a middling pick by where it landed between worst and best', () => {
-    const score = scorePick(adapter, slate([0, 25, 100]), 'p1');
+  it('scores the openings together, not one of them', () => {
+    // Best at SLOT_A, worst at SLOT_B: half the available ground covered.
+    const score = scorePicks(adapter, puzzleWith([0, 100], [0, 100]), ['SLOT_A-1', 'SLOT_B-0']);
 
-    expect(score.points).toBe(25);
-    expect(score.picked.rank).toBe(2);
-    expect(score.valueBehindBest).toBe(75);
+    expect(score.points).toBe(50);
+    expect(score.total).toBe(100);
+    expect(score.bestPossible).toBe(200);
   });
 
-  it('names the best available player so the pick can be explained against it', () => {
-    const score = scorePick(adapter, slate([10, 90, 40]), 'p0');
+  it('reports each opening separately so both can be explained', () => {
+    const score = scorePicks(adapter, puzzleWith([10, 50, 30], [4, 8]), ['SLOT_A-2', 'SLOT_B-0']);
 
-    expect(score.best.player.id).toBe('p1');
-    expect(score.best.value).toBe(90);
+    expect(score.slots).toHaveLength(2);
+    expect(score.slots[0].spot.id).toBe('a1');
+    expect(score.slots[0].picked.player.id).toBe('SLOT_A-2');
+    expect(score.slots[0].picked.rank).toBe(2);
+    expect(score.slots[0].best.player.id).toBe('SLOT_A-1');
+    expect(score.slots[1].picked.rank).toBe(2);
   });
 
-  it('returns the whole slate ranked best first', () => {
-    const score = scorePick(adapter, slate([10, 90, 40]), 'p0');
+  it('ranks only the candidates that were eligible for that opening', () => {
+    const score = scorePicks(adapter, puzzleWith([10, 50, 30], [4, 8]), ['SLOT_A-0', 'SLOT_B-0']);
 
-    expect(score.board.map((r) => r.player.id)).toEqual(['p1', 'p2', 'p0']);
-    expect(score.board.map((r) => r.rank)).toEqual([1, 2, 3]);
+    expect(score.slots[0].board.map((r) => r.player.id)).toEqual([
+      'SLOT_A-1',
+      'SLOT_A-2',
+      'SLOT_A-0',
+    ]);
+    expect(score.slots[1].board).toHaveLength(2);
   });
 
-  it('shares a rank between players whose seasons were worth the same', () => {
-    const score = scorePick(adapter, slate([50, 50, 10]), 'p0');
+  it('shares a rank between candidates whose weeks were worth the same', () => {
+    const score = scorePicks(adapter, puzzleWith([50, 50, 10], [4, 8]), ['SLOT_A-0', 'SLOT_B-1']);
 
-    expect(score.board.map((r) => r.rank)).toEqual([1, 1, 3]);
-    expect(score.isBest).toBe(true);
+    expect(score.slots[0].board.map((r) => r.rank)).toEqual([1, 1, 3]);
+    expect(score.isPerfect).toBe(true);
   });
 
-  it('gives full points when every candidate was worth the same', () => {
-    const score = scorePick(adapter, slate([40, 40, 40]), 'p2');
+  it('is perfect when nothing available would have scored more', () => {
+    const score = scorePicks(adapter, puzzleWith([40, 40], [8, 8]), ['SLOT_A-1', 'SLOT_B-0']);
 
     expect(score.points).toBe(100);
-    expect(score.isBest).toBe(true);
+    expect(score.isPerfect).toBe(true);
   });
 
   it('ranks by the adapter, not by any stat core picked out itself', () => {
-    const inverted = stubAdapter({ seasonValue: (player) => -player.stats.alpha });
+    const inverted = stubAdapter({ outcomeValue: (p) => -p.outcome.stats.alpha });
 
-    const score = scorePick(inverted, slate([10, 90, 40]), 'p0');
+    const score = scorePicks(inverted, puzzleWith([10, 50, 30], [4, 8]), [
+      'SLOT_A-0',
+      'SLOT_B-0',
+    ]);
 
-    expect(score.isBest).toBe(true);
-    expect(score.board.map((r) => r.player.id)).toEqual(['p0', 'p2', 'p1']);
+    expect(score.isPerfect).toBe(true);
   });
 
-  it('rejects a pick that is not on the slate', () => {
-    expect(() => scorePick(adapter, slate([10, 90]), 'nobody')).toThrow(/nobody/);
+  it('rejects a pick that is not on the waiver board', () => {
+    expect(() =>
+      scorePicks(adapter, puzzleWith([10, 50], [4, 8]), ['nobody', 'SLOT_B-0']),
+    ).toThrow(/nobody/);
+  });
+
+  it('rejects a pick that is not eligible for any opening it was made for', () => {
+    expect(() =>
+      scorePicks(adapter, puzzleWith([10, 50], [4, 8]), ['SLOT_B-1', 'SLOT_B-0']),
+    ).toThrow(/SLOT_A/);
+  });
+
+  it('rejects a set of picks that does not fill every opening', () => {
+    expect(() => scorePicks(adapter, puzzleWith([10, 50], [4, 8]), ['SLOT_A-0'])).toThrow(
+      /openings/i,
+    );
   });
 });

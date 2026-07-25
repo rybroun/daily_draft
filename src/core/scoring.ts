@@ -1,50 +1,84 @@
-import type { PlayerId, Puzzle, RankedPlayer, Score, SportAdapter } from './types';
+import type {
+  FieldSpot,
+  Player,
+  PlayerId,
+  Puzzle,
+  RankedPlayer,
+  Score,
+  SlotResult,
+  SportAdapter,
+} from './types';
 
 /**
- * Score a pick against the slate it was made from.
+ * Score a set of picks against the openings they were made for.
  *
- * Core never reads a stat. It asks the adapter what each season was worth and
- * only compares those numbers, so the same rule holds for any sport.
+ * Core never reads a stat. It asks the adapter what each week was worth and only
+ * compares those numbers, so the same rule holds for any sport.
  *
- * Points are the pick's position between the worst and the best player on the
- * slate: taking the best is 100, taking the worst is 0. That's deliberately
- * relative — the question the puzzle asks is "who was the best of *these*",
- * not "how good was this season in the abstract".
+ * Points are where the picks landed, together, between the worst possible set
+ * and the best possible set. Openings are scored as one decision because that's
+ * how the puzzle is posed: fill both, get judged on both.
  */
-export function scorePick(
+export function scorePicks(
   adapter: SportAdapter,
   puzzle: Puzzle,
-  pickedId: PlayerId,
+  pickedIds: PlayerId[],
 ): Score {
-  const board = rankBoard(adapter, puzzle);
-
-  const picked = board.find((entry) => entry.player.id === pickedId);
-  if (!picked) {
-    throw new Error(`${pickedId} is not on the ${puzzle.date} slate`);
+  if (pickedIds.length !== puzzle.openings.length) {
+    throw new Error(
+      `${pickedIds.length} picks for ${puzzle.openings.length} openings on ${puzzle.date}`,
+    );
   }
 
-  const best = board[0];
-  const worst = board[board.length - 1];
-  const spread = best.value - worst.value;
+  const slots = puzzle.openings.map((spot, i) => resolve(adapter, puzzle, spot, pickedIds[i]));
+
+  const total = sum(slots.map((slot) => slot.picked.value));
+  const bestPossible = sum(slots.map((slot) => slot.best.value));
+  const floor = sum(slots.map((slot) => slot.board[slot.board.length - 1].value));
 
   return {
-    picked,
-    best,
-    board,
-    // No spread means every choice was equally right, so none of them was wrong.
-    points: spread === 0 ? 100 : Math.round(((picked.value - worst.value) / spread) * 100),
-    isBest: picked.rank === 1,
-    valueBehindBest: best.value - picked.value,
+    slots,
+    // No spread means every set of picks was equally right, so none was wrong.
+    points:
+      bestPossible === floor ? 100 : Math.round(((total - floor) / (bestPossible - floor)) * 100),
+    total,
+    bestPossible,
+    isPerfect: slots.every((slot) => slot.picked.rank === 1),
   };
 }
 
-/** The slate ordered by what each season was actually worth, best first. */
-function rankBoard(adapter: SportAdapter, puzzle: Puzzle): RankedPlayer[] {
-  const valued = puzzle.candidates
-    .map((player) => ({ player, value: adapter.seasonValue(player, puzzle.slot) }))
+function resolve(
+  adapter: SportAdapter,
+  puzzle: Puzzle,
+  spot: FieldSpot,
+  pickedId: PlayerId,
+): SlotResult {
+  const board = rankBoard(
+    adapter,
+    puzzle.waivers.filter((player) => player.slot === spot.slot),
+    spot,
+  );
+
+  const picked = board.find((entry) => entry.player.id === pickedId);
+  if (!picked) {
+    const onBoard = puzzle.waivers.some((player) => player.id === pickedId);
+    throw new Error(
+      onBoard
+        ? `${pickedId} is not eligible for the ${spot.slot} opening`
+        : `${pickedId} is not on the ${puzzle.date} waiver board`,
+    );
+  }
+
+  return { spot, picked, best: board[0], board };
+}
+
+/** The candidates ordered by what their week was actually worth, best first. */
+function rankBoard(adapter: SportAdapter, players: Player[], spot: FieldSpot): RankedPlayer[] {
+  const valued = players
+    .map((player) => ({ player, value: adapter.outcomeValue(player, spot.slot) }))
     .sort((a, b) => b.value - a.value);
 
-  // Competition ranking: equal seasons share a rank, and the next one skips.
+  // Competition ranking: equal weeks share a rank, and the next one skips.
   let rank = 0;
   let previous: number | null = null;
   return valued.map((entry, index) => {
@@ -55,3 +89,5 @@ function rankBoard(adapter: SportAdapter, puzzle: Puzzle): RankedPlayer[] {
     return { ...entry, rank };
   });
 }
+
+const sum = (values: number[]) => values.reduce((a, b) => a + b, 0);

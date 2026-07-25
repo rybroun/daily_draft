@@ -1,0 +1,82 @@
+import type { FieldSpot, RosterSlot, StatKey } from '../../core/types';
+
+/**
+ * The shape of the invented league.
+ *
+ * Real football positions on a real-looking field, so the board reads the way a
+ * lineup should — but no real player, club or season is involved anywhere.
+ */
+
+export const FIRST_SEASON = 1998;
+export const LAST_SEASON = 2019;
+
+/** Weeks start at 4 so every candidate has a season's form worth reading. */
+export const FIRST_WEEK = 4;
+export const LAST_WEEK = 14;
+
+/** Coordinates are percentages of the field graphic: x across, y downfield. */
+export const FORMATION: FieldSpot[] = [
+  { id: 'wr1', slot: 'WR', x: 17, y: 15 },
+  { id: 'wr2', slot: 'WR', x: 83, y: 15 },
+  { id: 'wr3', slot: 'WR', x: 32, y: 33 },
+  { id: 'te1', slot: 'TE', x: 68, y: 33 },
+  { id: 'qb1', slot: 'QB', x: 50, y: 52 },
+  { id: 'rb1', slot: 'RB', x: 32, y: 70 },
+  { id: 'rb2', slot: 'RB', x: 68, y: 70 },
+  { id: 'k1', slot: 'K', x: 32, y: 88 },
+  { id: 'dst1', slot: 'DST', x: 68, y: 88 },
+];
+
+/** The positions you actually stream off waivers. */
+export const OPENABLE: RosterSlot[] = ['RB', 'WR', 'TE'];
+
+export const SLOT_LABELS: Record<RosterSlot, string> = {
+  QB: 'Quarterback',
+  RB: 'Running back',
+  WR: 'Wide receiver',
+  TE: 'Tight end',
+  K: 'Kicker',
+  DST: 'Defense',
+};
+
+/** Which counting stats a slot is described by, in display order. */
+export const SLOT_STATS: Record<RosterSlot, StatKey[]> = {
+  QB: ['pyd', 'ptd', 'int'],
+  RB: ['car', 'ryd', 'td'],
+  WR: ['rec', 'ryd', 'td'],
+  TE: ['rec', 'ryd', 'td'],
+  K: ['fg', 'xp'],
+  DST: ['sack', 'int'],
+};
+
+export const STAT_LABELS: Record<StatKey, string> = {
+  ppg: 'PPG',
+  pts: 'PTS',
+  car: 'CAR',
+  rec: 'REC',
+  ryd: 'YDS',
+  pyd: 'PASS YDS',
+  td: 'TD',
+  ptd: 'PASS TD',
+  int: 'INT',
+  fg: 'FG',
+  xp: 'XP',
+  sack: 'SACK',
+};
+
+/** Fantasy scoring, half-PPR. The league's own rule, invented like the rest. */
+export const POINTS_PER: Record<StatKey, number> = {
+  rec: 0.5,
+  ryd: 0.1,
+  pyd: 0.04,
+  td: 6,
+  ptd: 4,
+  int: -2,
+  fg: 3,
+  xp: 1,
+  sack: 1,
+  car: 0,
+};
+
+export const fantasyPoints = (stats: Record<StatKey, number>): number =>
+  Object.entries(stats).reduce((total, [key, value]) => total + value * (POINTS_PER[key] ?? 0), 0);

@@ -2,13 +2,14 @@
  * Sport-agnostic vocabulary for the puzzle engine.
  *
  * Nothing in `core/` may know what a sport is. Slots and stat keys are opaque
- * strings the engine passes back to the adapter without interpreting them.
+ * strings the engine passes back to the adapter without interpreting them, and
+ * a spot's coordinates are opaque numbers it never reads at all.
  */
 
 /** Identifies a sport. Values are supplied by adapters, never by core. */
 export type SportId = string;
 
-/** A roster position. Opaque to core — "RF", "LW", "PG" all look the same here. */
+/** A roster position. Opaque to core — "RB", "LW", "PG" all look the same here. */
 export type RosterSlot = string;
 
 /** A single stat's key. Opaque to core. */
@@ -16,64 +17,127 @@ export type StatKey = string;
 
 export type PlayerId = string;
 
+/** Identifies one place in a formation, so two of the same slot stay distinct. */
+export type SpotId = string;
+
 /** A calendar day in `YYYY-MM-DD`, the seed for a day's puzzle. */
 export type DateKey = string;
+
+/**
+ * One block of stats under a heading.
+ *
+ * The heading is the adapter's word — "SEASON", "LAST 3" — and core never reads
+ * either the label or the numbers. They exist to be shown to the player.
+ */
+export interface StatLine {
+  label: string;
+  stats: Record<StatKey, number>;
+}
 
 export interface Player {
   id: PlayerId;
   name: string;
   /** Short club label shown beside the name. */
   team: string;
-  /** Season stat line, keyed by the adapter's own stat keys. */
-  stats: Record<StatKey, number>;
+  /** Which opening this player is eligible to fill. */
+  slot: RosterSlot;
+  /**
+   * What the player is allowed to see before deciding. Everything here is
+   * history up to the puzzle's week — never anything from the week itself.
+   */
+  form: StatLine[];
+  /** What actually happened in the scored week. Hidden until the reveal. */
+  outcome: StatLine;
+}
+
+/**
+ * One place on the field.
+ *
+ * `x` and `y` are display coordinates in the adapter's own space. Core carries
+ * them from the adapter to the UI and never looks inside.
+ */
+export interface FieldSpot {
+  id: SpotId;
+  slot: RosterSlot;
+  x: number;
+  y: number;
+}
+
+/** A spot and whoever is standing in it — `null` while it's an opening. */
+export interface FieldEntry {
+  spot: FieldSpot;
+  player: Player | null;
 }
 
 export interface SportAdapter {
   id: SportId;
   displayName: string;
   seasons(): number[];
-  slots(season: number): RosterSlot[];
+  weeks(season: number): number[];
+
+  /** Every place on the field, in display order. */
+  formation(): FieldSpot[];
+  /** Which slots the puzzle is allowed to leave open. */
+  openableSlots(): RosterSlot[];
+
+  /** Who was already locked into each spot that week. */
+  roster(season: number, week: number): Map<SpotId, Player>;
+  /** The waiver pool eligible for one slot that week. */
+  candidates(season: number, week: number, slot: RosterSlot): Player[];
+
   /** Which stats to show for this slot, in display order. */
   statKeys(slot: RosterSlot): StatKey[];
-  candidates(season: number, slot: RosterSlot): Player[];
-  formatStatLine(player: Player, slot: RosterSlot): string;
+  formatStatLine(line: StatLine, slot: RosterSlot): string;
+
   /**
-   * How much that player's season was worth at that slot, higher is better.
+   * What the player's actual week was worth at that slot, higher is better.
    *
    * This is the seam that keeps core sport-agnostic. Turning a stat line into a
    * number is a per-sport question, so it lives here rather than in scoring.
    * Core only ever compares the numbers.
    */
-  seasonValue(player: Player, slot: RosterSlot): number;
+  outcomeValue(player: Player, slot: RosterSlot): number;
 }
 
 export interface Puzzle {
   date: DateKey;
   sportId: SportId;
   season: number;
-  slot: RosterSlot;
-  /** Stats to show for every candidate, in display order. */
-  statKeys: StatKey[];
-  candidates: Player[];
+  week: number;
+  /** The whole field. Openings carry a `null` player. */
+  field: FieldEntry[];
+  /** The spots to fill, in display order. Never two of the same slot. */
+  openings: FieldSpot[];
+  /** Every player on the waiver board, across all the openings. */
+  waivers: Player[];
 }
 
-/** One candidate's standing on the board, once the season played out. */
+/** One candidate's standing once the week was played. */
 export interface RankedPlayer {
   player: Player;
   value: number;
-  /** 1 is the best pick available. Ties share a rank. */
+  /** 1 is the best available. Ties share a rank. */
   rank: number;
 }
 
-export interface Score {
+/** How one opening turned out. */
+export interface SlotResult {
+  spot: FieldSpot;
   picked: RankedPlayer;
   best: RankedPlayer;
-  /** Every candidate, best first. */
+  /** Every candidate for this opening, best first. */
   board: RankedPlayer[];
-  /** 0–100: where the pick landed between the worst and best available. */
+}
+
+export interface Score {
+  /** One per opening, in the puzzle's opening order. */
+  slots: SlotResult[];
+  /** 0–100 across every opening together. */
   points: number;
-  /** True when nothing on the slate outproduced the pick. */
-  isBest: boolean;
-  /** How much value was left on the board. 0 when the pick was the best. */
-  valueBehindBest: number;
+  /** What the picks actually produced. */
+  total: number;
+  /** What the best possible set of picks would have produced. */
+  bestPossible: number;
+  /** True when nothing available would have scored more. */
+  isPerfect: boolean;
 }

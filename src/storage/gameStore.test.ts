@@ -29,8 +29,10 @@ class FakeStorage {
 
 const played: SavedGame = {
   streak: recordPlay(emptyStreak(), '2026-07-25'),
-  lastPick: { date: '2026-07-25', playerId: 'p3' },
+  picks: { date: '2026-07-25', playerIds: ['rb-3', 'wr-1'] },
 };
+
+const fresh = (): SavedGame => ({ streak: emptyStreak(), picks: null });
 
 describe('gameStore', () => {
   let storage: FakeStorage;
@@ -39,8 +41,8 @@ describe('gameStore', () => {
     storage = new FakeStorage();
   });
 
-  it('starts a first-time player with an empty streak and no pick', () => {
-    expect(loadGame(storage)).toEqual({ streak: emptyStreak(), lastPick: null });
+  it('starts a first-time player with an empty streak and no picks', () => {
+    expect(loadGame(storage)).toEqual(fresh());
   });
 
   it('reads back what it saved, so a refresh keeps the streak', () => {
@@ -49,27 +51,41 @@ describe('gameStore', () => {
     expect(loadGame(storage)).toEqual(played);
   });
 
+  it('keeps a half-finished set of picks, so one pick survives a refresh', () => {
+    const halfway: SavedGame = {
+      streak: emptyStreak(),
+      picks: { date: '2026-07-25', playerIds: ['rb-3'] },
+    };
+    saveGame(storage, halfway);
+
+    expect(loadGame(storage)).toEqual(halfway);
+  });
+
   it('falls back to an empty game when the stored value is not JSON', () => {
     storage.poison('{not json');
 
-    expect(loadGame(storage)).toEqual({ streak: emptyStreak(), lastPick: null });
+    expect(loadGame(storage)).toEqual(fresh());
   });
 
   it('falls back to an empty game when the stored shape is wrong', () => {
     storage.poison(JSON.stringify({ streak: 'twelve' }));
 
-    expect(loadGame(storage)).toEqual({ streak: emptyStreak(), lastPick: null });
+    expect(loadGame(storage)).toEqual(fresh());
+  });
+
+  it('falls back to an empty game when the saved picks are not a list of players', () => {
+    storage.poison(
+      JSON.stringify({ streak: emptyStreak(), picks: { date: '2026-07-25', playerIds: 'rb-3' } }),
+    );
+
+    expect(loadGame(storage)).toEqual(fresh());
   });
 
   it('survives storage that refuses to read', () => {
-    const broken = new FakeStorage(true);
-
-    expect(loadGame(broken)).toEqual({ streak: emptyStreak(), lastPick: null });
+    expect(loadGame(new FakeStorage(true))).toEqual(fresh());
   });
 
   it('survives storage that refuses to write', () => {
-    const broken = new FakeStorage(true);
-
-    expect(() => saveGame(broken, played)).not.toThrow();
+    expect(() => saveGame(new FakeStorage(true), played)).not.toThrow();
   });
 });

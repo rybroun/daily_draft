@@ -91,11 +91,90 @@ leaves a puzzle to solve rather than a sorting exercise.
 `saveGame` swallows write failures. Losing a streak is a bad day; being unable to play at all
 is worse. Nothing in the storage layer throws.
 
+## 2026-07-25 — The waiver-wire redesign
+
+Ryan saw the first prototype and changed the game. It is no longer "pick the best season from
+a slate". It's a lineup on a field with two holes, a waiver wire, and a week that gets played.
+
+### The puzzle is prediction, not recall
+
+The old game showed full-season stats and asked which was best — a lookup, answerable by
+anyone who knew the history. The new game shows only form *to date* and asks who is about to
+be good. You can be right and lose.
+
+This is the change that makes the game worth playing rather than merely knowable, and it is
+also the riskiest thing about it. A single week is mostly noise. That tension is logged as an
+open question in `BRIEF.md` rather than designed away, because it needs play to settle.
+
+### Two openings, never the same position
+
+Two decisions a day rather than one, but with distinct slots. Two of the same position would
+turn two independent judgements into one combined optimisation — pick the best *pair* from a
+shared pool — which is a different and more mathematical puzzle than the one intended.
+`chooseOpenings` enforces it and a test pins it.
+
+### The field is the interface
+
+Ryan asked for it visually: heads on a field, names underneath, blanks where the openings are.
+Coordinates for each spot come from `SportAdapter.formation()`, so a sport describes its own
+shape and `core/` still never learns what a running back is. Core carries `x`/`y` from the
+adapter to the UI without reading them.
+
+At the reveal the whole field fills in with what everyone produced, including the starters you
+never chose. That's the "was I right" moment, and putting it on the field rather than in a
+list is the reason the redesign happened.
+
+### Hidden information is a type, not a convention
+
+`Player.form` is a list of stat lines the player may see; `Player.outcome` is one line they
+may not, until the week is played. Keeping them as separate fields rather than one bag of
+stats means "don't leak the future" is checkable rather than remembered — and the browser
+play-through asserts no week-of stat reaches the screen before the reveal.
+
+### Scoring is the pair against the best possible pair
+
+Both openings are scored as one decision, 0–100 between the worst possible set of picks and
+the best. `seasonValue` became `outcomeValue` — same seam, now asked about a week.
+
+### The mock became a fictional football league
+
+Ryan chose this over keeping positions abstract. A field only reads correctly with real
+football positions, and a waiver-wire game is hard to judge if you don't know what any
+position does. Players, clubs and seasons stay invented, so the sport decision stays open and
+the adapter seam is still proven by a sport that doesn't exist.
+
+Each player has a hidden true level. The season line, the last-three line, and the week itself
+are three readings of it with increasing noise — 1.4, 3.4 and 5.4 fantasy points of spread.
+That is the entire puzzle expressed as three numbers: form is worth reading, small samples
+lie, and one week is mostly weather.
+
+Tuned so the season-form leader is the right pick **39%** of the time against **20%** for
+guessing. A test asserts that rate stays between "clearly better than luck" and 70%; outside
+that band the mock has stopped posing a puzzle.
+
+### Stat lines are generated backwards from the points
+
+A week's points are drawn first, then decomposed into receptions, yards and touchdowns that
+add up to them. The scoring rule reads those numbers back, so what's on screen always equals
+what the pick is judged on — there's no hidden score to drift out of step with the display.
+
+Three bugs this caught in review, all visible on screen before they were fixed: touchdowns
+that a nothing game couldn't have paid for (`0 REC · 0 YDS · 2 TD`), a pile-up of players
+averaging exactly 0.0, and averages whose stats didn't add up to the PPG printed beside them.
+
 ## Open — deliberately not decided
 
 Which sport ships first and where real data comes from. Logged in `BRIEF.md`. Agents must not
 invent answers to these.
 
-*How season stats convert to a score* is no longer an engine-level blocker — `seasonValue`
-holds it behind the adapter — but the first real sport adapter still has to answer it, and
-that answer is Ryan's.
+*How stats convert to a score* is no longer an engine-level blocker — `outcomeValue` holds it
+behind the adapter — but the first real sport adapter still has to answer it, and that answer
+is Ryan's.
+
+The redesign narrowed the sport question without closing it. A waiver-wire puzzle wants weekly
+scoring, a real waiver culture, and positions that sit on a field, which is football on every
+count — and it raised the data bar from season totals to week-by-week box scores. Ryan has
+still not said the word, so no agent should act as though he has.
+
+Whether one week is too random to feel fair is now the most important open question in the
+project, and only playing it will answer it.

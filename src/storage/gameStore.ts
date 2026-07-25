@@ -2,12 +2,16 @@ import { emptyStreak } from '../core/streak';
 import type { StreakState } from '../core/streak';
 import type { DateKey, PlayerId } from '../core/types';
 
-export const STORAGE_KEY = 'daily_draft.v1';
+/** Bumped from v1 when a puzzle went from one pick to a set of them. */
+export const STORAGE_KEY = 'daily_draft.v2';
 
 export interface SavedGame {
   streak: StreakState;
-  /** The pick already made today, so a refresh shows the result again. */
-  lastPick: { date: DateKey; playerId: PlayerId } | null;
+  /**
+   * Picks already made today, in opening order. Shorter than the number of
+   * openings while the board is half-filled — a refresh mid-decision keeps them.
+   */
+  picks: { date: DateKey; playerIds: PlayerId[] } | null;
 }
 
 /** The slice of `localStorage` we use — narrowed so it can be faked in tests. */
@@ -16,7 +20,7 @@ export interface GameStorage {
   setItem(key: string, value: string): void;
 }
 
-const newGame = (): SavedGame => ({ streak: emptyStreak(), lastPick: null });
+const newGame = (): SavedGame => ({ streak: emptyStreak(), picks: null });
 
 /**
  * Read the saved game, falling back to a fresh one on anything unexpected.
@@ -53,12 +57,9 @@ function parseGame(value: unknown): SavedGame {
   if (typeof value !== 'object' || value === null) {
     throw new Error('saved game is not an object');
   }
-  const { streak, lastPick } = value as Record<string, unknown>;
+  const { streak, picks } = value as Record<string, unknown>;
 
-  return {
-    streak: parseStreak(streak),
-    lastPick: parseLastPick(lastPick),
-  };
+  return { streak: parseStreak(streak), picks: parsePicks(picks) };
 }
 
 function parseStreak(value: unknown): StreakState {
@@ -75,13 +76,14 @@ function parseStreak(value: unknown): StreakState {
   return { current, best, lastPlayed };
 }
 
-function parseLastPick(value: unknown): SavedGame['lastPick'] {
+function parsePicks(value: unknown): SavedGame['picks'] {
   if (value === null || value === undefined) return null;
-  if (typeof value !== 'object') throw new Error('saved pick is not an object');
+  if (typeof value !== 'object') throw new Error('saved picks are not an object');
 
-  const { date, playerId } = value as Record<string, unknown>;
-  if (typeof date !== 'string' || typeof playerId !== 'string') {
-    throw new Error('saved pick is missing a date or a player');
+  const { date, playerIds } = value as Record<string, unknown>;
+  if (typeof date !== 'string') throw new Error('saved picks have no date');
+  if (!Array.isArray(playerIds) || playerIds.some((id) => typeof id !== 'string')) {
+    throw new Error('saved picks are not a list of players');
   }
-  return { date, playerId };
+  return { date, playerIds };
 }

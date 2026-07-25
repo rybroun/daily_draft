@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { stubAdapter } from './__fixtures__/stubAdapter';
-import { SLATE_SIZE, dateKey, puzzleFor } from './puzzle';
+import { OPENINGS, WAIVERS_PER_OPENING, dateKey, puzzleFor } from './puzzle';
 
 describe('dateKey', () => {
   it('formats a date as YYYY-MM-DD in local time', () => {
@@ -10,86 +10,127 @@ describe('dateKey', () => {
 
 describe('puzzleFor', () => {
   const adapter = stubAdapter();
+  const days = (count: number) =>
+    Array.from({ length: count }, (_, i) => dateKey(new Date(2026, 0, 1 + i)));
 
   it('returns the same puzzle for the same date', () => {
     const a = puzzleFor(adapter, '2026-07-25');
     const b = puzzleFor(adapter, '2026-07-25');
 
     expect(b.season).toBe(a.season);
-    expect(b.slot).toBe(a.slot);
-    expect(b.candidates.map((p) => p.id)).toEqual(a.candidates.map((p) => p.id));
+    expect(b.week).toBe(a.week);
+    expect(b.openings.map((s) => s.id)).toEqual(a.openings.map((s) => s.id));
+    expect(b.waivers.map((p) => p.id)).toEqual(a.waivers.map((p) => p.id));
   });
 
   it('varies the puzzle across dates', () => {
     const seen = new Set(
-      Array.from({ length: 60 }, (_, i) => {
-        const p = puzzleFor(adapter, dateKey(new Date(2026, 0, 1 + i)));
-        return `${p.season}|${p.slot}|${p.candidates.map((c) => c.id).join(',')}`;
+      days(60).map((day) => {
+        const p = puzzleFor(adapter, day);
+        return `${p.season}|${p.week}|${p.waivers.map((c) => c.id).join(',')}`;
       }),
     );
 
     expect(seen.size).toBeGreaterThan(30);
   });
 
-  it('gives two adapters different puzzles on the same date', () => {
-    const other = stubAdapter({ id: 'stub-2' });
-    const signature = (p: ReturnType<typeof puzzleFor>) =>
-      `${p.season}|${p.slot}|${p.candidates.map((c) => c.id).join(',')}`;
-
-    const a = puzzleFor(adapter, '2026-07-25');
-    const b = puzzleFor(other, '2026-07-25');
-
-    expect(signature(a)).not.toBe(signature(b));
-  });
-
-  it('only ever picks a season and slot the adapter offers', () => {
-    for (let i = 0; i < 40; i++) {
-      const puzzle = puzzleFor(adapter, dateKey(new Date(2026, 0, 1 + i)));
+  it('only ever picks a season and week the adapter offers', () => {
+    for (const day of days(40)) {
+      const puzzle = puzzleFor(adapter, day);
 
       expect(adapter.seasons()).toContain(puzzle.season);
-      expect(adapter.slots(puzzle.season)).toContain(puzzle.slot);
+      expect(adapter.weeks(puzzle.season)).toContain(puzzle.week);
     }
   });
 
-  it('draws a full slate of distinct candidates from the adapter', () => {
+  it('lays out the whole formation, filled except for the openings', () => {
     const puzzle = puzzleFor(adapter, '2026-07-25');
-    const available = adapter.candidates(puzzle.season, puzzle.slot).map((p) => p.id);
 
-    expect(puzzle.candidates).toHaveLength(SLATE_SIZE);
-    expect(new Set(puzzle.candidates.map((p) => p.id)).size).toBe(SLATE_SIZE);
-    for (const candidate of puzzle.candidates) {
-      expect(available).toContain(candidate.id);
+    expect(puzzle.field).toHaveLength(adapter.formation().length);
+    expect(puzzle.field.filter((e) => e.player === null)).toHaveLength(OPENINGS);
+    for (const entry of puzzle.field) {
+      expect(entry.player === null || entry.player.slot === entry.spot.slot).toBe(true);
     }
   });
 
-  it('takes every candidate when the adapter offers fewer than a full slate', () => {
-    const thin = stubAdapter({
-      candidates: () => [
-        { id: 'a', name: 'A', team: 'T', stats: { alpha: 1 } },
-        { id: 'b', name: 'B', team: 'T', stats: { alpha: 2 } },
-      ],
-    });
+  it('opens exactly the spots it left empty on the field', () => {
+    const puzzle = puzzleFor(adapter, '2026-07-25');
+    const empty = puzzle.field.filter((e) => e.player === null).map((e) => e.spot.id);
 
-    expect(puzzleFor(thin, '2026-07-25').candidates).toHaveLength(2);
+    expect(puzzle.openings.map((s) => s.id).sort()).toEqual(empty.sort());
   });
 
-  it('carries the adapter identity and the slot stat keys', () => {
+  it('only ever opens a spot the adapter allows to be opened', () => {
+    for (const day of days(40)) {
+      for (const opening of puzzleFor(adapter, day).openings) {
+        expect(adapter.openableSlots()).toContain(opening.slot);
+      }
+    }
+  });
+
+  it('never opens two spots of the same slot, so each opening is its own choice', () => {
+    for (const day of days(40)) {
+      const slots = puzzleFor(adapter, day).openings.map((s) => s.slot);
+
+      expect(new Set(slots).size).toBe(slots.length);
+    }
+  });
+
+  it('stocks the waiver board with eligible candidates for every opening', () => {
     const puzzle = puzzleFor(adapter, '2026-07-25');
 
-    expect(puzzle.sportId).toBe('stub');
-    expect(puzzle.date).toBe('2026-07-25');
-    expect(puzzle.statKeys).toEqual(adapter.statKeys(puzzle.slot));
+    expect(puzzle.waivers).toHaveLength(OPENINGS * WAIVERS_PER_OPENING);
+    for (const opening of puzzle.openings) {
+      const eligible = puzzle.waivers.filter((p) => p.slot === opening.slot);
+
+      expect(eligible).toHaveLength(WAIVERS_PER_OPENING);
+    }
   });
 
-  it('refuses a slot with nothing to choose between', () => {
-    const empty = stubAdapter({ candidates: () => [] });
+  it('draws every waiver candidate from the adapter, without repeats', () => {
+    const puzzle = puzzleFor(adapter, '2026-07-25');
+    const ids = puzzle.waivers.map((p) => p.id);
 
-    expect(() => puzzleFor(empty, '2026-07-25')).toThrow(/candidate/i);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const opening of puzzle.openings) {
+      const offered = adapter
+        .candidates(puzzle.season, puzzle.week, opening.slot)
+        .map((p) => p.id);
+
+      for (const player of puzzle.waivers.filter((p) => p.slot === opening.slot)) {
+        expect(offered).toContain(player.id);
+      }
+    }
+  });
+
+  it('never shows the scored week among the stats a player can see', () => {
+    const puzzle = puzzleFor(adapter, '2026-07-25');
+
+    for (const player of puzzle.waivers) {
+      for (const line of player.form) {
+        expect(line).not.toBe(player.outcome);
+        expect(line.label).not.toBe(player.outcome.label);
+      }
+    }
   });
 
   it('refuses an adapter with no seasons', () => {
-    const empty = stubAdapter({ seasons: () => [] });
+    expect(() => puzzleFor(stubAdapter({ seasons: () => [] }), '2026-07-25')).toThrow(/season/i);
+  });
 
-    expect(() => puzzleFor(empty, '2026-07-25')).toThrow(/season/i);
+  it('refuses an adapter with no weeks', () => {
+    expect(() => puzzleFor(stubAdapter({ weeks: () => [] }), '2026-07-25')).toThrow(/week/i);
+  });
+
+  it('refuses a formation without enough openable spots', () => {
+    const cramped = stubAdapter({ openableSlots: () => ['SLOT_A'] });
+
+    expect(() => puzzleFor(cramped, '2026-07-25')).toThrow(/openable/i);
+  });
+
+  it('refuses a slot with nothing to choose between', () => {
+    const bare = stubAdapter({ candidates: () => [] });
+
+    expect(() => puzzleFor(bare, '2026-07-25')).toThrow(/candidate/i);
   });
 });

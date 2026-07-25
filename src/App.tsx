@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { dateKey } from './core/puzzle';
+import type { Player, StatLine } from './core/types';
 import { mockAdapter } from './sports/mock/mockAdapter';
 import { PuzzleScreen } from './ui/PuzzleScreen';
 import { useGame } from './useGame';
@@ -13,22 +14,27 @@ const adapter = mockAdapter;
 export default function App() {
   // Fixed at mount so the puzzle can't change under a player at midnight.
   const today = useMemo(() => dateKey(new Date()), []);
-  const { puzzle, score, streak, pick } = useGame(adapter, today);
+  const game = useGame(adapter, today);
 
-  const statLine = useMemo(
-    () => (player: Parameters<typeof adapter.formatStatLine>[0]) =>
-      adapter.formatStatLine(player, puzzle.slot),
-    [puzzle.slot],
+  const statLine = useCallback(
+    (line: StatLine, player: Player) => adapter.formatStatLine(line, player.slot),
+    [],
   );
+  const pointsFor = useCallback((player: Player) => adapter.outcomeValue(player, player.slot), []);
 
   return (
     <PuzzleScreen
       leagueName={adapter.displayName}
-      puzzle={puzzle}
-      score={score}
-      streak={streak}
+      puzzle={game.puzzle}
+      picks={game.picks}
+      score={game.score}
+      streak={game.streak}
+      ready={game.ready}
       statLine={statLine}
-      onPick={pick}
+      pointsFor={pointsFor}
+      onFill={game.fill}
+      onClear={game.clear}
+      onPlayWeek={game.playWeek}
     />
   );
 }

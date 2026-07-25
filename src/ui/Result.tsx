@@ -1,33 +1,29 @@
-import type { Player, Score } from '../core/types';
+import type { Player, Score, SlotResult, StatLine } from '../core/types';
 
 interface ResultProps {
   score: Score;
-  statLine: (player: Player) => string;
+  statLine: (line: StatLine, player: Player) => string;
 }
-
-const ORDINALS = ['', 'Best', 'Second best', 'Third best', 'Fourth best', 'Fifth best'];
 
 function verdict(score: Score): string {
-  if (score.isBest) return 'Best on the board.';
-  const ordinal = ORDINALS[score.picked.rank];
-  return ordinal
-    ? `${ordinal} available.`
-    : `${score.picked.rank} of ${score.board.length} on the board.`;
+  if (score.isPerfect) return 'Perfect week.';
+  if (score.points >= 80) return 'About as good as the wire allowed.';
+  if (score.points >= 55) return 'A good week, with something left behind.';
+  if (score.points >= 25) return 'You left a lot of it on the wire.';
+  if (score.points > 0) return 'Almost everything was still on the wire.';
+  return 'The worst of both boards.';
 }
 
-function explanation(score: Score): string {
-  const picked = score.picked.player.name;
-  if (score.isBest) {
-    return `Nobody on the slate outproduced ${picked}.`;
+function explain(slot: SlotResult): string {
+  if (slot.picked.rank === 1) {
+    return `Nobody on the ${slot.spot.slot} wire beat ${slot.picked.player.name}.`;
   }
-  const gap = Math.round(score.valueBehindBest);
-  return `${score.best.player.name} was worth ${gap} more than ${picked} that season.`;
+  const gap = (slot.best.value - slot.picked.value).toFixed(1);
+  return `${slot.best.player.name} would have been ${gap} more.`;
 }
 
-/** The reveal: what the pick scored, and the whole board that explains why. */
+/** The reveal: what the week produced, and every alternative that explains it. */
 export function Result({ score, statLine }: ResultProps) {
-  const topValue = score.best.value;
-
   return (
     <section className="result" aria-live="polite">
       <div className="result-head">
@@ -37,38 +33,56 @@ export function Result({ score, statLine }: ResultProps) {
         </p>
         <div>
           <p className="result-verdict">{verdict(score)}</p>
-          <p className="result-why">{explanation(score)}</p>
+          <p className="result-why">
+            Your two picks scored <strong>{score.total.toFixed(1)}</strong>. The best pair on
+            the wire scored <strong>{score.bestPossible.toFixed(1)}</strong>.
+          </p>
         </div>
       </div>
 
-      <h2 className="board-heading">How the season actually went</h2>
-      <ol className="board">
-        {score.board.map((entry) => {
-          const isPick = entry.player.id === score.picked.player.id;
-          return (
-            <li
-              key={entry.player.id}
-              className={`board-row${isPick ? ' is-pick' : ''}${entry.rank === 1 ? ' is-best' : ''}`}
-            >
-              <span className="board-rank">{entry.rank}</span>
-              <span className="board-name">
-                {entry.player.name}
-                <span className="board-team">{entry.player.team}</span>
-                {isPick && <span className="board-tag">your pick</span>}
-              </span>
-              <span className="board-stats">{statLine(entry.player)}</span>
-              {/* One decimal, because two seasons a point apart must not print equal. */}
-              <span className="board-value">{entry.value.toFixed(1)}</span>
-              <span
-                className="board-bar"
-                style={{ inlineSize: `${(entry.value / topValue) * 100}%` }}
-              />
-            </li>
-          );
-        })}
-      </ol>
+      {score.slots.map((slot) => (
+        <div key={slot.spot.id} className="slot-result">
+          <h2 className="slot-heading">
+            {slot.spot.slot} <span className="slot-why">{explain(slot)}</span>
+          </h2>
+
+          <ol className="board">
+            {slot.board.map((entry) => {
+              const isPick = entry.player.id === slot.picked.player.id;
+              const classes = [
+                'board-row',
+                isPick ? 'is-pick' : '',
+                entry.rank === 1 ? 'is-best' : '',
+              ]
+                .filter(Boolean)
+                .join(' ');
+
+              return (
+                <li key={entry.player.id} className={classes}>
+                  <span className="board-rank">{entry.rank}</span>
+                  <span className="board-name">
+                    {entry.player.name}
+                    <span className="board-team">{entry.player.team}</span>
+                    {isPick && <span className="board-tag">yours</span>}
+                  </span>
+                  {/* One decimal, because two weeks a point apart must not print equal. */}
+                  <span className="board-value">{entry.value.toFixed(1)}</span>
+                  <span className="board-stats">
+                    {statLine(entry.player.outcome, entry.player)}
+                  </span>
+                  <span
+                    className="board-bar"
+                    style={{ inlineSize: `${(entry.value / (slot.best.value || 1)) * 100}%` }}
+                  />
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      ))}
+
       <p className="board-note">
-        Value is what that season was worth at this slot — the number the pick is scored on.
+        Every one of those weeks was hidden when you picked. All you had was the form.
       </p>
     </section>
   );
