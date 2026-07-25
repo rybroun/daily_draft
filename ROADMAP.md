@@ -16,8 +16,9 @@ is judgement, not code.
 |---|---|---|---|
 | Play it for a few days and judge whether it's fun | in progress | 2026-07-25 | **Live at https://bananas-mac-mini.tail6d208c.ts.net** (tailnet only). The prototype exists to answer this and nothing else. |
 | Decide whether one week is too random to feel fair | in progress | 2026-07-25 | Partly addressed: the reveal now says when a week was already decided either way. Whether that's enough needs play, not design. |
-| Confirm football as the shipping sport | blocked | 2026-07-25 | **Ryan's call.** Everything about the design now assumes weekly scoring, a waiver culture and positions on a field. The mock is a fictional gridiron league. Confirming it unblocks the data question. |
-| Find week-by-week historical data | blocked | 2026-07-25 | **Unblocks once the sport is confirmed.** Needs weekly box scores plus historical injury designations — the injury layer is now load-bearing, not decoration. |
+| Wire up real 2015 NFL data | in progress | 2026-07-25 | Sport confirmed as football; mock-only rule lifted. Agent `nfl-2015-data` is sourcing week-by-week game logs plus injury designations. `MockAdapter` stays as the seam's proof. |
+| Decide what to do about the projection column | planned | 2026-07-25 | It hands the player the optimal use of visible information, which collapses the decision to reading one number. Floor/ceiling instead of a point estimate is the leading candidate. |
+| Make the picks decide the week more often | planned | 2026-07-25 | Currently 53%. The other 47% of days, nothing the player did changed the result — bad for something meant to be played daily. |
 
 ## Next
 

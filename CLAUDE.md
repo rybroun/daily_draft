@@ -18,10 +18,10 @@ was good; you are being asked who was about to be, against a specific opponent.
 1. **Sport-agnostic core.** The puzzle engine must never know what a "running back" is.
    Sports plug in behind `SportAdapter`. Other sports have to fit without changing engine
    code. This is the single most important design constraint.
-2. **Mock data for now.** No real dataset is wired up yet — the sport is deliberately
-   undecided. `MockAdapter` is a *fictional* gridiron league: real football positions so the
-   field reads correctly, invented players, clubs and seasons. Do not go pick a data source
-   or start scraping.
+2. **Football, and real data.** Ryan confirmed the sport on 2026-07-25 and lifted the
+   mock-only rule at the same time. The first real season is **2015 NFL**. `MockAdapter`
+   stays — it's a *fictional* league that proves the seam holds for a sport that doesn't
+   exist, and the core tests run against it — but it is no longer the only adapter.
 3. **60 seconds, then done.** If a puzzle takes longer to play than that, the design is wrong.
 4. **The player never sees the week they're picking for.** Form to date, projections and
    injury tags are all they get. If a number from the scored week reaches the screen before
