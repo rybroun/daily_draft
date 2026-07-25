@@ -1,17 +1,14 @@
 import type { Player, RosterSlot, StatLine } from '../core/types';
 
-interface PillProps {
-  slot: RosterSlot;
-  color: string;
-}
-
-/** The position badge every fantasy app trained people to scan for first. */
-export function SlotPill({ slot, color }: PillProps) {
+/**
+ * The position badge every fantasy app trained people to scan for first.
+ *
+ * Here it doubles as the row's colour spine, so position is readable from the
+ * left edge without the badge having to be found and read.
+ */
+export function SlotPill({ slot, color }: { slot: RosterSlot; color: string }) {
   return (
-    <span
-      className="pill"
-      style={{ color, background: `color-mix(in srgb, ${color} 16%, transparent)` }}
-    >
+    <span className="pill" style={{ color }}>
       {slot}
     </span>
   );
@@ -19,7 +16,7 @@ export function SlotPill({ slot, color }: PillProps) {
 
 /** OUT and Q are known before kickoff, so they belong wherever a name appears. */
 export function StatusTag({ status }: { status: string }) {
-  return <span className={`status status-${status.toLowerCase()}`}>{status}</span>;
+  return <span className={`tag tag-${status.toLowerCase()}`}>{status}</span>;
 }
 
 interface PlayerRowProps {
@@ -28,7 +25,6 @@ interface PlayerRowProps {
   /** Right-hand number — a projection before the week, a result after. */
   figure: number;
   figureLabel: string;
-  /** Form lines, omitted where the row is only meant to be scanned. */
   form?: StatLine[];
   statLine?: (line: StatLine, player: Player) => string;
   onClick?: () => void;
@@ -36,11 +32,11 @@ interface PlayerRowProps {
 }
 
 /**
- * One player, as a row rather than a card.
+ * One player, as a lower third rather than a card.
  *
- * Rows separated by a hairline read as a list you can run your eye down. Boxing
- * each one turns the same information into a stack of objects to be examined
- * separately, which is slower and looks heavier.
+ * A colour spine down the left edge does the work a border used to: it gives
+ * the list rhythm and encodes position, without boxing every player into their
+ * own container.
  */
 export function PlayerRow({
   player,
@@ -57,6 +53,7 @@ export function PlayerRow({
   return (
     <Tag
       className={`row${selected ? ' is-selected' : ''}${onClick ? ' is-tappable' : ''}`}
+      style={{ '--spine': color } as React.CSSProperties}
       {...(onClick ? { type: 'button' as const, onClick, 'aria-pressed': selected } : {})}
     >
       <SlotPill slot={player.slot} color={color} />

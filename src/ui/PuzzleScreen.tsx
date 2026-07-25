@@ -11,8 +11,8 @@ import type {
 } from '../core/types';
 import { Field } from './Field';
 import type { Side } from './Field';
-import { MatchupBar } from './MatchupBar';
 import { Result } from './Result';
+import { ScoreBug } from './ScoreBug';
 import { WaiverBoard } from './WaiverBoard';
 
 interface PuzzleScreenProps {
@@ -89,23 +89,21 @@ export function PuzzleScreen({
         <div className="stage-light" aria-hidden="true" />
 
         <header className="masthead">
-          <p className="masthead-title">daily draft</p>
-          <p className="masthead-week">
-            {puzzle.season} · Week {puzzle.week}
-          </p>
+          <p className="masthead-title">Daily Draft</p>
+          <p className="masthead-week">{puzzle.season} season</p>
           <p className="streak" title={`Longest streak: ${streak.best}`}>
-            <span className="streak-mark" aria-hidden="true">
-              ▲
-            </span>
             {streak.current}
+            <span className="streak-label">day{streak.current === 1 ? '' : 's'}</span>
           </p>
         </header>
 
-        <MatchupBar
+        <ScoreBug
           opponentName={puzzle.opponent.name}
+          week={puzzle.week}
           yourTotal={totals.yours}
           opponentTotal={totals.theirs}
           result={score?.result ?? null}
+          margin={score?.margin ?? 0}
         />
 
         <Field
@@ -155,7 +153,7 @@ export function PuzzleScreen({
             />
 
             <button type="button" className="kickoff" disabled={!ready} onClick={onPlayWeek}>
-              {ready ? `Play week ${puzzle.week}` : 'Fill both spots to play the week'}
+              {ready ? 'Lock in your lineup' : 'Two spots to fill'}
             </button>
           </>
         )}

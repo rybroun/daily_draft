@@ -57,6 +57,7 @@ export function Field({
 
   return (
     <div className="pitch">
+      {/* The same two chips as the score bug, so the identities stay learned. */}
       <div className="sides" role="tablist" aria-label="Which lineup to show">
         {(['you', 'them'] as const).map((option) => (
           <button
@@ -64,7 +65,7 @@ export function Field({
             type="button"
             role="tab"
             aria-selected={side === option}
-            className={`sides-tab${side === option ? ' is-on' : ''}`}
+            className={`sides-tab is-${option}${side === option ? ' is-on' : ''}`}
             onClick={() => onSideChange(option)}
           >
             {option === 'you' ? 'Your lineup' : opponent.name}

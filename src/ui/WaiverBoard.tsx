@@ -29,10 +29,10 @@ export function WaiverBoard({
   return (
     <section className="wire">
       <h2 className="wire-heading">
-        <span>
+        <span className="wire-title">
           Fill your <strong style={{ color: colorFor(opening.slot) }}>{opening.slot}</strong>
         </span>
-        <span className="wire-note">form to date · nothing from this week</span>
+        <span className="wire-note">Form to date. Nothing from this week.</span>
       </h2>
 
       <div className="rows">

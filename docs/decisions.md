@@ -301,6 +301,66 @@ the screen — a sideways scroll on a phone. Fixed with `overflow-x: clip` on th
 the play-through now asserts `scrollWidth <= innerWidth` on every run, because that class of
 bug is invisible in a full-page screenshot.
 
+## 2026-07-25 — Broadcast redesign
+
+Ryan, after enabling the `frontend-design` plugin: *"the only thing I still like is the field."*
+So the field survived untouched and everything around it was rebuilt.
+
+### Direction: a telecast, not an app
+
+The previous version borrowed its furniture from software — a segmented control, a list of
+rows with a right-aligned number, a gradient progress bar, a metric strip of big-number-plus-
+small-label. All of it competent and none of it about football.
+
+This one borrows the *information structure* of a broadcast: the score bug, the colour-chipped
+team block, the lower-third stat card. Not the skin — no fake TV chrome — just the way a
+telecast decides what to make big and what to make a colour.
+
+### Killing the monospace
+
+`ui-monospace` on every figure was the loudest robotic signal in the interface, and it was
+doing one real job: keeping digits aligned in columns. `font-variant-numeric: tabular-nums`
+does that job in any typeface. There is now no monospace anywhere in the app.
+
+### Typeface: Barlow, self-hosted
+
+Barlow Condensed 700 for display — team codes, the need figure, headlines, the lock-in button
+— against Barlow 400/600 for everything else. A slightly squared grotesque, which reads as
+sports schedule rather than as a system font.
+
+Self-hosted from three latin-subset woff2 files, 46 KB total, so the page still fetches
+nothing at runtime and stays shareable by link. SIL Open Font License 1.1.
+
+### The signature: what you still need
+
+The one element the screen is built around. A single condensed figure under the score bug
+saying how far behind you are — `NEED 16.4 TO WIN` — that falls as you fill each opening, and
+resolves into `LOST BY 14.2` when the week is played.
+
+No fantasy service shows this, because none of them pose a week as a puzzle with a fixed
+number of decisions left. It states the actual stake of the next tap without the player
+having to subtract two numbers, and it's the reason the matchup exists at all.
+
+Everything else was kept deliberately quiet so this could be loud.
+
+### Colour spines instead of pills-on-a-slab
+
+Every row carries its position colour as a 3px spine down its left edge. It gives the list
+rhythm and encodes position at the edge, where the eye already is, without boxing each player
+into a container — which was the "blocky" problem in the first place.
+
+### The ledger replaces the metric strip
+
+`45 PICK SCORE / 13.3 YOUR TWO PICKS / 29.8 BEST AVAILABLE` was three numbers requiring a
+subtraction. It's now two bars on a shared scale — what you took against what was there — so
+the gap is seen rather than computed. The pick score dropped out entirely; the bars say it.
+
+### Copy
+
+"Play week 4" became "Lock in your lineup", which is what fantasy players actually call it.
+The reveal headline stopped repeating the margin — that's in the score bug now — and says the
+thing the number can't: whether the week was ever yours to win.
+
 ## Open — deliberately not decided
 
 Which sport ships first and where real data comes from. Logged in `BRIEF.md`. Agents must not

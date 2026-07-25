@@ -11,22 +11,21 @@ interface ResultProps {
 /**
  * The line that matters most, and the one worth getting right.
  *
- * A week you never could have swung is a different experience from one you
- * threw away, and saying so is the honest answer to the fact that a single week
- * is mostly noise.
+ * The margin already sits in the score bug above, so this says the thing the
+ * number can't: whether the week was ever yours to win. One you never could
+ * have swung is a different experience from one you threw away.
  */
 function headline(score: Score, opponentName: string): string {
-  const margin = Math.abs(score.margin).toFixed(1);
-
-  if (score.result === 'tied') return `Dead heat with ${opponentName}.`;
+  if (score.result === 'tied') return `A dead heat with ${opponentName}.`;
 
   if (score.result === 'won') {
-    if (score.alreadyDecided) return `Beat ${opponentName} by ${margin} — never in doubt.`;
-    return `Beat ${opponentName} by ${margin}.`;
+    return score.alreadyDecided
+      ? 'Never in doubt. Your picks were spare change.'
+      : `Your two picks took it off ${opponentName}.`;
   }
 
-  if (!score.couldHaveWon) return `${opponentName} beat you by ${margin}. Nothing on the wire changed that.`;
-  return `Lost to ${opponentName} by ${margin} — and the wire had the points.`;
+  if (!score.couldHaveWon) return 'Nothing on the wire would have won this one.';
+  return 'The points were sitting on the wire.';
 }
 
 function explain(slot: SlotResult): string {
@@ -43,19 +42,29 @@ export function Result({ score, opponentName, colorFor, statLine }: ResultProps)
     <section className="result" aria-live="polite">
       <p className="result-headline">{headline(score, opponentName)}</p>
 
-      <div className="result-meta">
-        <span>
-          <strong>{score.points}</strong>
-          <span className="result-meta-label">pick score</span>
-        </span>
-        <span>
-          <strong>{score.total.toFixed(1)}</strong>
-          <span className="result-meta-label">your two picks</span>
-        </span>
-        <span>
-          <strong>{score.bestPossible.toFixed(1)}</strong>
-          <span className="result-meta-label">best available</span>
-        </span>
+      {/*
+        Your two picks against the best two available, as one bar. The gap is
+        the whole judgement, so it's shown as a length rather than a third
+        number the reader has to subtract for themselves.
+      */}
+      <div className="ledger">
+        <div className="ledger-row">
+          <span className="ledger-label">You took</span>
+          <span className="ledger-track">
+            <span
+              className="ledger-fill is-you"
+              style={{ inlineSize: `${(score.total / (score.bestPossible || 1)) * 100}%` }}
+            />
+          </span>
+          <span className="ledger-value">{score.total.toFixed(1)}</span>
+        </div>
+        <div className="ledger-row">
+          <span className="ledger-label">Best there</span>
+          <span className="ledger-track">
+            <span className="ledger-fill is-best" style={{ inlineSize: '100%' }} />
+          </span>
+          <span className="ledger-value">{score.bestPossible.toFixed(1)}</span>
+        </div>
       </div>
 
       {score.slots.map((slot) => (
@@ -83,7 +92,12 @@ export function Result({ score, opponentName, colorFor, statLine }: ResultProps)
                   className={classes}
                   // Staggered so the board resolves down the page instead of
                   // appearing all at once — the week finishing, not a table loading.
-                  style={{ '--i': i } as React.CSSProperties}
+                  style={
+                    {
+                      '--i': i,
+                      '--spine': colorFor(entry.player.slot),
+                    } as React.CSSProperties
+                  }
                 >
                   <span className="row-rank">{entry.rank}</span>
 
