@@ -14,7 +14,7 @@ is judgement, not code.
 
 | Item | Status | Updated | Notes |
 |---|---|---|---|
-| Play it for a few days and judge whether it's fun | in progress | 2026-07-25 | The prototype exists to answer this and nothing else. Ryan can't reach it from his phone yet — see the Tailscale row. |
+| Play it for a few days and judge whether it's fun | in progress | 2026-07-25 | **Live at https://bananas-mac-mini.tail6d208c.ts.net** (tailnet only). The prototype exists to answer this and nothing else. |
 | Decide whether one week is too random to feel fair | in progress | 2026-07-25 | Partly addressed: the reveal now says when a week was already decided either way. Whether that's enough needs play, not design. |
 | Confirm football as the shipping sport | blocked | 2026-07-25 | **Ryan's call.** Everything about the design now assumes weekly scoring, a waiver culture and positions on a field. The mock is a fictional gridiron league. Confirming it unblocks the data question. |
 | Find week-by-week historical data | blocked | 2026-07-25 | **Unblocks once the sport is confirmed.** Needs weekly box scores plus historical injury designations — the injury layer is now load-bearing, not decoration. |
@@ -32,7 +32,6 @@ is judgement, not code.
 
 | Item | Status | Updated | Notes |
 |---|---|---|---|
-| Serve over Tailscale for phone testing | blocked | 2026-07-25 | **Unblocks when Ryan opens Tailscale.app and signs in once** — `tailscaled` isn't running machine-wide and the auth needs a GUI no agent can drive. Confirmed still down today. Until then the dev server is localhost-only and Ryan can only see screenshots. |
 | Difficulty tuning | planned | 2026-07-25 | Currently: season form picks the winner ~39% of the time against 20% for guessing, and the picks decide the matchup 53% of weeks. Real data may not land in that band. |
 | More than two openings, or two of the same position | parked | 2026-07-25 | Deliberately excluded — same-slot openings turn two independent judgements into one combined optimisation, which is a different game. |
 
@@ -40,6 +39,7 @@ is judgement, not code.
 
 | Item | Shipped | Notes |
 |---|---|---|
+| Live on the tailnet | 2026-07-25 | https://bananas-mac-mini.tail6d208c.ts.net — LaunchAgent keeps `vite preview` on 4173, `tailscale serve` proxies 443. `npm run build` is the deploy. Verified by playing the live URL through in a browser. |
 | Single screen, no scroll, with a camera | 2026-07-25 | Field owns the viewport; the wire rises over it when you tap a gap and the camera pushes in on that spot. Same panel shows the board after the reveal. |
 | Broadcast redesign — everything except the field | 2026-07-25 | Score bug, colour spines, self-hosted Barlow, no monospace anywhere. Signature is the live "need" figure that falls as you fill each opening. |
 | Full-bleed stadium treatment — the page *is* the field | 2026-07-25 | Turf gradient owns the whole stage, translucent panels over it, mown stripes, floodlight, grain, head shadows. |

@@ -114,12 +114,32 @@ edge in the game, both on the wire and on the opponent's field.
 
 ```bash
 npm install
-npm run dev      # vite dev server
+npm run dev      # vite dev server on 0.0.0.0:5173
 npm test         # vitest
-npm run build
+npm run build    # → dist/, which is what's live
 ```
 
-Serve it on `0.0.0.0`, not `127.0.0.1` — see the Tailscale section of `~/CLAUDE.md`.
+## It's live
+
+**https://bananas-mac-mini.tail6d208c.ts.net** — tailnet only, no port needed.
+
+`npm run build` *is* the deploy. A LaunchAgent
+(`~/Library/LaunchAgents/com.rybroun.daily-draft.plist`) keeps `vite preview` up on port
+4173 with `KeepAlive`, and `tailscale serve` proxies 443 to it. Preview reads `dist/` from
+disk per request, so a rebuild goes live immediately with no restart.
+
+```bash
+launchctl print gui/$(id -u)/com.rybroun.daily-draft   # is it up
+tailscale serve status                                  # what's proxied
+tail -f .serve.log                                      # server output
+```
+
+Two other services already sit on ports 4200 and 8888 — **never run `tailscale serve reset`**,
+it would take those down too. Never use `tailscale funnel`; that publishes to the open
+internet.
+
+`vite.config.ts` allows `.ts.net` hosts, which preview would otherwise reject when the Host
+header is a MagicDNS name rather than localhost.
 
 ## Open questions — do not invent answers
 
