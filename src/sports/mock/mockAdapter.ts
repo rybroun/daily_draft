@@ -67,7 +67,7 @@ export const mockAdapter: SportAdapter = {
 
   projectedValue: (player) => projectPoints(player),
 
-  slotColor: (slot) => SLOT_COLORS[slot] ?? '#7c879b',
+  slotColor: (slot) => SLOT_COLORS[slot] ?? 'var(--dst)',
 };
 
 /** A player already in somebody's lineup — theirs or yours. */

@@ -405,6 +405,46 @@ And a screenshot is not proof of "no scroll": the page can fit while a panel ins
 silently scrolls. Every state in the play-through now asserts `scrollHeight <= innerHeight`
 *and* that the rows are within their container.
 
+## 2026-07-25 — Daylight
+
+Ryan: *"I'd like this to be, like, a light fun game. Maybe there's a dark mode, but let's
+design in light mode."*
+
+### Same match, three o'clock kickoff
+
+Rather than lightening the night theme — which produces grey mush — the whole palette follows
+from moving the fixture to a Sunday afternoon. Sky above, sunlit grass, chalked white lines,
+and shadows that *fall* instead of glows that bloom. Every value in the light theme is
+derivable from that one decision, which is why it hangs together.
+
+Dark mode is the same match under floodlights, and is now a token swap rather than a second
+stylesheet. Components read tokens only.
+
+### Position colours moved into CSS
+
+`slotColor` now returns `var(--wr)` rather than a hex string. The adapter still owns *which*
+colour a position gets; the theme owns what that colour actually is, because the same position
+has to read on white grass at three o'clock and on dark grass at night, and those are not the
+same value. Core is unaffected — it was always an opaque string.
+
+Tight ends broke the fantasy convention and went violet. Orange is now the player's own team
+colour, and two oranges at pill size is one too many.
+
+### Labels, not text, on grass
+
+Bright turf makes bare white text unreadable and bare dark text muddy, so every name on the
+field sits on a small white label. It reads at any brightness and, as a side effect, looks
+more like a game and less like a chart.
+
+### One real bug the light theme exposed
+
+At the reveal every head shows a figure, and all nine were being painted in the team colour —
+so "yours" stopped meaning anything at exactly the moment it matters most. The team colour is
+now reserved for the two you actually picked; everyone else gets a neutral chip.
+
+Worth noting this was equally wrong in the dark theme and had shipped unnoticed. Rebuilding
+the palette is what surfaced it.
+
 ## Open — deliberately not decided
 
 Which sport ships first and where real data comes from. Logged in `BRIEF.md`. Agents must not

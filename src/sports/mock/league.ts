@@ -32,16 +32,23 @@ export const OPENABLE: RosterSlot[] = ['RB', 'WR', 'TE'];
 
 /**
  * Position colours, following the convention every fantasy app already trained
- * its users on: the passer warm, the backs green, receivers blue, tight ends
- * orange. Borrowed as a language, not copied from any one of them.
+ * its users on: the passer warm, the backs green, receivers blue. Borrowed as a
+ * language, not copied from any one of them.
+ *
+ * Returned as custom properties rather than hex so the theme owns the actual
+ * values — the same position has to read on white grass at three o'clock and on
+ * dark grass at night, and those aren't the same colour.
+ *
+ * Tight ends break the convention and go violet: the usual orange is now the
+ * player's own team colour, and two oranges at pill size is one too many.
  */
 export const SLOT_COLORS: Record<RosterSlot, string> = {
-  QB: '#e8556d',
-  RB: '#2fb98a',
-  WR: '#4a9ff5',
-  TE: '#f0883c',
-  K: '#a78bfa',
-  DST: '#7c879b',
+  QB: 'var(--qb)',
+  RB: 'var(--rb)',
+  WR: 'var(--wr)',
+  TE: 'var(--te)',
+  K: 'var(--k)',
+  DST: 'var(--dst)',
 };
 
 export const SLOT_LABELS: Record<RosterSlot, string> = {

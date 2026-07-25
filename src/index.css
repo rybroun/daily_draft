@@ -26,32 +26,97 @@
   src: url('/fonts/barlow-cond-700.woff2') format('woff2');
 }
 
+/*
+  Light is the game's real face: a three-o'clock kickoff rather than a floodlit
+  midweek one. Everything below follows from daylight — sky above, sunlit grass,
+  chalked white lines, and shadows that fall rather than glows that bloom.
+
+  Dark mode is the same match at night. Components only ever read tokens, so the
+  two are a swap rather than two stylesheets.
+*/
 :root {
-  /* Ground pulled from the turf, not from a neutral ramp. */
-  --pitch: #070c09;
-  --dusk: #0a1710;
-  --turf-deep: #0d2a1a;
-  --turf-lit: #1f5c36;
-  --turf-glow: #2c7645;
+  --sky-high: #dcebf4;
+  --sky-low: #eef5f8;
+  --paper: #ffffff;
+  --panel: #f4f8f7;
 
-  --bone: #f2f0e8;
-  --ash: #8a9a90;
-  --slate: #5f6f67;
-  --hairline: #ffffff14;
+  --turf-far: #4a9755;
+  --turf-near: #66b566;
+  --turf-sun: #7cc571;
+  --line-chalk: #ffffffcc;
+  --mow: #ffffff1c;
+  --mow-dark: #0000000a;
 
-  /* Two team colours, warm against cool, neither fighting the position pills. */
-  --you: #f5b841;
-  --them: #6f8faf;
-  --live: #ff5a45;
-  --clear: #4fd694;
+  --ink: #14231c;
+  --muted: #5f7269;
+  --faint: #8b9d94;
+  --hairline: #14231c14;
+  --edge: #14231c1f;
+
+  /* Two team colours: yours warm, theirs cool, both legible on grass and paper. */
+  --you: #e2542b;
+  --you-ink: #ffffff;
+  --them: #2f4a6d;
+  --them-ink: #ffffff;
+  --win: #12854e;
+  --loss: #c62b39;
+
+  --qb: #c42e4e;
+  --rb: #0b8457;
+  --wr: #1f6fb2;
+  --te: #7a4fbf;
+  --k: #a8790c;
+  --dst: #4a5c6a;
+
+  --shadow-lift: 0 0.5rem 1.5rem #14231c1f;
+  --shadow-panel: 0 -0.75rem 2rem #14231c26;
 
   --display: 'Barlow Condensed', 'Avenir Next Condensed', 'Arial Narrow', sans-serif;
   --body: 'Barlow', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
-  color-scheme: dark;
+  color-scheme: light dark;
   font-family: var(--body);
   font-synthesis: none;
   -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sky-high: #050908;
+    --sky-low: #0a1510;
+    --paper: #12241c;
+    --panel: #0d1c15;
+
+    --turf-far: #0e2a1a;
+    --turf-near: #1f5c36;
+    --turf-sun: #2c7645;
+    --line-chalk: #ffffff2e;
+    --mow: #ffffff0d;
+    --mow-dark: #0000001f;
+
+    --ink: #f1f3ef;
+    --muted: #93a89c;
+    --faint: #63776c;
+    --hairline: #ffffff14;
+    --edge: #ffffff1f;
+
+    --you: #f5b841;
+    --you-ink: #1a1204;
+    --them: #7ea3c9;
+    --them-ink: #0a141c;
+    --win: #4fd694;
+    --loss: #ff5a45;
+
+    --qb: #e8556d;
+    --rb: #2fb98a;
+    --wr: #4a9ff5;
+    --te: #b79bfa;
+    --k: #e0b44a;
+    --dst: #8c99ab;
+
+    --shadow-lift: 0 0.5rem 1.5rem #00000073;
+    --shadow-panel: 0 -0.75rem 2rem #000000a6;
+  }
 }
 
 * {
@@ -60,15 +125,15 @@
   padding: 0;
 }
 
-html, body {
+html,
+body {
   block-size: 100%;
   overflow: hidden;
 }
 
 body {
-  min-block-size: 100vh;
-  color: var(--bone);
-  background: var(--pitch);
+  color: var(--ink);
+  background: var(--sky-low);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -96,6 +161,7 @@ body {
   flex-direction: column;
   overflow: hidden;
   padding-block-start: 0.75rem;
+  background: linear-gradient(to bottom, var(--sky-high), var(--sky-low));
 }
 
 .stage {
@@ -107,22 +173,20 @@ body {
   overflow: hidden;
   background: linear-gradient(
     to bottom,
-    var(--pitch) 0%,
-    var(--dusk) 8%,
-    var(--turf-deep) 22%,
-    var(--turf-lit) 54%,
-    var(--turf-deep) 84%,
-    var(--pitch) 100%
+    var(--turf-far) 0%,
+    var(--turf-near) 42%,
+    var(--turf-far) 94%
   );
 }
 
+/* Sunlight falling across the middle of the pitch. */
 .stage-light {
   position: absolute;
-  inset-block-start: -10%;
+  inset-block-start: 4%;
   inset-inline: -15%;
-  block-size: 70%;
+  block-size: 72%;
   pointer-events: none;
-  background: radial-gradient(50% 50% at 50% 40%, #ffeec225, transparent 70%);
+  background: radial-gradient(50% 50% at 50% 42%, #fffbe626, transparent 72%);
   z-index: 0;
 }
 
@@ -150,14 +214,13 @@ body {
   font-size: 1.0625rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--bone);
 }
 
 .masthead-week {
   flex: 1;
   font-size: 0.75rem;
   letter-spacing: 0.04em;
-  color: var(--slate);
+  color: var(--muted);
 }
 
 .streak {
@@ -172,11 +235,11 @@ body {
 
 .streak-label {
   font-family: var(--body);
-  font-weight: 400;
+  font-weight: 600;
   font-size: 0.625rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--slate);
+  color: var(--faint);
 }
 
 /* ---- score bug --------------------------------------------------------- */
@@ -209,12 +272,12 @@ body {
   font-size: 0.8125rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #1a1204;
+  color: var(--you-ink);
   background: var(--you);
 }
 
 .bug-team.is-them .bug-chip {
-  color: #0a141c;
+  color: var(--them-ink);
   background: var(--them);
 }
 
@@ -224,7 +287,6 @@ body {
   font-size: 2.25rem;
   line-height: 0.9;
   letter-spacing: -0.005em;
-  text-shadow: 0 0.125rem 1.25rem #000000a6;
 }
 
 .bug-week {
@@ -233,7 +295,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--slate);
+  color: var(--faint);
 }
 
 /*
@@ -255,7 +317,7 @@ body {
 .need-tail {
   font-size: 0.9375rem;
   letter-spacing: 0.12em;
-  color: var(--ash);
+  color: var(--muted);
 }
 
 .need-figure {
@@ -263,26 +325,24 @@ body {
   line-height: 0.85;
   letter-spacing: -0.01em;
   color: var(--you);
-  text-shadow: 0 0 1.75rem #f5b84159;
   transition: color 0.2s ease;
 }
 
 .bug.is-won .need-figure,
 .bug.is-won .need-verb {
-  color: var(--clear);
-  text-shadow: 0 0 1.75rem #4fd69459;
+  color: var(--win);
 }
 
 .bug.is-lost .need-figure,
 .bug.is-lost .need-verb {
-  color: var(--live);
-  text-shadow: 0 0 1.75rem #ff5a4559;
+  color: var(--loss);
 }
 
 /* ---- side switch ------------------------------------------------------- */
 
 .sides {
   position: relative;
+  z-index: 1;
   display: flex;
   gap: 0.375rem;
   margin-inline: 1rem;
@@ -292,10 +352,10 @@ body {
   flex: 1;
   padding: 0.4375rem 0.5rem 0.375rem;
   border: 0;
-  border-block-start: 2px solid transparent;
-  background: #04100a80;
-  backdrop-filter: blur(8px);
-  color: var(--slate);
+  border-block-end: 2px solid transparent;
+  border-radius: 0.25rem 0.25rem 0 0;
+  background: color-mix(in srgb, var(--paper) 55%, transparent);
+  color: color-mix(in srgb, var(--ink) 60%, transparent);
   font: inherit;
   font-size: 0.75rem;
   font-weight: 600;
@@ -307,12 +367,12 @@ body {
 }
 
 .sides-tab.is-on {
-  background: #06170ecc;
-  color: var(--bone);
+  background: var(--paper);
+  color: var(--ink);
 }
 
-.sides-tab.is-you.is-on { border-block-start-color: var(--you); }
-.sides-tab.is-them.is-on { border-block-start-color: var(--them); }
+.sides-tab.is-you.is-on { border-block-end-color: var(--you); }
+.sides-tab.is-them.is-on { border-block-end-color: var(--them); }
 
 /* ---- the field --------------------------------------------------------- */
 
@@ -321,7 +381,6 @@ body {
   position: relative;
   flex: 1;
   min-block-size: 0;
-  margin-block-start: 0.375rem;
   overflow: hidden;
 }
 
@@ -345,26 +404,33 @@ body {
   inset: 0;
   pointer-events: none;
   background:
-    /* vignette — hard enough that the ground has a middle and edges */
-    radial-gradient(85% 62% at 50% 44%, transparent 38%, #030d08e0 100%),
-    /* yard lines */
+    /* yard lines, chalked on */
     repeating-linear-gradient(
       to bottom,
-      transparent 0 calc(12.5% - 1.5px),
-      #ffffff26 calc(12.5% - 1.5px) 12.5%
+      transparent 0 calc(12.5% - 2px),
+      var(--line-chalk) calc(12.5% - 2px) 12.5%
     ),
-    /* mown stripes, cut back so they texture the grass without bleaching it */
-    repeating-linear-gradient(to bottom, #ffffff0d 0 12.5%, #0000001f 12.5% 25%),
-    radial-gradient(58% 38% at 50% 40%, var(--turf-glow), transparent 76%);
+    /* mown stripes */
+    repeating-linear-gradient(to bottom, var(--mow) 0 12.5%, var(--mow-dark) 12.5% 25%),
+    /* the sun on the middle of the park */
+    radial-gradient(58% 40% at 50% 42%, var(--turf-sun), transparent 76%);
 }
 
+/* Grain, drawn inline — keeps the grass from reading as flat vector fill. */
 .field-turf::after {
   content: '';
   position: absolute;
   inset: 0;
-  opacity: 0.4;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  opacity: 0.13;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+}
+
+@media (prefers-color-scheme: dark) {
+  .field-turf::after {
+    opacity: 0.38;
+    mix-blend-mode: overlay;
+  }
 }
 
 .spot {
@@ -375,8 +441,10 @@ body {
   inline-size: 5.75rem;
   translate: -50% -50%;
   text-align: center;
+  transition: opacity 0.35s ease;
 }
 
+/* A shadow on the grass — the one cheap trick that makes them stand on it. */
 .spot::before {
   content: '';
   position: absolute;
@@ -384,7 +452,7 @@ body {
   inline-size: 2.25rem;
   block-size: 0.5rem;
   border-radius: 50%;
-  background: radial-gradient(closest-side, #000000a8, transparent);
+  background: radial-gradient(closest-side, #0e2a1a52, transparent);
 }
 
 .spot-head {
@@ -393,17 +461,13 @@ body {
   place-items: center;
   inline-size: 2.375rem;
   block-size: 2.375rem;
-  border: 2px solid var(--slot-color, #ffffff5c);
+  border: 2.5px solid var(--slot-color, var(--muted));
   border-radius: 50%;
-  background:
-    radial-gradient(120% 120% at 50% 0%, #ffffff1f, transparent 60%),
-    #061710e0;
-  color: var(--slot-color, var(--bone));
+  background: var(--paper);
+  color: var(--slot-color, var(--ink));
   font: inherit;
   padding: 0;
-  box-shadow:
-    0 0 0.875rem color-mix(in srgb, var(--slot-color, #fff) 40%, transparent),
-    0 0.25rem 0.75rem #00000080;
+  box-shadow: 0 0.1875rem 0.5rem #0e2a1a38;
   transition: transform 0.12s ease, box-shadow 0.2s ease;
 }
 
@@ -415,7 +479,7 @@ body {
   block-size: 1.375rem;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.7;
+  stroke-width: 1.9;
   stroke-linecap: round;
   animation: drop-in 0.32s cubic-bezier(0.34, 1.4, 0.64, 1);
 }
@@ -425,16 +489,20 @@ body {
   to { opacity: 1; transform: none; }
 }
 
+/* A label on the grass reads at any brightness; bare text on turf doesn't. */
 .spot-name {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  padding-block-start: 0.375rem;
-  font-size: 0.75rem;
+  margin-block-start: 0.3125rem;
+  padding: 0.0625rem 0.3125rem;
+  border-radius: 0.1875rem;
+  background: var(--paper);
+  box-shadow: 0 0.125rem 0.375rem #0e2a1a2e;
+  font-size: 0.6875rem;
   font-weight: 600;
-  line-height: 1.15;
-  text-shadow: 0 1px 0.375rem #000000e6;
+  line-height: 1.25;
 }
 
 .spot-status {
@@ -444,50 +512,58 @@ body {
   font-size: 0.5625rem;
   font-weight: 700;
   letter-spacing: 0.06em;
+  color: #ffffff;
 }
 
-.spot-status.is-out { background: var(--live); color: #24060a; }
-.spot-status.is-q { background: var(--you); color: #1a1204; }
+.spot-status.is-out { background: var(--loss); }
+.spot-status.is-q { background: var(--you); color: var(--you-ink); }
 
 .spot-figure {
+  margin-block-start: 0.1875rem;
+  padding: 0 0.25rem;
+  border-radius: 0.125rem;
+  background: #0e2a1a5c;
   font-family: var(--display);
   font-weight: 700;
   font-size: 0.8125rem;
-  letter-spacing: 0.01em;
-  color: #b9c9bf;
-  text-shadow: 0 1px 0.375rem #000000e6;
+  color: #ffffff;
 }
 
+/*
+  At the reveal every head shows a figure, so the team colour has to stay
+  reserved for the two you actually chose — otherwise "yours" stops meaning
+  anything at exactly the moment it matters most.
+*/
 .spot-figure.is-final {
-  color: var(--you);
-  text-shadow: 0 0 0.75rem #f5b84199, 0 1px 0.375rem #000000e6;
+  background: #0e2a1a99;
+  color: #ffffff;
 }
 
-.spot {
-  transition: opacity 0.35s ease;
+.spot.is-opening.is-filled .spot-figure.is-final {
+  background: var(--you);
+  color: var(--you-ink);
 }
 
 /* Everything the camera isn't looking at steps back. */
-.spot.is-hushed {
-  opacity: 0.28;
-}
+.spot.is-hushed { opacity: 0.32; }
 
 .spot.is-focused .spot-head {
   border-color: var(--you);
-  box-shadow: 0 0 0 4px #f5b84133, 0 0 1.5rem #f5b84188, 0 0.25rem 0.75rem #00000080;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--you) 28%, transparent),
+    0 0.1875rem 0.5rem #0e2a1a38;
 }
 
 .spot.has-out .spot-head {
-  border-color: var(--live);
-  box-shadow: 0 0 0.875rem #ff5a4555, 0 0.25rem 0.75rem #00000080;
-  opacity: 0.5;
+  border-color: var(--loss);
+  opacity: 0.6;
 }
 
 .spot.is-opening.is-empty .spot-head {
   border-style: dashed;
   border-color: var(--you);
   color: var(--you);
-  background: #04120b99;
+  background: color-mix(in srgb, var(--paper) 80%, transparent);
 }
 
 .spot-plus {
@@ -501,8 +577,8 @@ body {
   font-size: 0.75rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--you);
-  text-shadow: 0 0 0.625rem #f5b84166, 0 1px 0.375rem #000000e6;
+  color: var(--you-ink);
+  background: var(--you);
 }
 
 .spot.is-active .spot-head {
@@ -510,22 +586,22 @@ body {
 }
 
 @keyframes beacon {
-  0%, 100% { box-shadow: 0 0 0 0 #f5b84188, 0 0 1rem #f5b84144; }
-  50% { box-shadow: 0 0 0 0.5rem #f5b84100, 0 0 1.5rem #f5b84166; }
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--you) 60%, transparent); }
+  50% { box-shadow: 0 0 0 0.5rem color-mix(in srgb, var(--you) 0%, transparent); }
 }
 
 .spot.is-opening.is-filled .spot-head {
   border-color: var(--you);
-  box-shadow: 0 0 0 3px #f5b8412e, 0 0 1rem #f5b84166, 0 0.25rem 0.75rem #00000080;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--you) 22%, transparent),
+    0 0.1875rem 0.5rem #0e2a1a38;
 }
 
 /* ---- rows -------------------------------------------------------------- */
 
 .rows {
   border-radius: 0.5rem;
-  background: linear-gradient(180deg, #08161099, #04100ae0);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 1rem 2rem #00000059;
+  background: var(--paper);
   overflow: hidden;
 }
 
@@ -560,8 +636,8 @@ body {
   transition: background 0.15s ease;
 }
 
-.row.is-tappable:hover { background: #ffffff0a; }
-.row.is-tappable:active { background: #ffffff14; }
+.row.is-tappable:hover { background: var(--panel); }
+.row.is-tappable:active { background: color-mix(in srgb, var(--you) 12%, transparent); }
 
 .row.is-tappable:focus-visible {
   outline: 2px solid var(--you);
@@ -569,7 +645,7 @@ body {
 }
 
 .row.is-selected {
-  background: linear-gradient(90deg, #f5b8412e, #f5b8410a);
+  background: color-mix(in srgb, var(--you) 14%, transparent);
 }
 
 .pill {
@@ -601,7 +677,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--slate);
+  color: var(--faint);
 }
 
 .tag {
@@ -611,10 +687,11 @@ body {
   font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.06em;
+  color: #ffffff;
 }
 
-.tag-out { background: var(--live); color: #24060a; }
-.tag-q { background: var(--you); color: #1a1204; }
+.tag-out { background: var(--loss); }
+.tag-q { background: var(--you); color: var(--you-ink); }
 
 .row-figure {
   display: flex;
@@ -635,9 +712,10 @@ body {
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--slate);
+  color: var(--faint);
 }
 
+/* Full width, so a stat line gets the pill's column back and stays one line. */
 .row-form {
   grid-column: 1 / -1;
   display: flex;
@@ -659,18 +737,17 @@ body {
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--slate);
+  color: var(--faint);
 }
 
 .form-stats {
   font-size: 0.6875rem;
-  font-weight: 400;
   letter-spacing: 0.005em;
   white-space: nowrap;
-  color: var(--ash);
+  color: var(--muted);
 }
 
-/* ---- the sheet -------------------------------------------------------- */
+/* ---- the sheet --------------------------------------------------------- */
 
 /*
   Rises over the field when you're looking at one spot. Absolutely placed so it
@@ -686,8 +763,10 @@ body {
   flex-direction: column;
   max-block-size: 67%;
   padding: 0.625rem 0.75rem 0.75rem;
-  background: linear-gradient(180deg, #061410f2, #030b07);
-  box-shadow: 0 -1rem 2.5rem #000000a6;
+  border-start-start-radius: 1rem;
+  border-start-end-radius: 1rem;
+  background: var(--panel);
+  box-shadow: var(--shadow-panel);
   transform: translateY(101%);
   visibility: hidden;
   transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.42s;
@@ -712,14 +791,14 @@ body {
   font-weight: 700;
   letter-spacing: 0.01em;
   text-transform: uppercase;
-  color: var(--ash);
+  color: var(--muted);
 }
 
 .sheet-note {
   grid-column: 1 / -1;
   font-size: 0.6875rem;
   line-height: 1.35;
-  color: var(--slate);
+  color: var(--faint);
 }
 
 .sheet-close {
@@ -729,8 +808,8 @@ body {
   block-size: 1.75rem;
   border: 0;
   border-radius: 50%;
-  background: #ffffff12;
-  color: var(--ash);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  color: var(--muted);
   font-size: 0.75rem;
   line-height: 1;
   cursor: pointer;
@@ -761,34 +840,34 @@ body {
   inline-size: 100%;
   padding: 0.875rem 1rem 0.8125rem;
   border: 0;
-  border-radius: 0.375rem;
+  border-radius: 0.5rem;
   background: var(--you);
-  color: #1a1204;
+  color: var(--you-ink);
   font-family: var(--display);
   font-size: 1.1875rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
-  box-shadow: 0 0.5rem 1.5rem #f5b84140;
+  box-shadow: var(--shadow-lift);
   transition: transform 0.1s ease, box-shadow 0.2s ease;
 }
 
 .kickoff:not(:disabled):active {
   transform: translateY(1px);
-  box-shadow: 0 0.25rem 0.75rem #f5b84133;
+  box-shadow: 0 0.25rem 0.75rem #14231c1f;
 }
 
 .kickoff:disabled {
-  background: transparent;
-  border: 1px solid #ffffff1a;
-  color: var(--slate);
-  box-shadow: none;
+  background: var(--paper);
+  color: var(--faint);
+  box-shadow: 0 0.125rem 0.5rem #0e2a1a1f;
   cursor: default;
 }
 
 /* ---- the reveal -------------------------------------------------------- */
 
+/* Sits on the grass, so its type is chalk-white rather than ink. */
 .result {
   position: relative;
   z-index: 2;
@@ -803,6 +882,8 @@ body {
   letter-spacing: 0.005em;
   text-transform: uppercase;
   text-wrap: balance;
+  color: #ffffff;
+  text-shadow: 0 1px 0.375rem #0e2a1a80;
   animation: rise 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -821,39 +902,45 @@ body {
   gap: 0.625rem;
 }
 
-.ledger-label {
+.ledger-label,
+.result-hint {
   font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--slate);
+  color: #ffffff;
+  text-shadow: 0 1px 0.25rem #0e2a1a73;
+}
+
+.result-hint {
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-size: 0.6875rem;
 }
 
 .ledger-track {
   block-size: 0.5rem;
-  border-radius: 0.0625rem;
-  background: #ffffff0f;
+  border-radius: 0.25rem;
+  background: #0e2a1a3d;
   overflow: hidden;
 }
 
 .ledger-fill {
   display: block;
   block-size: 100%;
+  border-radius: 0.25rem;
 }
 
 .ledger-fill.is-you { background: var(--you); }
-.ledger-fill.is-best { background: color-mix(in srgb, var(--clear) 55%, transparent); }
+.ledger-fill.is-best { background: #ffffff; }
 
 .ledger-value {
   font-family: var(--display);
   font-weight: 700;
   font-size: 1.0625rem;
   line-height: 1;
-}
-
-.result-hint {
-  font-size: 0.6875rem;
-  color: var(--slate);
+  color: #ffffff;
+  text-shadow: 0 1px 0.25rem #0e2a1a73;
 }
 
 .rows.is-board { list-style: none; }
@@ -875,18 +962,18 @@ body {
   font-family: var(--display);
   font-weight: 700;
   font-size: 0.8125rem;
-  color: var(--slate);
+  color: var(--faint);
 }
 
-.row.is-best .row-rank { color: var(--clear); }
-.row.is-best { background: linear-gradient(90deg, #4fd6941c, transparent); }
-.row.is-yours { background: linear-gradient(90deg, #f5b84129, #f5b8410a); }
+.row.is-best .row-rank { color: var(--win); }
+.row.is-best { background: color-mix(in srgb, var(--win) 10%, transparent); }
+.row.is-yours { background: color-mix(in srgb, var(--you) 14%, transparent); }
 
 .row-yours {
   padding: 0.0625rem 0.25rem 0;
   border-radius: 0.125rem;
   background: var(--you);
-  color: #1a1204;
+  color: var(--you-ink);
   font-family: var(--display);
   font-size: 0.625rem;
   font-weight: 700;
@@ -899,11 +986,11 @@ body {
   inset-block-end: 0;
   inset-inline-start: 0;
   block-size: 2px;
-  background: var(--slate);
+  background: var(--edge);
 }
 
-.row.is-best .row-bar { background: var(--clear); box-shadow: 0 0 0.5rem #4fd69488; }
-.row.is-yours .row-bar { background: var(--you); box-shadow: 0 0 0.5rem #f5b84188; }
+.row.is-best .row-bar { background: var(--win); }
+.row.is-yours .row-bar { background: var(--you); }
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -914,6 +1001,6 @@ body {
   }
 
   .spot.is-active .spot-head {
-    box-shadow: 0 0 0 0.25rem #f5b84166, 0 0 1rem #f5b84155;
+    box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--you) 45%, transparent);
   }
 }
