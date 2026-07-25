@@ -40,6 +40,7 @@ is judgement, not code.
 
 | Item | Shipped | Notes |
 |---|---|---|
+| Full-bleed stadium treatment — the page *is* the field | 2026-07-25 | Turf gradient owns the whole stage, translucent panels over it, mown stripes, floodlight, grain, head shadows. Warm/cool split for you vs them. |
 | Opponent matchup — named team, full lineup, win/loss result | 2026-07-25 | Picks change the outcome 53% of weeks; best-vs-worst picks swing the win rate 24%→76%. |
 | Injury designations as visible pre-kickoff information | 2026-07-25 | OUT scores and projects zero. A trap on the wire, an edge on the opponent's field. |
 | Projections from visible form only | 2026-07-25 | `projectedValue` never reads `outcome`, asserted by test. |
@@ -48,7 +49,7 @@ is judgement, not code.
 | Selection through the field itself | 2026-07-25 | Tap an open head to choose which opening the wire fills. No popups, no tooltips. |
 | Waiver-wire redesign — field, two openings, hidden outcomes | 2026-07-25 | Replaced the single-slot season puzzle. |
 | `MockAdapter` — a fictional gridiron league | 2026-07-25 | Invented players and clubs, real football positions. |
-| 74 Vitest tests + a 36-check browser play-through | 2026-07-25 | Written test-first. Includes tests pinning the design bets: form must beat guessing without being the answer, and projections must not see the future. |
+| 74 Vitest tests + a 38-check browser play-through | 2026-07-25 | Written test-first. Includes tests pinning the design bets: form must beat guessing without being the answer, projections must not see the future, and the page must never scroll sideways on a phone. |
 | Vite + React + TS scaffold, Vitest, `0.0.0.0` dev server | 2026-07-25 | |
 | Streak persisted in `localStorage` | 2026-07-25 | Survives refresh, including a half-filled lineup. Corrupt storage degrades to a fresh game. |
 | First prototype — single slot, season scoring | 2026-07-25 | Superseded the same day. Proved the loop and the adapter seam. |

@@ -248,6 +248,59 @@ No popups and no tooltips — neither works on a phone. Tapping an open head set
 the wire below is filling, and picking advances to the other one automatically. The field is
 both the display and the control surface, so the whole game is two taps and a button.
 
+## 2026-07-25 — Making it feel like a game rather than a dashboard
+
+Ryan, on the rows-and-pills version: *"still very robotic."* Fair. It was a well-organised
+utility screen, and the field was a green rectangle sitting on a grey page.
+
+### The page is the stadium, not a page with a field on it
+
+The single change that did most of the work. The turf gradient moved off the field element
+and onto the whole stage: night sky at the top, floodlit grass through the middle, back down
+into the dark where the wire begins. The field is edge-to-edge with no border or corner
+radius, so there's nothing to mark where "the graphic" ends and "the app" starts.
+
+The wire panels underneath went translucent with a blur, so the green tints up through them.
+One continuous space instead of three stacked rooms.
+
+The gradient belongs to `.stage`, not `body`. A `background-attachment: fixed` version looked
+right in a screenshot and was wrong in the hand — the grass stays glued to the middle of the
+viewport while the waiver list scrolls through it.
+
+### Texture, because flat vectors read as diagrams
+
+Mown stripes, yard lines, a vignette, a pool of floodlight on the grass, and a fine grain
+drawn with an inline SVG turbulence filter. The grain is doing more than it looks: it's the
+difference between a rendered pitch and a CSS gradient.
+
+Heads got a shadow on the turf, a slot-coloured glow, and an inner highlight so they read as
+objects standing on the ground rather than circles printed on it.
+
+### Warm against cool
+
+You are gold, the opponent is steel blue, and the matchup bar is one bar split between them.
+Neither collides with the position colours. Everything of yours — your streak, your picks,
+your filled openings, the kickoff button — carries the same warm accent, so ownership is
+readable without a label.
+
+### Motion, sparingly
+
+A head drops into a slot when you pick it (keyed on the occupant, so React remounts the glyph
+and it replays). The reveal boards resolve down the page on a 55ms stagger rather than
+appearing at once — a week finishing, not a table loading. Everything is disabled wholesale
+under `prefers-reduced-motion`.
+
+The stagger caught a real lesson: the first screenshot of it showed rows 3–5 missing, because
+the capture landed mid-animation. That's now an explicit check — wait for every board row to
+settle at full opacity before believing the screen.
+
+### Two bugs the visual pass exposed
+
+The floodlight glow, inset negatively past the viewport, pushed the document 78px wider than
+the screen — a sideways scroll on a phone. Fixed with `overflow-x: clip` on the stage, and
+the play-through now asserts `scrollWidth <= innerWidth` on every run, because that class of
+bug is invisible in a full-page screenshot.
+
 ## Open — deliberately not decided
 
 Which sport ships first and where real data comes from. Logged in `BRIEF.md`. Agents must not

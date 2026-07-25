@@ -66,7 +66,7 @@ export function Result({ score, opponentName, colorFor, statLine }: ResultProps)
           </h2>
 
           <ol className="rows is-board">
-            {slot.board.map((entry) => {
+            {slot.board.map((entry, i) => {
               const isPick = entry.player.id === slot.picked.player.id;
               const classes = [
                 'row',
@@ -78,7 +78,13 @@ export function Result({ score, opponentName, colorFor, statLine }: ResultProps)
                 .join(' ');
 
               return (
-                <li key={entry.player.id} className={classes}>
+                <li
+                  key={entry.player.id}
+                  className={classes}
+                  // Staggered so the board resolves down the page instead of
+                  // appearing all at once — the week finishing, not a table loading.
+                  style={{ '--i': i } as React.CSSProperties}
+                >
                   <span className="row-rank">{entry.rank}</span>
 
                   <span className="row-identity">

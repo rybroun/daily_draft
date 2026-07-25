@@ -101,7 +101,8 @@ export function Field({
                 disabled={!isOpening || revealed}
                 onClick={() => onSpotTap(spot.id)}
               >
-                {occupant ? <Head /> : <span className="spot-plus">+</span>}
+                {/* Keyed on the occupant so a fresh pick visibly drops into the slot. */}
+                {occupant ? <Head key={occupant.id} /> : <span className="spot-plus">+</span>}
               </button>
 
               <span className="spot-name">

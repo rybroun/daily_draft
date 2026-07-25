@@ -1,18 +1,21 @@
 :root {
-  --bg: #0b0d11;
-  --surface: #13161d;
-  --surface-hi: #191d26;
-  --hairline: #ffffff12;
-  --edge: #ffffff1f;
-  --ink: #f2f1ee;
-  --dim: #8d95a4;
-  --faint: #656d7c;
-  --accent: #f5b93f;
-  --good: #4ed08a;
-  --bad: #ef5a6f;
+  /* Night at a floodlit ground: black-green above, warm grass below. */
+  --night: #05090a;
+  --dusk: #081410;
+  --turf-deep: #10331f;
+  --turf-lit: #276c41;
+  --turf-glow: #358953;
 
-  --turf-a: #17331f;
-  --turf-b: #0f2617;
+  --ink: #f4f3ef;
+  --dim: #93a19a;
+  --faint: #67746e;
+  --hairline: #ffffff14;
+
+  /* You run warm, they run cool. Neither collides with a position colour. */
+  --you: #ffc247;
+  --them: #8ba4c4;
+  --good: #4fd694;
+  --bad: #ff5f79;
 
   --stat-font: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 
@@ -28,34 +31,87 @@
   padding: 0;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   min-block-size: 100vh;
-  background: var(--bg);
   color: var(--ink);
+  background: var(--night);
   -webkit-font-smoothing: antialiased;
 }
 
 .screen {
   max-inline-size: 34rem;
   margin-inline: auto;
-  padding: 1rem 1rem 4rem;
+  padding-block-end: 4rem;
+}
+
+.below {
+  padding-inline: 1rem;
+}
+
+/* ---- the stage --------------------------------------------------------- */
+
+/*
+  One vertical atmosphere: night sky, floodlit turf, then back down into the
+  dark where the wire sits. It belongs to the stage rather than the body so it
+  scrolls with the content — a fixed background would leave the grass glued to
+  the middle of the screen while you scrolled the waiver list through it.
+
+  `clip` rather than `hidden` so the glow can't spill sideways into a scrollbar
+  without turning this into its own scroll container.
+*/
+.stage {
+  position: relative;
+  padding-block-start: 1rem;
+  overflow-x: clip;
+  background: linear-gradient(
+    to bottom,
+    var(--night) 0%,
+    var(--dusk) 9%,
+    var(--turf-deep) 24%,
+    var(--turf-lit) 54%,
+    var(--turf-deep) 82%,
+    var(--night) 100%
+  );
+}
+
+/* The floodlight. Sits behind everything and never intercepts a tap. */
+.stage-light {
+  position: absolute;
+  inset-block-start: -10%;
+  inset-inline: -15%;
+  block-size: 80%;
+  pointer-events: none;
+  background: radial-gradient(50% 50% at 50% 40%, #ffeec225, transparent 70%);
+}
+
+/* The last of the turf letting go, so the wire below isn't a separate room. */
+.stage-fade {
+  block-size: 2.5rem;
+  margin-block-start: -2.5rem;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--night));
 }
 
 /* ---- masthead ---------------------------------------------------------- */
 
 .masthead {
+  position: relative;
   display: flex;
   align-items: baseline;
   gap: 0.75rem;
-  padding-block-end: 0.875rem;
+  padding: 0 1rem 0.875rem;
 }
 
 .masthead-title {
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
+  font-weight: 800;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--faint);
+  color: #cfe3d6;
 }
 
 .masthead-week {
@@ -74,18 +130,20 @@ body {
   font-family: var(--stat-font);
   font-size: 0.875rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--you);
+  text-shadow: 0 0 1rem #ffc24766;
 }
 
 .streak-mark {
   font-size: 0.625rem;
-  opacity: 0.75;
+  opacity: 0.8;
 }
 
 /* ---- matchup ----------------------------------------------------------- */
 
 .matchup {
-  padding-block-end: 1rem;
+  position: relative;
+  padding: 0 1rem 1rem;
 }
 
 .matchup-teams {
@@ -102,73 +160,95 @@ body {
 
 .matchup-label {
   font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--dim);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--you);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.matchup-side.is-them .matchup-label {
+  color: var(--them);
+}
+
 .matchup-score {
   font-family: var(--stat-font);
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0.125rem 1.5rem #0009;
 }
 
 .matchup-state {
-  padding-block-end: 0.35rem;
+  padding-block-end: 0.375rem;
   font-family: var(--stat-font);
   font-size: 0.5625rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--faint);
 }
 
-.matchup.is-won .matchup-state { color: var(--good); }
-.matchup.is-lost .matchup-state { color: var(--bad); }
+.matchup.is-won .matchup-state {
+  color: var(--good);
+  text-shadow: 0 0 1rem #4fd69466;
+}
 
-/* A single split bar reads faster than two numbers ever will. */
+.matchup.is-lost .matchup-state {
+  color: var(--bad);
+  text-shadow: 0 0 1rem #ff5f7966;
+}
+
+/* One bar, split. Warm on your side, cool on theirs. */
 .matchup-bar {
-  block-size: 5px;
+  block-size: 6px;
   border-radius: 3px;
-  background: #ffffff1f;
+  background: linear-gradient(90deg, #8ba4c455, var(--them));
+  box-shadow: inset 0 0 0 1px #ffffff14;
   overflow: hidden;
 }
 
 .matchup-fill {
   display: block;
   block-size: 100%;
-  border-radius: 2px;
-  background: linear-gradient(90deg, #6b7b95, var(--dim));
-  transition: inline-size 0.3s ease;
+  border-radius: 3px 0 0 3px;
+  background: linear-gradient(90deg, #a8761f, var(--you));
+  box-shadow: 0 0 0.75rem #ffc24766;
+  transition: inline-size 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .matchup.is-won .matchup-fill {
-  background: linear-gradient(90deg, #2f8f60, var(--good));
+  background: linear-gradient(90deg, #2c8d5e, var(--good));
+  box-shadow: 0 0 0.875rem #4fd69488;
 }
 
 .matchup.is-lost .matchup-fill {
-  background: linear-gradient(90deg, #8f3546, var(--bad));
+  background: linear-gradient(90deg, #a13347, var(--bad));
+  box-shadow: 0 0 0.875rem #ff5f7977;
 }
 
-/* ---- the pitch --------------------------------------------------------- */
+/* ---- side toggle ------------------------------------------------------- */
 
 .sides {
+  position: relative;
   display: flex;
   gap: 0.25rem;
+  margin-inline: 1rem;
   padding: 0.1875rem;
-  border-radius: 0.5rem;
-  background: var(--surface);
+  border: 1px solid #ffffff1a;
+  border-radius: 999px;
+  background: #04100a80;
+  backdrop-filter: blur(8px);
 }
 
 .sides-tab {
   flex: 1;
   padding: 0.4375rem 0.5rem;
   border: 0;
-  border-radius: 0.375rem;
+  border-radius: 999px;
   background: transparent;
   color: var(--dim);
   font: inherit;
@@ -178,34 +258,51 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .sides-tab.is-on {
-  background: var(--surface-hi);
+  background: linear-gradient(180deg, #ffffff1f, #ffffff0d);
+  box-shadow: 0 0.125rem 0.5rem #0006;
   color: var(--ink);
 }
 
+/* ---- the field --------------------------------------------------------- */
+
+/* Edge to edge, and no background of its own — it lives in the page's light. */
 .field {
   position: relative;
-  margin-block-start: 0.5rem;
+  margin-block-start: 0.625rem;
   aspect-ratio: 4 / 5;
-  border-radius: 0.875rem;
-  overflow: hidden;
 }
 
-/* Turf drawn rather than loaded, and softened so it sits back behind the names. */
 .field-turf {
   position: absolute;
   inset: 0;
+  pointer-events: none;
   background:
-    radial-gradient(120% 90% at 50% 0%, #ffffff10, transparent 60%),
+    /* vignette, so the ground falls away at the edges without swallowing it */
+    radial-gradient(90% 70% at 50% 45%, transparent 52%, #04120b99 100%),
+    /* yard lines */
     repeating-linear-gradient(
       to bottom,
-      transparent 0 calc(10% - 1px),
-      #ffffff14 calc(10% - 1px) 10%
+      transparent 0 calc(12.5% - 1.5px),
+      #ffffff2e calc(12.5% - 1.5px) 12.5%
     ),
-    linear-gradient(to bottom, var(--turf-a), var(--turf-b));
+    /* mown stripes — the thing that actually reads as a groundskept pitch */
+    repeating-linear-gradient(to bottom, #ffffff14 0 12.5%, #00000012 12.5% 25%),
+    /* the pool of floodlight sitting on the grass */
+    radial-gradient(65% 42% at 50% 40%, var(--turf-glow), transparent 78%);
+}
+
+/* Grain, drawn inline — kills the flat vector look that reads as "diagram". */
+.field-turf::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
 }
 
 .spot {
@@ -218,18 +315,35 @@ body {
   text-align: center;
 }
 
+/* A shadow on the grass — the one cheap trick that makes them stand on it. */
+.spot::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 2.0625rem;
+  inline-size: 2.25rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #000000a8, transparent);
+}
+
 .spot-head {
+  position: relative;
   display: grid;
   place-items: center;
   inline-size: 2.375rem;
   block-size: 2.375rem;
   border: 2px solid var(--slot-color, #ffffff5c);
   border-radius: 50%;
-  background: #08150ecc;
+  background:
+    radial-gradient(120% 120% at 50% 0%, #ffffff1f, transparent 60%),
+    #061710e0;
   color: var(--slot-color, var(--ink));
   font: inherit;
   padding: 0;
-  transition: box-shadow 0.15s ease, transform 0.1s ease;
+  box-shadow:
+    0 0 0.875rem color-mix(in srgb, var(--slot-color, #fff) 40%, transparent),
+    0 0.25rem 0.75rem #00000080;
+  transition: transform 0.12s ease, box-shadow 0.2s ease;
 }
 
 .spot-head:not(:disabled) {
@@ -237,7 +351,7 @@ body {
 }
 
 .spot-head:not(:disabled):active {
-  transform: scale(0.94);
+  transform: scale(0.92);
 }
 
 .head-glyph {
@@ -247,6 +361,12 @@ body {
   stroke: currentColor;
   stroke-width: 1.7;
   stroke-linecap: round;
+  animation: drop-in 0.32s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+@keyframes drop-in {
+  from { opacity: 0; transform: translateY(-0.375rem) scale(0.8); }
+  to { opacity: 1; transform: none; }
 }
 
 .spot-name {
@@ -254,11 +374,11 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  padding-block-start: 0.3rem;
+  padding-block-start: 0.375rem;
   font-size: 0.6875rem;
   font-weight: 600;
   line-height: 1.15;
-  text-shadow: 0 1px 4px #000d;
+  text-shadow: 0 1px 0.375rem #000000e6;
 }
 
 .spot-status {
@@ -270,32 +390,36 @@ body {
   letter-spacing: 0.04em;
 }
 
-.spot-status.is-out { background: var(--bad); color: #1a0407; }
-.spot-status.is-q { background: var(--accent); color: #1a1408; }
+.spot-status.is-out { background: var(--bad); color: #26060b; }
+.spot-status.is-q { background: var(--you); color: #201804; }
 
 .spot-figure {
   font-family: var(--stat-font);
   font-size: 0.6875rem;
   font-weight: 600;
-  color: var(--dim);
-  text-shadow: 0 1px 4px #000d;
+  font-variant-numeric: tabular-nums;
+  color: #b9c9bf;
+  text-shadow: 0 1px 0.375rem #000000e6;
 }
 
 .spot-figure.is-final {
   font-weight: 700;
-  color: var(--accent);
+  color: var(--you);
+  text-shadow: 0 0 0.75rem #ffc24799, 0 1px 0.375rem #000000e6;
 }
 
-/* An injured starter should be visible at a glance from across the field. */
+/* An injured starter should read from across the field. */
 .spot.has-out .spot-head {
   border-color: var(--bad);
-  opacity: 0.55;
+  box-shadow: 0 0 0.875rem #ff5f7955, 0 0.25rem 0.75rem #00000080;
+  opacity: 0.5;
 }
 
 .spot.is-opening.is-empty .spot-head {
   border-style: dashed;
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--you);
+  color: var(--you);
+  background: #04120b99;
 }
 
 .spot-plus {
@@ -305,40 +429,39 @@ body {
 }
 
 .spot.is-opening.is-empty .spot-name {
-  color: var(--accent);
+  color: var(--you);
   font-family: var(--stat-font);
   font-size: 0.625rem;
   letter-spacing: 0.08em;
+  text-shadow: 0 0 0.625rem #ffc24766, 0 1px 0.375rem #000000e6;
 }
 
 .spot.is-opening.is-active .spot-head {
-  animation: beacon 1.8s ease-in-out infinite;
+  animation: beacon 2s ease-in-out infinite;
 }
 
 @keyframes beacon {
-  0%, 100% { box-shadow: 0 0 0 0 #f5b93f99; }
-  50% { box-shadow: 0 0 0 0.4375rem #f5b93f00; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .spot.is-opening.is-active .spot-head {
-    animation: none;
-    box-shadow: 0 0 0 0.25rem #f5b93f55;
-  }
-  .matchup-fill { transition: none; }
+  0%, 100% { box-shadow: 0 0 0 0 #ffc24788, 0 0 1rem #ffc24744; }
+  50% { box-shadow: 0 0 0 0.5rem #ffc24700, 0 0 1.5rem #ffc24766; }
 }
 
 .spot.is-opening.is-filled .spot-head {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px #f5b93f2e;
+  border-color: var(--you);
+  box-shadow: 0 0 0 3px #ffc2472e, 0 0 1rem #ffc24766, 0 0.25rem 0.75rem #00000080;
 }
 
 /* ---- rows -------------------------------------------------------------- */
 
-/* One surface, hairlines between. No stack of boxes. */
+/*
+  Translucent, so the turf tints through instead of the list sitting on an
+  opaque slab. Hairlines between rows, no border around any of them.
+*/
 .rows {
-  border-radius: 0.75rem;
-  background: var(--surface);
+  border: 1px solid #ffffff10;
+  border-radius: 0.875rem;
+  background: linear-gradient(180deg, #08161099, #04100ae0);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 1rem 2rem #00000059;
   overflow: hidden;
 }
 
@@ -359,27 +482,26 @@ body {
 }
 
 .rows > .row:last-child,
-.rows > li:last-child .row,
 .rows > li:last-child {
   border-block-end: 0;
 }
 
 .row.is-tappable {
   cursor: pointer;
-  transition: background 0.12s ease;
+  transition: background 0.15s ease;
 }
 
-.row.is-tappable:hover { background: var(--surface-hi); }
-.row.is-tappable:active { background: #ffffff0e; }
+.row.is-tappable:hover { background: #ffffff0a; }
+.row.is-tappable:active { background: #ffffff14; }
 
 .row.is-tappable:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--you);
   outline-offset: -2px;
 }
 
 .row.is-selected {
-  background: color-mix(in srgb, var(--accent) 11%, transparent);
-  box-shadow: inset 3px 0 0 var(--accent);
+  background: linear-gradient(90deg, #ffc2472e, #ffc2470a);
+  box-shadow: inset 3px 0 0 var(--you);
 }
 
 .pill {
@@ -423,8 +545,8 @@ body {
   letter-spacing: 0.04em;
 }
 
-.status-out { background: var(--bad); color: #1a0407; }
-.status-q { background: var(--accent); color: #1a1408; }
+.status-out { background: var(--bad); color: #26060b; }
+.status-q { background: var(--you); color: #201804; }
 
 .row-figure {
   display: flex;
@@ -435,9 +557,11 @@ body {
 
 .row-figure-value {
   font-family: var(--stat-font);
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: 700;
   line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
 }
 
 .row-figure-label {
@@ -472,7 +596,6 @@ body {
   color: var(--faint);
 }
 
-/* Sized so a full line fits across a phone without folding onto itself. */
 .form-stats {
   font-family: var(--stat-font);
   font-size: 0.65rem;
@@ -484,7 +607,7 @@ body {
 /* ---- the wire ---------------------------------------------------------- */
 
 .wire {
-  padding-block-start: 1.5rem;
+  padding-block-start: 0.5rem;
 }
 
 .wire-heading {
@@ -494,14 +617,15 @@ body {
   flex-wrap: wrap;
   gap: 0.15rem 0.75rem;
   padding-block-end: 0.625rem;
-  font-size: 0.9375rem;
-  font-weight: 400;
+  font-size: 1rem;
+  font-weight: 500;
   color: var(--dim);
 }
 
 .wire-heading strong {
   font-family: var(--stat-font);
   font-weight: 700;
+  text-shadow: 0 0 0.75rem currentColor;
 }
 
 .wire-note {
@@ -514,40 +638,52 @@ body {
 .kickoff {
   inline-size: 100%;
   margin-block-start: 1.125rem;
-  padding: 0.9375rem 1rem;
+  padding: 1rem;
   border: 0;
-  border-radius: 0.75rem;
-  background: var(--accent);
-  color: #1a1408;
+  border-radius: 0.875rem;
+  background: linear-gradient(180deg, #ffd06a, var(--you));
+  color: #241a03;
   font: inherit;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.01em;
   cursor: pointer;
+  box-shadow: 0 0.5rem 1.5rem #ffc24740, 0 0.125rem 0.25rem #00000059;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.kickoff:not(:disabled):active {
+  transform: translateY(1px);
+  box-shadow: 0 0.25rem 0.75rem #ffc24733;
 }
 
 .kickoff:disabled {
-  background: var(--surface);
+  background: #0a1b1299;
+  border: 1px solid #ffffff12;
   color: var(--faint);
+  box-shadow: none;
   cursor: default;
 }
 
 /* ---- the reveal -------------------------------------------------------- */
 
 .result {
-  padding-block-start: 1.5rem;
+  padding-block-start: 0.5rem;
 }
 
 .result-headline {
-  font-size: 1.3125rem;
+  font-size: 1.375rem;
   font-weight: 700;
   line-height: 1.25;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0.125rem 1.5rem #000000a6;
+  animation: rise 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .result-meta {
   display: flex;
   gap: 1.25rem;
-  padding-block: 0.875rem 0.25rem;
+  padding-block: 0.9375rem 0.25rem;
 }
 
 .result-meta span {
@@ -558,8 +694,10 @@ body {
 
 .result-meta strong {
   font-family: var(--stat-font);
-  font-size: 1.0625rem;
+  font-size: 1.125rem;
   font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
 }
 
 .result-meta-label {
@@ -587,10 +725,18 @@ body {
   list-style: none;
 }
 
+/* The board resolves down the page, the way a week finishes. */
 .row.is-result {
   display: grid;
   grid-template-columns: 1.125rem 1fr auto;
   overflow: hidden;
+  animation: rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(0.5rem); }
+  to { opacity: 1; transform: none; }
 }
 
 .row-rank {
@@ -601,18 +747,18 @@ body {
 
 .row.is-best .row-rank { color: var(--good); }
 
-.row.is-best { background: color-mix(in srgb, var(--good) 7%, transparent); }
+.row.is-best { background: linear-gradient(90deg, #4fd6941f, transparent); }
 
 .row.is-yours {
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-  box-shadow: inset 3px 0 0 var(--accent);
+  background: linear-gradient(90deg, #ffc2472b, #ffc2470a);
+  box-shadow: inset 3px 0 0 var(--you);
 }
 
 .row-yours {
   padding: 0.05rem 0.3rem;
   border-radius: 0.1875rem;
-  background: var(--accent);
-  color: #1a1408;
+  background: var(--you);
+  color: #201804;
   font-family: var(--stat-font);
   font-size: 0.5rem;
   font-weight: 700;
@@ -629,12 +775,32 @@ body {
   background: var(--faint);
 }
 
-.row.is-best .row-bar { background: var(--good); }
-.row.is-yours .row-bar { background: var(--accent); }
+.row.is-best .row-bar {
+  background: var(--good);
+  box-shadow: 0 0 0.5rem #4fd69488;
+}
+
+.row.is-yours .row-bar {
+  background: var(--you);
+  box-shadow: 0 0 0.5rem #ffc24788;
+}
 
 .result-note {
   padding-block-start: 1.25rem;
   font-size: 0.75rem;
   line-height: 1.5;
   color: var(--faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .spot.is-opening.is-active .spot-head {
+    box-shadow: 0 0 0 0.25rem #ffc24766, 0 0 1rem #ffc24755;
+  }
 }

@@ -79,72 +79,87 @@ export function PuzzleScreen({
   const activeSpot = puzzle.openings[openIndex];
 
   return (
-    <main className="screen">
-      <header className="masthead">
-        <p className="masthead-title">daily draft</p>
-        <p className="masthead-week">
-          {puzzle.season} · Week {puzzle.week}
-        </p>
-        <p className="streak" title={`Longest streak: ${streak.best}`}>
-          <span className="streak-mark" aria-hidden="true">
-            ▲
-          </span>
-          {streak.current}
-        </p>
-      </header>
+    <main className={`screen${score ? ' is-revealed' : ''}`}>
+      {/*
+        The stage runs edge to edge and carries the floodlight, so the turf is
+        the page rather than a green rectangle sitting on one. Everything above
+        the field sits inside the same light.
+      */}
+      <div className="stage">
+        <div className="stage-light" aria-hidden="true" />
 
-      <MatchupBar
-        opponentName={puzzle.opponent.name}
-        yourTotal={totals.yours}
-        opponentTotal={totals.theirs}
-        result={score?.result ?? null}
-      />
+        <header className="masthead">
+          <p className="masthead-title">daily draft</p>
+          <p className="masthead-week">
+            {puzzle.season} · Week {puzzle.week}
+          </p>
+          <p className="streak" title={`Longest streak: ${streak.best}`}>
+            <span className="streak-mark" aria-hidden="true">
+              ▲
+            </span>
+            {streak.current}
+          </p>
+        </header>
 
-      <Field
-        entries={puzzle.field}
-        opponent={puzzle.opponent}
-        side={side}
-        onSideChange={setSide}
-        filled={filled}
-        activeSpotId={score || side === 'them' ? null : activeSpot.id}
-        figureFor={figureFor}
-        revealed={score !== null}
-        colorFor={colorFor}
-        onSpotTap={(spotId) => {
-          const index = puzzle.openings.findIndex((spot) => spot.id === spotId);
-          if (index !== -1) setOpenIndex(index);
-        }}
-      />
-
-      {score ? (
-        <Result
-          score={score}
+        <MatchupBar
           opponentName={puzzle.opponent.name}
-          colorFor={colorFor}
-          statLine={statLine}
+          yourTotal={totals.yours}
+          opponentTotal={totals.theirs}
+          result={score?.result ?? null}
         />
-      ) : (
-        <>
-          <WaiverBoard
-            opening={activeSpot}
-            candidates={puzzle.waivers.filter((p) => p.slot === activeSpot.slot)}
-            pickedId={picks[openIndex]}
-            projectionFor={projectionFor}
+
+        <Field
+          entries={puzzle.field}
+          opponent={puzzle.opponent}
+          side={side}
+          onSideChange={setSide}
+          filled={filled}
+          activeSpotId={score || side === 'them' ? null : activeSpot.id}
+          figureFor={figureFor}
+          revealed={score !== null}
+          colorFor={colorFor}
+          onSpotTap={(spotId) => {
+            const index = puzzle.openings.findIndex((spot) => spot.id === spotId);
+            if (index !== -1) setOpenIndex(index);
+          }}
+        />
+
+        <div className="stage-fade" aria-hidden="true" />
+      </div>
+
+      <div className="below">
+        {score ? (
+          <Result
+            score={score}
+            opponentName={puzzle.opponent.name}
             colorFor={colorFor}
             statLine={statLine}
-            onPick={(playerId) => {
-              onFill(openIndex, playerId);
-              // Move to whatever is still empty, so two taps fills the lineup.
-              const next = puzzle.openings.findIndex((_, i) => i !== openIndex && picks[i] === null);
-              if (next !== -1) setOpenIndex(next);
-            }}
           />
+        ) : (
+          <>
+            <WaiverBoard
+              opening={activeSpot}
+              candidates={puzzle.waivers.filter((p) => p.slot === activeSpot.slot)}
+              pickedId={picks[openIndex]}
+              projectionFor={projectionFor}
+              colorFor={colorFor}
+              statLine={statLine}
+              onPick={(playerId) => {
+                onFill(openIndex, playerId);
+                // Move to whatever is still empty, so two taps fills the lineup.
+                const next = puzzle.openings.findIndex(
+                  (_, i) => i !== openIndex && picks[i] === null,
+                );
+                if (next !== -1) setOpenIndex(next);
+              }}
+            />
 
-          <button type="button" className="kickoff" disabled={!ready} onClick={onPlayWeek}>
-            {ready ? `Play week ${puzzle.week}` : 'Fill both spots to play the week'}
-          </button>
-        </>
-      )}
+            <button type="button" className="kickoff" disabled={!ready} onClick={onPlayWeek}>
+              {ready ? `Play week ${puzzle.week}` : 'Fill both spots to play the week'}
+            </button>
+          </>
+        )}
+      </div>
     </main>
   );
 }
