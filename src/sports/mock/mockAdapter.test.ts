@@ -116,6 +116,71 @@ describe('mockAdapter hidden information', () => {
   });
 });
 
+describe('mockAdapter opponents and injuries', () => {
+  const everyone = everyWeek
+    .slice(0, 60)
+    .flatMap(({ season, week }) => a.opponent(season, week).lineup.map((e) => e.player));
+
+  it('fields a full opponent lineup with a manager name', () => {
+    const rival = a.opponent(2004, 7);
+
+    expect(rival.name.length).toBeGreaterThan(3);
+    expect(rival.lineup).toHaveLength(a.formation().length);
+    for (const entry of rival.lineup) {
+      expect(entry.player.slot).toBe(entry.spot.slot);
+    }
+  });
+
+  it('fields a different opponent each week', () => {
+    expect(a.opponent(2004, 7).lineup.map((e) => e.player.name)).not.toEqual(
+      a.opponent(2004, 8).lineup.map((e) => e.player.name),
+    );
+  });
+
+  it('puts an injury tag on some players but nowhere near all of them', () => {
+    const tagged = everyone.filter((p) => p.status !== undefined);
+
+    expect(tagged.length).toBeGreaterThan(everyone.length * 0.08);
+    expect(tagged.length).toBeLessThan(everyone.length * 0.35);
+  });
+
+  it('holds a player tagged OUT to nothing, which is why the tag is worth reading', () => {
+    const out = everyone.filter((p) => p.status === 'OUT');
+
+    expect(out.length).toBeGreaterThan(0);
+    for (const player of out) {
+      expect(a.outcomeValue(player, player.slot)).toBe(0);
+      expect(a.projectedValue(player, player.slot)).toBe(0);
+    }
+  });
+
+  it('still credits a tagged player with the form they built while healthy', () => {
+    const out = everyone.filter((p) => p.status === 'OUT')[0];
+
+    expect(out.form[0].stats.ppg).toBeGreaterThan(0);
+  });
+
+  it('projects from visible form and never from the week itself', () => {
+    const [player] = a.candidates(2004, 7, 'WR');
+    const blowUp = { ...player, outcome: { label: 'WEEK 7', stats: { rec: 99, ryd: 400, td: 5 } } };
+
+    expect(a.projectedValue(blowUp, 'WR')).toBe(a.projectedValue(player, 'WR'));
+  });
+
+  it('projects a healthy player somewhere near their recent scoring', () => {
+    for (const player of everyone.filter((p) => p.status === undefined).slice(0, 40)) {
+      const [season, recent] = player.form.map((line) => line.stats.ppg);
+
+      expect(a.projectedValue(player, player.slot)).toBeGreaterThanOrEqual(
+        Math.min(season, recent) - 0.1,
+      );
+      expect(a.projectedValue(player, player.slot)).toBeLessThanOrEqual(
+        Math.max(season, recent) + 0.1,
+      );
+    }
+  });
+});
+
 describe('a year of mock puzzles', () => {
   it('produces a playable, scoreable puzzle every day', () => {
     for (const day of days(365)) {

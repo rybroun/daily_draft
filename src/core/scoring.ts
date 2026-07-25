@@ -1,5 +1,6 @@
 import type {
   FieldSpot,
+  MatchupResult,
   Player,
   PlayerId,
   Puzzle,
@@ -36,6 +37,20 @@ export function scorePicks(
   const bestPossible = sum(slots.map((slot) => slot.best.value));
   const floor = sum(slots.map((slot) => slot.board[slot.board.length - 1].value));
 
+  // Everyone already in the lineup counts too — the picks are two of a team.
+  const starters = sum(
+    puzzle.field
+      .filter((entry) => entry.player !== null)
+      .map((entry) => adapter.outcomeValue(entry.player!, entry.spot.slot)),
+  );
+  const opponentTotal = sum(
+    puzzle.opponent.lineup.map((entry) => adapter.outcomeValue(entry.player, entry.spot.slot)),
+  );
+
+  const yourTotal = starters + total;
+  const bestCase = starters + bestPossible;
+  const worstCase = starters + floor;
+
   return {
     slots,
     // No spread means every set of picks was equally right, so none was wrong.
@@ -44,7 +59,20 @@ export function scorePicks(
     total,
     bestPossible,
     isPerfect: slots.every((slot) => slot.picked.rank === 1),
+
+    yourTotal,
+    opponentTotal,
+    result: outcomeOf(yourTotal, opponentTotal),
+    margin: yourTotal - opponentTotal,
+    couldHaveWon: bestCase > opponentTotal,
+    // Decided when both extremes land on the same side: no pick mattered.
+    alreadyDecided: outcomeOf(bestCase, opponentTotal) === outcomeOf(worstCase, opponentTotal),
   };
+}
+
+function outcomeOf(yours: number, theirs: number): MatchupResult {
+  if (yours > theirs) return 'won';
+  return yours < theirs ? 'lost' : 'tied';
 }
 
 function resolve(

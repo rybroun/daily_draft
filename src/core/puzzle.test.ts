@@ -103,6 +103,25 @@ describe('puzzleFor', () => {
     }
   });
 
+  it('names the team you have to beat and what they are fielding', () => {
+    const puzzle = puzzleFor(adapter, '2026-07-25');
+    const expected = adapter.opponent(puzzle.season, puzzle.week);
+
+    expect(puzzle.opponent.name).toBe(expected.name);
+    expect(puzzle.opponent.lineup.map((e) => e.player.id)).toEqual(
+      expected.lineup.map((e) => e.player.id),
+    );
+  });
+
+  it('fields a different opponent lineup each week', () => {
+    const a = puzzleFor(adapter, '2026-07-25');
+    const b = adapter.opponent(a.season, a.week + 1);
+
+    expect(a.opponent.lineup.map((e) => e.player.id)).not.toEqual(
+      b.lineup.map((e) => e.player.id),
+    );
+  });
+
   it('never shows the scored week among the stats a player can see', () => {
     const puzzle = puzzleFor(adapter, '2026-07-25');
 

@@ -1,13 +1,20 @@
-import type { FieldEntry, Player, SpotId } from '../core/types';
+import type { FieldEntry, Opponent, Player, RosterSlot, SpotId } from '../core/types';
+
+export type Side = 'you' | 'them';
 
 interface FieldProps {
   entries: FieldEntry[];
+  opponent: Opponent;
+  side: Side;
+  onSideChange: (side: Side) => void;
   /** Who the player has slotted into each opening, by spot. */
   filled: Map<SpotId, Player>;
   /** The opening currently being chosen for. */
   activeSpotId: SpotId | null;
-  /** Set once the week has been played — every head shows what it produced. */
-  pointsFor: ((player: Player) => number) | null;
+  /** Before the week this is a projection; after, what they actually did. */
+  figureFor: (player: Player, slot: RosterSlot) => number;
+  revealed: boolean;
+  colorFor: (slot: RosterSlot) => string;
   onSpotTap: (spotId: SpotId) => void;
 }
 
@@ -27,50 +34,90 @@ function Head() {
   );
 }
 
-/** The lineup, laid out where the adapter says each spot belongs. */
-export function Field({ entries, filled, activeSpotId, pointsFor, onSpotTap }: FieldProps) {
+/**
+ * The lineup, laid out where the adapter says each spot belongs.
+ *
+ * One field, two teams, one tap between them — scanning the opposition is the
+ * same act as reading your own side, so it costs nothing to learn.
+ */
+export function Field({
+  entries,
+  opponent,
+  side,
+  onSideChange,
+  filled,
+  activeSpotId,
+  figureFor,
+  revealed,
+  colorFor,
+  onSpotTap,
+}: FieldProps) {
+  const showing: FieldEntry[] =
+    side === 'you' ? entries : opponent.lineup.map((e) => ({ spot: e.spot, player: e.player }));
+
   return (
-    <div className="field" role="group" aria-label="Your lineup">
-      <div className="field-turf" aria-hidden="true" />
-      {entries.map(({ spot, player }) => {
-        const chosen = filled.get(spot.id) ?? null;
-        const occupant = player ?? chosen;
-        const isOpening = player === null;
-        const isActive = spot.id === activeSpotId;
+    <div className="pitch">
+      <div className="sides" role="tablist" aria-label="Which lineup to show">
+        {(['you', 'them'] as const).map((option) => (
+          <button
+            key={option}
+            type="button"
+            role="tab"
+            aria-selected={side === option}
+            className={`sides-tab${side === option ? ' is-on' : ''}`}
+            onClick={() => onSideChange(option)}
+          >
+            {option === 'you' ? 'Your lineup' : opponent.name}
+          </button>
+        ))}
+      </div>
 
-        const classes = [
-          'spot',
-          isOpening ? 'is-opening' : 'is-starter',
-          occupant ? 'is-filled' : 'is-empty',
-          isActive ? 'is-active' : '',
-        ]
-          .filter(Boolean)
-          .join(' ');
+      <div className="field" role="group" aria-label={side === 'you' ? 'Your lineup' : opponent.name}>
+        <div className="field-turf" aria-hidden="true" />
 
-        const label = occupant
-          ? `${spot.slot} ${occupant.name}`
-          : `Empty ${spot.slot}, tap to fill`;
+        {showing.map(({ spot, player }) => {
+          const chosen = filled.get(spot.id) ?? null;
+          const occupant = player ?? chosen;
+          const isOpening = side === 'you' && player === null;
+          const color = colorFor(spot.slot);
 
-        return (
-          <div key={spot.id} className={classes} style={{ left: `${spot.x}%`, top: `${spot.y}%` }}>
-            <button
-              type="button"
-              className="spot-head"
-              aria-label={label}
-              disabled={!isOpening || pointsFor !== null}
-              onClick={() => onSpotTap(spot.id)}
-            >
-              {occupant ? <Head /> : <span className="spot-plus">+</span>}
-              {/* An empty opening already names its slot below — no need twice. */}
-              {occupant && <span className="spot-slot">{spot.slot}</span>}
-            </button>
-            <span className="spot-name">{occupant ? onCard(occupant.name) : spot.slot}</span>
-            {pointsFor && occupant && (
-              <span className="spot-points">{pointsFor(occupant).toFixed(1)}</span>
-            )}
-          </div>
-        );
-      })}
+          const classes = [
+            'spot',
+            isOpening ? 'is-opening' : 'is-set',
+            occupant ? 'is-filled' : 'is-empty',
+            spot.id === activeSpotId ? 'is-active' : '',
+            occupant?.status ? `has-${occupant.status.toLowerCase()}` : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
+
+          return (
+            <div key={spot.id} className={classes} style={{ left: `${spot.x}%`, top: `${spot.y}%` }}>
+              <button
+                type="button"
+                className="spot-head"
+                style={{ '--slot-color': color } as React.CSSProperties}
+                aria-label={occupant ? `${spot.slot} ${occupant.name}` : `Empty ${spot.slot}`}
+                disabled={!isOpening || revealed}
+                onClick={() => onSpotTap(spot.id)}
+              >
+                {occupant ? <Head /> : <span className="spot-plus">+</span>}
+              </button>
+
+              <span className="spot-name">
+                {occupant ? onCard(occupant.name) : spot.slot}
+                {occupant?.status && <span className={`spot-status is-${occupant.status.toLowerCase()}`}>{occupant.status}</span>}
+              </span>
+
+              {occupant && (
+                <span className={`spot-figure${revealed ? ' is-final' : ''}`}>
+                  {figureFor(occupant, spot.slot).toFixed(1)}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

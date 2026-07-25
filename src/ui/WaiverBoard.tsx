@@ -1,9 +1,12 @@
-import type { FieldSpot, Player, PlayerId, StatLine } from '../core/types';
+import type { FieldSpot, Player, PlayerId, RosterSlot, StatLine } from '../core/types';
+import { PlayerRow } from './PlayerRow';
 
 interface WaiverBoardProps {
   opening: FieldSpot;
   candidates: Player[];
   pickedId: PlayerId | null;
+  projectionFor: (player: Player, slot: RosterSlot) => number;
+  colorFor: (slot: RosterSlot) => string;
   statLine: (line: StatLine, player: Player) => string;
   onPick: (playerId: PlayerId) => void;
 }
@@ -11,48 +14,42 @@ interface WaiverBoardProps {
 /**
  * The waiver wire for one opening.
  *
- * Every number here is history. Nothing on this screen is from the week being
- * played — that's the game.
+ * Every number here is history or derived from it. Nothing on this screen comes
+ * from the week being played — that's the game.
  */
 export function WaiverBoard({
   opening,
   candidates,
   pickedId,
+  projectionFor,
+  colorFor,
   statLine,
   onPick,
 }: WaiverBoardProps) {
   return (
-    <section className="waivers">
-      <h2 className="waivers-heading">
+    <section className="wire">
+      <h2 className="wire-heading">
         <span>
-          Fill your <strong>{opening.slot}</strong>
+          Fill your <strong style={{ color: colorFor(opening.slot) }}>{opening.slot}</strong>
         </span>
-        <span className="waivers-note">form to date · nothing from this week</span>
+        <span className="wire-note">form to date · nothing from this week</span>
       </h2>
 
-      <ul className="waiver-list">
+      <div className="rows">
         {candidates.map((player) => (
-          <li key={player.id}>
-            <button
-              type="button"
-              className={`waiver${player.id === pickedId ? ' is-picked' : ''}`}
-              aria-pressed={player.id === pickedId}
-              onClick={() => onPick(player.id)}
-            >
-              <span className="waiver-name">{player.name}</span>
-              <span className="waiver-team">{player.team}</span>
-              <span className="waiver-form">
-                {player.form.map((line) => (
-                  <span key={line.label} className="form-line">
-                    <span className="form-label">{line.label}</span>
-                    <span className="form-stats">{statLine(line, player)}</span>
-                  </span>
-                ))}
-              </span>
-            </button>
-          </li>
+          <PlayerRow
+            key={player.id}
+            player={player}
+            color={colorFor(player.slot)}
+            figure={projectionFor(player, opening.slot)}
+            figureLabel="proj"
+            form={player.form}
+            statLine={statLine}
+            selected={player.id === pickedId}
+            onClick={() => onPick(player.id)}
+          />
         ))}
-      </ul>
+      </div>
     </section>
   );
 }

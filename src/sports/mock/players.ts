@@ -36,6 +36,18 @@ const TALENT: Record<RosterSlot, [number, number]> = {
   DST: [4.5, 11],
 };
 
+/**
+ * How likely a player is to carry an injury tag, and what it does to their week.
+ *
+ * The tag is known before kickoff, which is what makes it worth reading — an
+ * opponent fielding an OUT starter is a matchup you can plan around, and a
+ * hot-form waiver claim who is OUT is a trap that punishes not looking.
+ */
+const INJURY = {
+  out: { chance: 0.06, playsAt: 0 },
+  questionable: { chance: 0.13, playsAt: 0.85 },
+};
+
 export function makePlayer(
   seed: string,
   slot: RosterSlot,
@@ -48,15 +60,27 @@ export function makePlayer(
   // Skewed low: most of a waiver board is replacement level, which is the point.
   const talent = low + Math.pow(random(), 1.4) * (high - low);
 
+  const roll = random();
+  const status =
+    roll < INJURY.out.chance
+      ? 'OUT'
+      : roll < INJURY.out.chance + INJURY.questionable.chance
+        ? 'Q'
+        : undefined;
+  const playsAt =
+    status === 'OUT' ? INJURY.out.playsAt : status === 'Q' ? INJURY.questionable.playsAt : 1;
+
+  // Form is what they've done while healthy — the tag is about the week ahead.
   const seasonPpg = reading(talent, NOISE.season, random, AVERAGE_FLOOR);
   const recentPpg = reading(talent, NOISE.recent, random, AVERAGE_FLOOR);
-  const weekPoints = reading(talent, NOISE.week, random, 0);
+  const weekPoints = playsAt === 0 ? 0 : reading(talent * playsAt, NOISE.week, random, 0);
 
   return {
     id: seed,
     name,
     team: CLUBS[Math.floor(random() * CLUBS.length)],
     slot,
+    ...(status ? { status } : {}),
     form: [
       averageLine('SEASON', slot, seasonPpg, random),
       averageLine('LAST 3', slot, recentPpg, random),
@@ -66,6 +90,20 @@ export function makePlayer(
       stats: countingLine(slot, weekPoints, random),
     },
   };
+}
+
+/**
+ * What the week looks like it'll be worth, from visible form alone.
+ *
+ * Weighted toward the season line because it's the steadier read, discounted by
+ * the injury tag. A questionable player is discounted harder than they actually
+ * lose, so reading tags carefully is worth a little more than reading them at all.
+ */
+export function projectPoints(player: Player): number {
+  const [season, recent] = player.form;
+  const base = season.stats.ppg * 0.6 + recent.stats.ppg * 0.4;
+  const discount = player.status === 'OUT' ? 0 : player.status === 'Q' ? 0.75 : 1;
+  return Math.round(base * discount * 10) / 10;
 }
 
 /** A whole pool of players for one slot, with names that don't collide. */

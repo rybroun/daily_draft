@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { dateKey } from './core/puzzle';
-import type { Player, StatLine } from './core/types';
+import type { Player, RosterSlot, StatLine } from './core/types';
 import { mockAdapter } from './sports/mock/mockAdapter';
 import { PuzzleScreen } from './ui/PuzzleScreen';
 import { useGame } from './useGame';
@@ -20,20 +20,28 @@ export default function App() {
     (line: StatLine, player: Player) => adapter.formatStatLine(line, player.slot),
     [],
   );
-  const pointsFor = useCallback((player: Player) => adapter.outcomeValue(player, player.slot), []);
+  const projectionFor = useCallback(
+    (player: Player, slot: RosterSlot) => adapter.projectedValue(player, slot),
+    [],
+  );
+  const outcomeFor = useCallback(
+    (player: Player, slot: RosterSlot) => adapter.outcomeValue(player, slot),
+    [],
+  );
+  const colorFor = useCallback((slot: RosterSlot) => adapter.slotColor(slot), []);
 
   return (
     <PuzzleScreen
-      leagueName={adapter.displayName}
       puzzle={game.puzzle}
       picks={game.picks}
       score={game.score}
       streak={game.streak}
       ready={game.ready}
       statLine={statLine}
-      pointsFor={pointsFor}
+      projectionFor={projectionFor}
+      outcomeFor={outcomeFor}
+      colorFor={colorFor}
       onFill={game.fill}
-      onClear={game.clear}
       onPlayWeek={game.playWeek}
     />
   );

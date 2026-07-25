@@ -15,8 +15,21 @@ const candidate = (slot: string, i: number, outcome: number): Player => ({
   outcome: { label: 'WEEK', stats: { alpha: outcome } },
 });
 
-/** A two-opening puzzle whose candidates produced exactly the values given. */
-const puzzleWith = (slotA: number[], slotB: number[]): Puzzle => ({
+const SPOT_C: FieldSpot = { id: 'c1', slot: 'SLOT_C', x: 0, y: 0 };
+
+/**
+ * A two-opening puzzle whose candidates produced exactly the values given.
+ *
+ * `starters` is what the rest of your lineup produced and `rivals` is what the
+ * opponent's whole team produced, both as raw values so a matchup can be set up
+ * to land exactly on the margin a test cares about.
+ */
+const puzzleWith = (
+  slotA: number[],
+  slotB: number[],
+  starters = 0,
+  rivals = 0,
+): Puzzle => ({
   date: '2026-07-25',
   sportId: 'stub',
   season: 1990,
@@ -24,12 +37,17 @@ const puzzleWith = (slotA: number[], slotB: number[]): Puzzle => ({
   field: [
     { spot: SPOT_A, player: null },
     { spot: SPOT_B, player: null },
+    { spot: SPOT_C, player: candidate('SLOT_C', 0, starters) },
   ],
   openings: [SPOT_A, SPOT_B],
   waivers: [
     ...slotA.map((v, i) => candidate('SLOT_A', i, v)),
     ...slotB.map((v, i) => candidate('SLOT_B', i, v)),
   ],
+  opponent: {
+    name: 'Stub Rivals',
+    lineup: [{ spot: SPOT_C, player: candidate('rival', 0, rivals) }],
+  },
 });
 
 const adapter = stubAdapter();
@@ -123,5 +141,108 @@ describe('scorePicks', () => {
     expect(() => scorePicks(adapter, puzzleWith([10, 50], [4, 8]), ['SLOT_A-0'])).toThrow(
       /openings/i,
     );
+  });
+});
+
+describe('scorePicks against the opponent', () => {
+  it('counts the whole lineup, not only the picks', () => {
+    // starters 30 + picks 50 + 8 = 88
+    const score = scorePicks(adapter, puzzleWith([10, 50], [4, 8], 30, 70), [
+      'SLOT_A-1',
+      'SLOT_B-1',
+    ]);
+
+    expect(score.yourTotal).toBe(88);
+    expect(score.total).toBe(58);
+    expect(score.opponentTotal).toBe(70);
+  });
+
+  it('wins the week when your lineup outscores theirs', () => {
+    const score = scorePicks(adapter, puzzleWith([10, 50], [4, 8], 30, 70), [
+      'SLOT_A-1',
+      'SLOT_B-1',
+    ]);
+
+    expect(score.result).toBe('won');
+    expect(score.margin).toBe(18);
+  });
+
+  it('loses the week when it does not, and says by how much', () => {
+    // starters 30 + worst picks 14 = 44 against 70
+    const score = scorePicks(adapter, puzzleWith([10, 50], [4, 8], 30, 70), [
+      'SLOT_A-0',
+      'SLOT_B-0',
+    ]);
+
+    expect(score.result).toBe('lost');
+    expect(score.margin).toBe(-26);
+  });
+
+  it('calls a dead heat a tie rather than a win', () => {
+    const score = scorePicks(adapter, puzzleWith([10, 50], [4, 8], 30, 88), [
+      'SLOT_A-1',
+      'SLOT_B-1',
+    ]);
+
+    expect(score.result).toBe('tied');
+    expect(score.margin).toBe(0);
+  });
+
+  it('says when the best available picks would have won it', () => {
+    // best picks reach 88, worst reach 44; they scored 70.
+    const score = scorePicks(adapter, puzzleWith([10, 50], [4, 8], 30, 70), [
+      'SLOT_A-0',
+      'SLOT_B-0',
+    ]);
+
+    expect(score.result).toBe('lost');
+    expect(score.couldHaveWon).toBe(true);
+    expect(score.alreadyDecided).toBe(false);
+  });
+
+  it('says when no pick could have won it', () => {
+    // even the best picks only reach 88; they scored 200.
+    const score = scorePicks(adapter, puzzleWith([10, 50], [4, 8], 30, 200), [
+      'SLOT_A-1',
+      'SLOT_B-1',
+    ]);
+
+    expect(score.couldHaveWon).toBe(false);
+    expect(score.alreadyDecided).toBe(true);
+  });
+
+  it('says when no pick could have lost it', () => {
+    // even the worst picks reach 44; they scored 10.
+    const score = scorePicks(adapter, puzzleWith([10, 50], [4, 8], 30, 10), [
+      'SLOT_A-0',
+      'SLOT_B-0',
+    ]);
+
+    expect(score.result).toBe('won');
+    expect(score.alreadyDecided).toBe(true);
+  });
+
+  it('does not call a week decided when the picks swung it', () => {
+    const score = scorePicks(adapter, puzzleWith([10, 50], [4, 8], 30, 70), [
+      'SLOT_A-1',
+      'SLOT_B-1',
+    ]);
+
+    expect(score.result).toBe('won');
+    expect(score.alreadyDecided).toBe(false);
+  });
+
+  it('scores the picks on their own merit regardless of the matchup', () => {
+    const winnable = scorePicks(adapter, puzzleWith([0, 100], [0, 100], 0, 1), [
+      'SLOT_A-1',
+      'SLOT_B-0',
+    ]);
+    const hopeless = scorePicks(adapter, puzzleWith([0, 100], [0, 100], 0, 9999), [
+      'SLOT_A-1',
+      'SLOT_B-0',
+    ]);
+
+    expect(winnable.points).toBe(50);
+    expect(hopeless.points).toBe(50);
   });
 });

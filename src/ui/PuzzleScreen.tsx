@@ -1,37 +1,50 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { StreakState } from '../core/streak';
-import type { Player, PlayerId, Puzzle, Score, SpotId, StatLine } from '../core/types';
+import type {
+  Player,
+  PlayerId,
+  Puzzle,
+  RosterSlot,
+  Score,
+  SpotId,
+  StatLine,
+} from '../core/types';
 import { Field } from './Field';
+import type { Side } from './Field';
+import { MatchupBar } from './MatchupBar';
 import { Result } from './Result';
 import { WaiverBoard } from './WaiverBoard';
 
 interface PuzzleScreenProps {
-  leagueName: string;
   puzzle: Puzzle;
   picks: (PlayerId | null)[];
   score: Score | null;
   streak: StreakState;
   ready: boolean;
   statLine: (line: StatLine, player: Player) => string;
-  pointsFor: (player: Player) => number;
+  projectionFor: (player: Player, slot: RosterSlot) => number;
+  outcomeFor: (player: Player, slot: RosterSlot) => number;
+  colorFor: (slot: RosterSlot) => string;
   onFill: (openingIndex: number, playerId: PlayerId) => void;
-  onClear: (openingIndex: number) => void;
   onPlayWeek: () => void;
 }
 
 export function PuzzleScreen({
-  leagueName,
   puzzle,
   picks,
   score,
   streak,
   ready,
   statLine,
-  pointsFor,
+  projectionFor,
+  outcomeFor,
+  colorFor,
   onFill,
-  onClear,
   onPlayWeek,
 }: PuzzleScreenProps) {
+  const [side, setSide] = useState<Side>('you');
+  const [openIndex, setOpenIndex] = useState(0);
+
   const byId = useMemo(
     () => new Map(puzzle.waivers.map((player) => [player.id, player])),
     [puzzle.waivers],
@@ -46,64 +59,88 @@ export function PuzzleScreen({
     return map;
   }, [puzzle.openings, picks, byId]);
 
-  // Work the openings in order; the first still-empty one is what you're filling.
-  const activeIndex = picks.findIndex((pick) => pick === null);
-  const openIndex = activeIndex === -1 ? puzzle.openings.length - 1 : activeIndex;
+  // Before the week the field shows projections; after, what actually happened.
+  const figureFor = score ? outcomeFor : projectionFor;
+
+  const totals = useMemo(() => {
+    if (score) return { yours: score.yourTotal, theirs: score.opponentTotal };
+
+    const yours = puzzle.field.reduce((sum, entry) => {
+      const player = entry.player ?? filled.get(entry.spot.id) ?? null;
+      return sum + (player ? projectionFor(player, entry.spot.slot) : 0);
+    }, 0);
+    const theirs = puzzle.opponent.lineup.reduce(
+      (sum, entry) => sum + projectionFor(entry.player, entry.spot.slot),
+      0,
+    );
+    return { yours, theirs };
+  }, [score, puzzle, filled, projectionFor]);
+
   const activeSpot = puzzle.openings[openIndex];
 
   return (
     <main className="screen">
       <header className="masthead">
         <p className="masthead-title">daily draft</p>
+        <p className="masthead-week">
+          {puzzle.season} · Week {puzzle.week}
+        </p>
         <p className="streak" title={`Longest streak: ${streak.best}`}>
-          <span className="streak-flame" aria-hidden="true">
+          <span className="streak-mark" aria-hidden="true">
             ▲
           </span>
           {streak.current}
         </p>
       </header>
 
-      <h1 className="prompt">
-        <span className="prompt-season">
-          {puzzle.season} {leagueName}
-        </span>
-        <span className="prompt-slot">Week {puzzle.week}</span>
-      </h1>
-      <p className="prompt-sub">
-        {score
-          ? 'The week as it happened. Come back tomorrow.'
-          : 'Two holes in your lineup and a waiver wire. Fill them before kickoff.'}
-      </p>
+      <MatchupBar
+        opponentName={puzzle.opponent.name}
+        yourTotal={totals.yours}
+        opponentTotal={totals.theirs}
+        result={score?.result ?? null}
+      />
 
       <Field
         entries={puzzle.field}
+        opponent={puzzle.opponent}
+        side={side}
+        onSideChange={setSide}
         filled={filled}
-        activeSpotId={score ? null : activeSpot.id}
-        pointsFor={score ? pointsFor : null}
+        activeSpotId={score || side === 'them' ? null : activeSpot.id}
+        figureFor={figureFor}
+        revealed={score !== null}
+        colorFor={colorFor}
         onSpotTap={(spotId) => {
           const index = puzzle.openings.findIndex((spot) => spot.id === spotId);
-          if (index !== -1) onClear(index);
+          if (index !== -1) setOpenIndex(index);
         }}
       />
 
       {score ? (
-        <Result score={score} statLine={statLine} />
+        <Result
+          score={score}
+          opponentName={puzzle.opponent.name}
+          colorFor={colorFor}
+          statLine={statLine}
+        />
       ) : (
         <>
           <WaiverBoard
             opening={activeSpot}
             candidates={puzzle.waivers.filter((p) => p.slot === activeSpot.slot)}
             pickedId={picks[openIndex]}
+            projectionFor={projectionFor}
+            colorFor={colorFor}
             statLine={statLine}
-            onPick={(playerId) => onFill(openIndex, playerId)}
+            onPick={(playerId) => {
+              onFill(openIndex, playerId);
+              // Move to whatever is still empty, so two taps fills the lineup.
+              const next = puzzle.openings.findIndex((_, i) => i !== openIndex && picks[i] === null);
+              if (next !== -1) setOpenIndex(next);
+            }}
           />
 
-          <button
-            type="button"
-            className="kickoff"
-            disabled={!ready}
-            onClick={onPlayWeek}
-          >
+          <button type="button" className="kickoff" disabled={!ready} onClick={onPlayWeek}>
             {ready ? `Play week ${puzzle.week}` : 'Fill both spots to play the week'}
           </button>
         </>

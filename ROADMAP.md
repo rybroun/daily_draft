@@ -2,29 +2,30 @@
 
 **Updated:** 2026-07-25 · **Lead:** daily-draft-prototype
 
-The game was redesigned today, after the first prototype was playable. It is no longer
-"pick the best season from a slate" — it's a **waiver-wire puzzle**: a lineup on a field with
-two holes, a wire of players shown only their form to date, and a week that gets played to
-find out whether you read it right. Prediction under partial information, not recall.
+The game is a **waiver-wire puzzle against a named opponent**. Your lineup on a field with two
+holes, their lineup one tap away, a wire showing form and injury tags but never the week
+itself. Fill both spots, play the week, find out whether you beat them.
 
-The prototype for the new design is built and played through. What's in `Now` is judgement,
-not code.
+Three builds today: the season-slate prototype, the waiver redesign, and this pass — opponents,
+injuries, projections, and an interface rebuilt around rows instead of boxes. What's in `Now`
+is judgement, not code.
 
 ## Now
 
 | Item | Status | Updated | Notes |
 |---|---|---|---|
 | Play it for a few days and judge whether it's fun | in progress | 2026-07-25 | The prototype exists to answer this and nothing else. Ryan can't reach it from his phone yet — see the Tailscale row. |
-| Decide whether one week is too random to feel fair | blocked | 2026-07-25 | **Unblocks by playing it for a week.** A correct read can post 4 points while a reckless one hits 30. Known and deliberate. If it stings, the fix is showing the odds you beat rather than only the outcome. |
-| Confirm football as the shipping sport | blocked | 2026-07-25 | **Ryan's call.** The waiver format leans hard toward football — weekly scoring, a real waiver culture, positions on a field. The mock is already a fictional gridiron league. Confirming it unblocks the data question. |
-| Find week-by-week historical data | blocked | 2026-07-25 | **Unblocks once the sport is confirmed.** The redesign raised the bar: this needs weekly box scores, not season totals. Season-summary sources like Lahman no longer suffice. |
+| Decide whether one week is too random to feel fair | in progress | 2026-07-25 | Partly addressed: the reveal now says when a week was already decided either way. Whether that's enough needs play, not design. |
+| Confirm football as the shipping sport | blocked | 2026-07-25 | **Ryan's call.** Everything about the design now assumes weekly scoring, a waiver culture and positions on a field. The mock is a fictional gridiron league. Confirming it unblocks the data question. |
+| Find week-by-week historical data | blocked | 2026-07-25 | **Unblocks once the sport is confirmed.** Needs weekly box scores plus historical injury designations — the injury layer is now load-bearing, not decoration. |
 
 ## Next
 
 | Item | Status | Updated | Notes |
 |---|---|---|---|
 | First real sport adapter | planned | 2026-07-25 | One file behind the existing interface. Follows the sport and data decisions. |
-| Share-a-result mechanic | planned | 2026-07-25 | The Wordle loop. Only worth building once the game is fun. |
+| Share-a-result mechanic | planned | 2026-07-25 | The Wordle loop, and the matchup gives it something to say: "beat the Blackbirds by 14.2". Only worth building once the game is fun. |
+| Matchup-quality colour coding per candidate | planned | 2026-07-25 | Sleeper and Yahoo both tint each player by how their opponent has fared against that position. Would add a second readable signal to the wire. |
 | Puzzle archive / play a past week | planned | 2026-07-25 | Selection is already date-seeded, so any past date is already playable. |
 
 ## Later
@@ -32,20 +33,23 @@ not code.
 | Item | Status | Updated | Notes |
 |---|---|---|---|
 | Serve over Tailscale for phone testing | blocked | 2026-07-25 | **Unblocks when Ryan opens Tailscale.app and signs in once** — `tailscaled` isn't running machine-wide and the auth needs a GUI no agent can drive. Confirmed still down today. Until then the dev server is localhost-only and Ryan can only see screenshots. |
-| Difficulty tuning | planned | 2026-07-25 | The mock is tuned so season form picks the winner ~39% of the time against 20% for guessing. Real data may not land in that band. |
+| Difficulty tuning | planned | 2026-07-25 | Currently: season form picks the winner ~39% of the time against 20% for guessing, and the picks decide the matchup 53% of weeks. Real data may not land in that band. |
 | More than two openings, or two of the same position | parked | 2026-07-25 | Deliberately excluded — same-slot openings turn two independent judgements into one combined optimisation, which is a different game. |
 
 ## Shipped
 
 | Item | Shipped | Notes |
 |---|---|---|
-| Waiver-wire redesign — field, two openings, hidden outcomes | 2026-07-25 | Replaced the single-slot season puzzle. Core, mock and UI all rewritten. |
-| Field visual — lineup of heads, openings marked, reveal in place | 2026-07-25 | Coordinates come from the adapter, so core still never learns what a running back is. |
-| Hidden-information model | 2026-07-25 | `Player.form` is visible, `Player.outcome` is not. A browser check asserts no week-of stat reaches the screen before the reveal. |
-| Set scoring across both openings | 2026-07-25 | Your pair against the best possible pair, 0–100. |
-| `MockAdapter` — a fictional gridiron league | 2026-07-25 | Invented players and clubs, real football positions. Form and outcome are noisy readings of a hidden true level. |
-| 56 Vitest tests + a 31-check browser play-through | 2026-07-25 | Written test-first. Includes a test that pins the design bet: form must beat guessing without being the answer. |
+| Opponent matchup — named team, full lineup, win/loss result | 2026-07-25 | Picks change the outcome 53% of weeks; best-vs-worst picks swing the win rate 24%→76%. |
+| Injury designations as visible pre-kickoff information | 2026-07-25 | OUT scores and projects zero. A trap on the wire, an edge on the opponent's field. |
+| Projections from visible form only | 2026-07-25 | `projectedValue` never reads `outcome`, asserted by test. |
+| "Already decided" honesty in the reveal | 2026-07-25 | Says when no pick could have changed the result — the first real answer to the one-week-is-noise risk. |
+| Interface rebuilt around rows, not boxes | 2026-07-25 | Hairline dividers, position colour pills, matchup bar, one field with a two-team toggle. |
+| Selection through the field itself | 2026-07-25 | Tap an open head to choose which opening the wire fills. No popups, no tooltips. |
+| Waiver-wire redesign — field, two openings, hidden outcomes | 2026-07-25 | Replaced the single-slot season puzzle. |
+| `MockAdapter` — a fictional gridiron league | 2026-07-25 | Invented players and clubs, real football positions. |
+| 74 Vitest tests + a 36-check browser play-through | 2026-07-25 | Written test-first. Includes tests pinning the design bets: form must beat guessing without being the answer, and projections must not see the future. |
 | Vite + React + TS scaffold, Vitest, `0.0.0.0` dev server | 2026-07-25 | |
 | Streak persisted in `localStorage` | 2026-07-25 | Survives refresh, including a half-filled lineup. Corrupt storage degrades to a fresh game. |
-| First prototype — single slot, season scoring | 2026-07-25 | Superseded the same day by the redesign. Proved the loop and the adapter seam. |
+| First prototype — single slot, season scoring | 2026-07-25 | Superseded the same day. Proved the loop and the adapter seam. |
 | Project space scaffolded, brief and constraints written | 2026-07-25 | By the butler at intake. |

@@ -42,6 +42,11 @@ export interface Player {
   /** Which opening this player is eligible to fill. */
   slot: RosterSlot;
   /**
+   * Availability, in the adapter's own words — "OUT", "Q". Opaque to core, and
+   * known *before* kickoff, so it's legitimately part of what you get to see.
+   */
+  status?: string;
+  /**
    * What the player is allowed to see before deciding. Everything here is
    * history up to the puzzle's week — never anything from the week itself.
    */
@@ -69,6 +74,17 @@ export interface FieldEntry {
   player: Player | null;
 }
 
+/**
+ * The team you're up against this week.
+ *
+ * Their lineup is fully visible, injuries and all, because that's what makes a
+ * waiver decision a decision: how much you need depends on what they're fielding.
+ */
+export interface Opponent {
+  name: string;
+  lineup: { spot: FieldSpot; player: Player }[];
+}
+
 export interface SportAdapter {
   id: SportId;
   displayName: string;
@@ -82,12 +98,20 @@ export interface SportAdapter {
 
   /** Who was already locked into each spot that week. */
   roster(season: number, week: number): Map<SpotId, Player>;
+  /** Who you're playing, and what they're fielding. */
+  opponent(season: number, week: number): Opponent;
   /** The waiver pool eligible for one slot that week. */
   candidates(season: number, week: number, slot: RosterSlot): Player[];
 
   /** Which stats to show for this slot, in display order. */
   statKeys(slot: RosterSlot): StatKey[];
   formatStatLine(line: StatLine, slot: RosterSlot): string;
+  /**
+   * The colour this slot is drawn in. Sports have their own conventions for
+   * this and core has no opinion — it's presentation, so it sits beside the
+   * other presentation the adapter already owns.
+   */
+  slotColor(slot: RosterSlot): string;
 
   /**
    * What the player's actual week was worth at that slot, higher is better.
@@ -97,6 +121,14 @@ export interface SportAdapter {
    * Core only ever compares the numbers.
    */
   outcomeValue(player: Player, slot: RosterSlot): number;
+
+  /**
+   * What the week looks like it will be worth, from visible form alone.
+   *
+   * Never reads `outcome` — it's shown before kickoff, so it must be derivable
+   * from exactly what the player can see.
+   */
+  projectedValue(player: Player, slot: RosterSlot): number;
 }
 
 export interface Puzzle {
@@ -110,6 +142,8 @@ export interface Puzzle {
   openings: FieldSpot[];
   /** Every player on the waiver board, across all the openings. */
   waivers: Player[];
+  /** Who you have to beat. */
+  opponent: Opponent;
 }
 
 /** One candidate's standing once the week was played. */
@@ -129,15 +163,32 @@ export interface SlotResult {
   board: RankedPlayer[];
 }
 
+export type MatchupResult = 'won' | 'lost' | 'tied';
+
 export interface Score {
   /** One per opening, in the puzzle's opening order. */
   slots: SlotResult[];
-  /** 0–100 across every opening together. */
+  /** 0–100 across every opening together: how well the picks were made. */
   points: number;
-  /** What the picks actually produced. */
+  /** What the picks alone produced. */
   total: number;
   /** What the best possible set of picks would have produced. */
   bestPossible: number;
   /** True when nothing available would have scored more. */
   isPerfect: boolean;
+
+  /** The whole lineup, picks included. */
+  yourTotal: number;
+  opponentTotal: number;
+  result: MatchupResult;
+  /** Your total minus theirs. Negative when you lost. */
+  margin: number;
+  /** Whether the best available picks would have won it. */
+  couldHaveWon: boolean;
+  /**
+   * True when no set of picks could have changed the result — the rest of the
+   * lineup had already settled it either way. Worth saying out loud: it's the
+   * difference between being beaten and being punished for a coin flip.
+   */
+  alreadyDecided: boolean;
 }

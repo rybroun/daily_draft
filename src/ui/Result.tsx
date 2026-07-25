@@ -1,17 +1,32 @@
-import type { Player, Score, SlotResult, StatLine } from '../core/types';
+import type { Player, RosterSlot, Score, SlotResult, StatLine } from '../core/types';
+import { SlotPill, StatusTag } from './PlayerRow';
 
 interface ResultProps {
   score: Score;
+  opponentName: string;
+  colorFor: (slot: RosterSlot) => string;
   statLine: (line: StatLine, player: Player) => string;
 }
 
-function verdict(score: Score): string {
-  if (score.isPerfect) return 'Perfect week.';
-  if (score.points >= 80) return 'About as good as the wire allowed.';
-  if (score.points >= 55) return 'A good week, with something left behind.';
-  if (score.points >= 25) return 'You left a lot of it on the wire.';
-  if (score.points > 0) return 'Almost everything was still on the wire.';
-  return 'The worst of both boards.';
+/**
+ * The line that matters most, and the one worth getting right.
+ *
+ * A week you never could have swung is a different experience from one you
+ * threw away, and saying so is the honest answer to the fact that a single week
+ * is mostly noise.
+ */
+function headline(score: Score, opponentName: string): string {
+  const margin = Math.abs(score.margin).toFixed(1);
+
+  if (score.result === 'tied') return `Dead heat with ${opponentName}.`;
+
+  if (score.result === 'won') {
+    if (score.alreadyDecided) return `Beat ${opponentName} by ${margin} — never in doubt.`;
+    return `Beat ${opponentName} by ${margin}.`;
+  }
+
+  if (!score.couldHaveWon) return `${opponentName} beat you by ${margin}. Nothing on the wire changed that.`;
+  return `Lost to ${opponentName} by ${margin} — and the wire had the points.`;
 }
 
 function explain(slot: SlotResult): string {
@@ -23,35 +38,40 @@ function explain(slot: SlotResult): string {
 }
 
 /** The reveal: what the week produced, and every alternative that explains it. */
-export function Result({ score, statLine }: ResultProps) {
+export function Result({ score, opponentName, colorFor, statLine }: ResultProps) {
   return (
     <section className="result" aria-live="polite">
-      <div className="result-head">
-        <p className="result-points">
-          {score.points}
-          <span className="result-points-of">/100</span>
-        </p>
-        <div>
-          <p className="result-verdict">{verdict(score)}</p>
-          <p className="result-why">
-            Your two picks scored <strong>{score.total.toFixed(1)}</strong>. The best pair on
-            the wire scored <strong>{score.bestPossible.toFixed(1)}</strong>.
-          </p>
-        </div>
+      <p className="result-headline">{headline(score, opponentName)}</p>
+
+      <div className="result-meta">
+        <span>
+          <strong>{score.points}</strong>
+          <span className="result-meta-label">pick score</span>
+        </span>
+        <span>
+          <strong>{score.total.toFixed(1)}</strong>
+          <span className="result-meta-label">your two picks</span>
+        </span>
+        <span>
+          <strong>{score.bestPossible.toFixed(1)}</strong>
+          <span className="result-meta-label">best available</span>
+        </span>
       </div>
 
       {score.slots.map((slot) => (
         <div key={slot.spot.id} className="slot-result">
           <h2 className="slot-heading">
-            {slot.spot.slot} <span className="slot-why">{explain(slot)}</span>
+            <SlotPill slot={slot.spot.slot} color={colorFor(slot.spot.slot)} />
+            <span className="slot-why">{explain(slot)}</span>
           </h2>
 
-          <ol className="board">
+          <ol className="rows is-board">
             {slot.board.map((entry) => {
               const isPick = entry.player.id === slot.picked.player.id;
               const classes = [
-                'board-row',
-                isPick ? 'is-pick' : '',
+                'row',
+                'is-result',
+                isPick ? 'is-yours' : '',
                 entry.rank === 1 ? 'is-best' : '',
               ]
                 .filter(Boolean)
@@ -59,19 +79,34 @@ export function Result({ score, statLine }: ResultProps) {
 
               return (
                 <li key={entry.player.id} className={classes}>
-                  <span className="board-rank">{entry.rank}</span>
-                  <span className="board-name">
-                    {entry.player.name}
-                    <span className="board-team">{entry.player.team}</span>
-                    {isPick && <span className="board-tag">yours</span>}
+                  <span className="row-rank">{entry.rank}</span>
+
+                  <span className="row-identity">
+                    <span className="row-name">
+                      {entry.player.name}
+                      {entry.player.status && <StatusTag status={entry.player.status} />}
+                      {isPick && <span className="row-yours">yours</span>}
+                    </span>
+                    <span className="row-team">{entry.player.team}</span>
                   </span>
-                  {/* One decimal, because two weeks a point apart must not print equal. */}
-                  <span className="board-value">{entry.value.toFixed(1)}</span>
-                  <span className="board-stats">
-                    {statLine(entry.player.outcome, entry.player)}
+
+                  <span className="row-figure">
+                    {/* One decimal, because two weeks a point apart must not print equal. */}
+                    <span className="row-figure-value">{entry.value.toFixed(1)}</span>
+                    <span className="row-figure-label">pts</span>
                   </span>
+
+                  <span className="row-form">
+                    <span className="form-line">
+                      <span className="form-label">ACTUAL</span>
+                      <span className="form-stats">
+                        {statLine(entry.player.outcome, entry.player)}
+                      </span>
+                    </span>
+                  </span>
+
                   <span
-                    className="board-bar"
+                    className="row-bar"
                     style={{ inlineSize: `${(entry.value / (slot.best.value || 1)) * 100}%` }}
                   />
                 </li>
@@ -81,8 +116,9 @@ export function Result({ score, statLine }: ResultProps) {
         </div>
       ))}
 
-      <p className="board-note">
-        Every one of those weeks was hidden when you picked. All you had was the form.
+      <p className="result-note">
+        Every one of those weeks was hidden when you picked. All you had was the form and the
+        injury report.
       </p>
     </section>
   );

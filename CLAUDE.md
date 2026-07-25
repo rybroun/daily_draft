@@ -2,15 +2,16 @@
 
 A daily habit game: a chess-puzzle for fantasy sports history. One puzzle a day.
 
-> *"It's week 9. Two holes in your lineup and a waiver wire. Who do you start?"*
+> *"It's week 9. You're 16 points behind the Blackbirds on projection, their WR1 is OUT, and
+> you have two holes to fill. Who do you start?"*
 
-You're shown a lineup on a field with two spots empty, and a waiver wire of players who were
-really available that week. Every number you can see is history — form to date, nothing from
-the week itself. You fill both spots, the week is played, and you find out what each of them
-actually did, including the ones you passed on. Come back tomorrow.
+You're shown your lineup on a field with two spots empty, the team you're playing that week,
+and a waiver wire. Every number you can see is history or derived from it — form to date,
+projections, injury tags — and nothing from the week itself. You fill both spots, the week is
+played, and the field fills in with what everyone actually did. Come back tomorrow.
 
 The puzzle is prediction under partial information, not recall. You are not being asked who
-was good; you are being asked who was about to be.
+was good; you are being asked who was about to be, against a specific opponent.
 
 ## Non-negotiables
 
@@ -22,8 +23,11 @@ was good; you are being asked who was about to be.
    field reads correctly, invented players, clubs and seasons. Do not go pick a data source
    or start scraping.
 3. **60 seconds, then done.** If a puzzle takes longer to play than that, the design is wrong.
-4. **The player never sees the week they're picking for.** Form to date is all they get. If a
-   number from the scored week reaches the screen before the reveal, the game is broken.
+4. **The player never sees the week they're picking for.** Form to date, projections and
+   injury tags are all they get. If a number from the scored week reaches the screen before
+   the reveal, the game is broken. `projectedValue` must never read `outcome`.
+5. **The decision is against an opponent, not in a vacuum.** How much you need depends on what
+   they're fielding, which is why their lineup and their injuries are fully visible.
 
 ## Stack
 
@@ -38,7 +42,7 @@ was good; you are being asked who was about to be.
 ```
 src/
   core/           sport-agnostic. Zero sport-specific code.
-    types.ts      Player, Puzzle, FieldSpot, SportAdapter, Score
+    types.ts      Player, Puzzle, FieldSpot, Opponent, SportAdapter, Score
     puzzle.ts     deterministic daily puzzle selection (date → puzzle)
     scoring.ts    given the picks + the boards, produce a score
     streak.ts     pure streak arithmetic over calendar days
@@ -65,11 +69,15 @@ interface SportAdapter {
   openableSlots(): RosterSlot[];            // which spots may be left empty
 
   roster(season, week): Map<SpotId, Player>;          // who's already starting
+  opponent(season, week): Opponent;                   // who you're playing
   candidates(season, week, slot): Player[];           // the waiver pool
 
   statKeys(slot: RosterSlot): StatKey[];
   formatStatLine(line: StatLine, slot: RosterSlot): string;
-  outcomeValue(player: Player, slot: RosterSlot): number;
+  slotColor(slot: RosterSlot): string;                // position colour convention
+
+  outcomeValue(player: Player, slot: RosterSlot): number;   // reads outcome
+  projectedValue(player: Player, slot: RosterSlot): number; // must NOT read outcome
 }
 ```
 
@@ -79,8 +87,13 @@ Core imports `SportAdapter`. Core never imports a sport.
 read a stat, so something must turn a line into a comparable number — and that something is
 per-sport, which is why it sits on the adapter and not in `scoring.ts`.
 
-A `Player` carries `form: StatLine[]` (visible when picking) and `outcome: StatLine` (hidden
-until the reveal). Nothing in the UI may render `outcome` before the week is played.
+A `Player` carries `form: StatLine[]` and an optional `status` (both visible when picking) and
+`outcome: StatLine` (hidden until the reveal). Nothing in the UI may render `outcome` before
+the week is played. `status` is the exception that proves the rule: an injury designation is
+known *before* kickoff, so it's legitimately part of what you get to see — and it's the sharpest
+edge in the game, both on the wire and on the opponent's field.
+
+`FieldSpot` carries `x`/`y` display coordinates. Core passes them through and never reads them.
 
 ## Rules
 
@@ -88,6 +101,9 @@ until the reveal). Nothing in the UI may render `outcome` before the week is pla
   randomness at play time — seed from the date string so it's reproducible and testable.
 - Scoring must be explainable. After the reveal, the player has to see *why* their picks
   scored what they did against every alternative they passed on.
+- **Say when a week was already decided.** If no pick could have changed the result, the
+  reveal says so. A single week is mostly noise, and being told you were beaten is fair where
+  being told you were wrong is not.
 - No sport-specific strings in `core/`. If you're writing "running back" in a core file, stop.
   Format words — *waiver*, *opening*, *field*, *week* — are fine: they're this game's own
   vocabulary and mean the same thing in every sport. Position and stat names are not.

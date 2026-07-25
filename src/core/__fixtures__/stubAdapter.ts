@@ -35,11 +35,20 @@ export function stubAdapter(overrides: Partial<SportAdapter> = {}): SportAdapter
       new Map<SpotId, Player>(
         SPOTS.map((spot) => [spot.id, player(`starter-${spot.id}-${week}`, spot.slot, 10)]),
       ),
+    opponent: (_season, week) => ({
+      name: 'Stub Rivals',
+      lineup: SPOTS.map((spot) => ({
+        spot,
+        player: player(`rival-${spot.id}-${week}`, spot.slot, 12),
+      })),
+    }),
     candidates: (_season, week, slot) =>
       Array.from({ length: 8 }, (_, i) => player(`${slot}-w${week}-${i}`, slot, i * 4)),
     statKeys: (): StatKey[] => ['alpha'],
     formatStatLine: (line) => `${line.label} ${line.stats.alpha}`,
     outcomeValue: (candidate) => candidate.outcome.stats.alpha,
+    projectedValue: (candidate) => candidate.form[0].stats.alpha,
+    slotColor: () => '#888888',
     ...overrides,
   };
 }

@@ -7,12 +7,13 @@ import {
   LAST_SEASON,
   LAST_WEEK,
   OPENABLE,
+  SLOT_COLORS,
   SLOT_STATS,
   STAT_LABELS,
   fantasyPoints,
 } from './league';
-import { makePlayer, makePool } from './players';
-import { NAME_PAIRS } from './names';
+import { makePlayer, makePool, projectPoints } from './players';
+import { NAME_PAIRS, TEAM_NAMES } from './names';
 
 /**
  * An invented football league, standing in until a real sport is chosen.
@@ -41,11 +42,16 @@ export const mockAdapter: SportAdapter = {
 
   roster: (season, week) =>
     new Map<SpotId, Player>(
-      FORMATION.map((spot) => {
-        const seed = `${season}:${week}:${spot.id}`;
-        return [spot.id, makePlayer(seed, spot.slot, week, NAME_PAIRS[hashSpot(seed)])];
-      }),
+      FORMATION.map((spot) => [spot.id, starter(`${season}:${week}:${spot.id}`, spot.slot, week)]),
     ),
+
+  opponent: (season, week) => ({
+    name: TEAM_NAMES[hashString(`rival:${season}:${week}`) % TEAM_NAMES.length],
+    lineup: FORMATION.map((spot) => ({
+      spot,
+      player: starter(`${season}:${week}:rival:${spot.id}`, spot.slot, week),
+    })),
+  }),
 
   candidates: (season, week, slot) =>
     makePool(`${season}:${week}:waiver:${slot}`, slot, week, POOL_SIZE),
@@ -58,7 +64,15 @@ export const mockAdapter: SportAdapter = {
       .join(' · '),
 
   outcomeValue: (player) => Math.round(fantasyPoints(player.outcome.stats) * 10) / 10,
+
+  projectedValue: (player) => projectPoints(player),
+
+  slotColor: (slot) => SLOT_COLORS[slot] ?? '#7c879b',
 };
+
+/** A player already in somebody's lineup — theirs or yours. */
+const starter = (seed: string, slot: string, week: number): Player =>
+  makePlayer(seed, slot, week, NAME_PAIRS[hashSpot(seed)]);
 
 /** Display order for anything a stat line might contain. */
 const ORDER = ['ppg', 'car', 'rec', 'ryd', 'pyd', 'td', 'ptd', 'int', 'fg', 'xp', 'sack'];

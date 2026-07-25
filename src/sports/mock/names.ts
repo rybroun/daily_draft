@@ -33,3 +33,18 @@ export const CLUBS = [
 export const NAME_PAIRS: string[] = FIRST_NAMES.flatMap((first) =>
   LAST_NAMES.map((last) => `${first} ${last}`),
 );
+
+/** Manager team names, the way an opponent actually appears in a league. */
+const TEAM_WORDS = [
+  'Ludlow', 'Harbor', 'Kettle', 'Old Mill', 'Ninth Street', 'Cobb County',
+  'Pine Ridge', 'Fairview', 'Iron Gate', 'Junction', 'Elmwood', 'Dunmore',
+];
+
+const TEAM_NOUNS = [
+  'Ramblers', 'Longhorns', 'Wolves', 'Anchors', 'Bandits', 'Foundry',
+  'Storm', 'Hooligans', 'Sentinels', 'Mudcats', 'Blackbirds', 'Union',
+];
+
+export const TEAM_NAMES: string[] = TEAM_WORDS.flatMap((word) =>
+  TEAM_NOUNS.map((noun) => `${word} ${noun}`),
+);

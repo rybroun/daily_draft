@@ -162,6 +162,92 @@ Three bugs this caught in review, all visible on screen before they were fixed: 
 that a nothing game couldn't have paid for (`0 REC · 0 YDS · 2 TD`), a pile-up of players
 averaging exactly 0.0, and averages whose stats didn't add up to the PPG printed beside them.
 
+## 2026-07-25 — Opponents, injuries, and a less blocky interface
+
+Ryan's second pass after playing the waiver build: give the decision an opponent, make
+injuries matter, and stop the interface looking like a stack of boxes.
+
+### You're playing someone, and you can see everything they have
+
+The waiver decision was previously made in a vacuum — pick the highest-scoring player, always.
+With a specific opponent whose lineup, projections and injuries are fully visible, *how much
+you need* becomes part of the question. Behind by 16 on projection means you need upside;
+ahead with their WR1 ruled out means you can take the safe floor.
+
+Their whole team is visible on purpose. This isn't hidden information — in a real league you
+can always look at your opponent's roster, and looking is the skill.
+
+Measured before shipping: the two picks change the result of the week **53%** of the time, and
+picking the best available rather than the worst swings the win rate from **24% to 76%**. If
+those numbers had come out flat, the matchup would have been decoration.
+
+### Two scores, because they answer different questions
+
+The headline is the matchup — did you beat them, and by how much. Underneath, the picks are
+still scored 0–100 on their own merit against the best available. A week you lost with two
+excellent picks is a different experience from one you lost by taking the worst of both
+boards, and one number can't say both.
+
+### The reveal says when a week was already decided
+
+`Score.alreadyDecided` is true when the best possible picks and the worst possible picks land
+on the same side of the result — when nothing you could have done mattered. This is the first
+real answer to the "one week is mostly noise" risk. Being told *"never in doubt"* or *"nothing
+on the wire changed that"* is honest; being told you were wrong when no choice existed is not.
+
+### Injuries are pre-kickoff information, so they're allowed
+
+`Player.status` ("OUT", "Q") sits alongside `form` on the visible side of the line, because an
+injury designation genuinely is known before a week is played. It's the one piece of
+information that is both freely available and decisive, which makes it the best possible
+reward for looking carefully.
+
+An OUT player scores exactly zero, and projects zero. On the wire that's a trap for anyone
+reading only the form line; on the opponent's field it's the difference between needing a
+big week and needing to not lose one. A questionable player is discounted harder in the
+projection (×0.75) than they actually lose (×0.85), so careful reading is worth slightly more
+than casual reading.
+
+### `projectedValue` on the adapter, and it must never read `outcome`
+
+Projections are shown before kickoff, so they have to be derivable from exactly what the
+player can see. The mock blends the season line 60/40 with the last three and applies the
+injury discount. A test constructs a player with an absurd `outcome` and asserts the
+projection doesn't move.
+
+### `slotColor` on the adapter
+
+Position colours are a real convention — every fantasy service has trained its users to scan
+for them, and Sleeper and Yahoo both go further and colour-code matchup quality per player.
+Adopting the language costs nothing and makes a nine-man field readable at a glance.
+
+It's sport-specific presentation, so it lives on the adapter beside `formatStatLine` rather
+than being hardcoded in the UI. Core still has no opinion about what a colour means.
+
+### Rows, not cards
+
+The old interface was a stack of bordered boxes, which is what "blocky" meant. Replaced with
+one surface per group and hairline dividers between rows. A list you can run your eye down
+reads faster than a column of objects each asking to be examined separately, and it's how
+every fantasy app lays out a roster.
+
+Concretely: borders removed in favour of `--hairline`, position pills added, the right-hand
+number given its own column with a unit label under it, and the stat line spanning the full
+row width so it never folds onto a second line.
+
+### One field, two teams, one tap
+
+Rejected showing the opponent as a separate list. The field is the thing Ryan liked, and a
+segmented control above it means scanning the opposition is the same act as reading your own
+side — nothing new to learn, and their injuries show up as dimmed red heads where you can see
+them in one glance rather than reading nine rows.
+
+### Selection is the field itself
+
+No popups and no tooltips — neither works on a phone. Tapping an open head sets which opening
+the wire below is filling, and picking advances to the other one automatically. The field is
+both the display and the control surface, so the whole game is two taps and a button.
+
 ## Open — deliberately not decided
 
 Which sport ships first and where real data comes from. Logged in `BRIEF.md`. Agents must not

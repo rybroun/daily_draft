@@ -60,6 +60,7 @@ export function puzzleFor(adapter: SportAdapter, date: DateKey): Puzzle {
     })),
     openings,
     waivers,
+    opponent: adapter.opponent(season, week),
   };
 }
 

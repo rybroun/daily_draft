@@ -30,6 +30,20 @@ export const FORMATION: FieldSpot[] = [
 /** The positions you actually stream off waivers. */
 export const OPENABLE: RosterSlot[] = ['RB', 'WR', 'TE'];
 
+/**
+ * Position colours, following the convention every fantasy app already trained
+ * its users on: the passer warm, the backs green, receivers blue, tight ends
+ * orange. Borrowed as a language, not copied from any one of them.
+ */
+export const SLOT_COLORS: Record<RosterSlot, string> = {
+  QB: '#e8556d',
+  RB: '#2fb98a',
+  WR: '#4a9ff5',
+  TE: '#f0883c',
+  K: '#a78bfa',
+  DST: '#7c879b',
+};
+
 export const SLOT_LABELS: Record<RosterSlot, string> = {
   QB: 'Quarterback',
   RB: 'Running back',
