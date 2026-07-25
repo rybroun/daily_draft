@@ -485,6 +485,33 @@ Ryan asked for The Athletic's logo. Declined: it's a real publication's trademar
 it on this would read as their product. The mark above is the same idea — a single bold
 letterform in a solid block — belonging to this game.
 
+## 2026-07-25 — Light is the default, not the device's
+
+Ryan opened the hosted build on his phone and got the dark theme, because the theme was wired
+to `prefers-color-scheme` and his phone lives in dark appearance.
+
+That was the wrong hook. The system setting is about reading apps at night; this is a Sunday
+afternoon, and most phones sit in dark permanently — so following the device would mean almost
+nobody ever sees the version the game was designed as. Light is now unconditional, dark is an
+opt-in toggle in the masthead, and the choice is remembered. The theme is applied before first
+paint, so there's no flash of the wrong one.
+
+The regression guard is the check that matters: a browser emulating a **dark device** must
+still open the game in **light**.
+
+### Three smaller notes from the same look
+
+The season moved out of the masthead and onto the scoreline, stacked over the week, where a
+broadcast puts it. The masthead is now just the mark and the toggle.
+
+The streak said "0 DAYS" to a first-time player, which is a label for a thing that hasn't
+happened. It now says nothing until there is a streak, then "1 DAY STREAK". Kept rather than
+removed — the daily return is the whole habit — it just needed to stop announcing zero.
+
+The waiting button said "Tap a gap to fill it", which describes the gesture rather than the
+point. It now says "Fill your open spots to win". Ryan's words were "fill your open players";
+*spots* are what get filled and players are what fill them.
+
 ## Open — deliberately not decided
 
 Which sport ships first and where real data comes from. Logged in `BRIEF.md`. Agents must not

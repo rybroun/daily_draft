@@ -2,6 +2,7 @@ import type { MatchupResult } from '../core/types';
 
 interface ScoreBugProps {
   opponentName: string;
+  season: number;
   week: number;
   yourTotal: number;
   opponentTotal: number;
@@ -22,6 +23,7 @@ const code = (name: string) => name.split(' ')[0].slice(0, 3).toUpperCase();
  */
 export function ScoreBug({
   opponentName,
+  season,
   week,
   yourTotal,
   opponentTotal,
@@ -38,7 +40,11 @@ export function ScoreBug({
           <span className="bug-score">{yourTotal.toFixed(1)}</span>
         </span>
 
-        <span className="bug-week">Wk {week}</span>
+        {/* When the match is, kept between the two scores where a broadcast puts it. */}
+        <span className="bug-when">
+          <span className="bug-season">{season}</span>
+          <span className="bug-week">Wk {week}</span>
+        </span>
 
         <span className="bug-team is-them">
           <span className="bug-score">{opponentTotal.toFixed(1)}</span>

@@ -12,10 +12,13 @@ import type {
 import { Field } from './Field';
 import { explainSlot } from './explainSlot';
 import { Mark } from './Mark';
+import { ThemeToggle } from './ThemeToggle';
 import { ResultSummary, SlotBoard } from './Result';
 import { ScoreBug } from './ScoreBug';
 import { Sheet } from './Sheet';
 import { WaiverBoard } from './WaiverBoard';
+import { applyTheme, storedTheme } from '../theme';
+import type { Theme } from '../theme';
 
 interface PuzzleScreenProps {
   puzzle: Puzzle;
@@ -45,6 +48,7 @@ export function PuzzleScreen({
   onPlayWeek,
 }: PuzzleScreenProps) {
   const [openSpotId, setOpenSpotId] = useState<SpotId | null>(null);
+  const [theme, setTheme] = useState<Theme>(storedTheme);
 
   const byId = useMemo(
     () => new Map(puzzle.waivers.map((player) => [player.id, player])),
@@ -94,15 +98,27 @@ export function PuzzleScreen({
       <header className="masthead">
         <Mark />
         <p className="masthead-title">Daily Draft</p>
-        <p className="masthead-week">{puzzle.season} season</p>
-        <p className="streak" title={`Longest streak: ${streak.best}`}>
-          {streak.current}
-          <span className="streak-label">day{streak.current === 1 ? '' : 's'}</span>
-        </p>
+        <span className="masthead-spacer" />
+        <ThemeToggle
+          theme={theme}
+          onToggle={() => {
+            const next = theme === 'light' ? 'dark' : 'light';
+            applyTheme(next);
+            setTheme(next);
+          }}
+        />
+        {/* A streak of nothing isn't a streak, so it says nothing until it is one. */}
+        {streak.current > 0 && (
+          <p className="streak" title={`Longest streak: ${streak.best}`}>
+            {streak.current}
+            <span className="streak-label">day streak</span>
+          </p>
+        )}
       </header>
 
       <ScoreBug
         opponentName={puzzle.opponent.name}
+        season={puzzle.season}
         week={puzzle.week}
         yourTotal={totals.yours}
         opponentTotal={totals.theirs}
@@ -129,7 +145,7 @@ export function PuzzleScreen({
         ) : (
           <div className="foot">
             <button type="button" className="kickoff" disabled={!ready} onClick={onPlayWeek}>
-              {ready ? 'Lock in your lineup' : 'Tap a gap to fill it'}
+              {ready ? 'Lock in your lineup' : 'Fill your open spots to win'}
             </button>
           </div>
         )}
