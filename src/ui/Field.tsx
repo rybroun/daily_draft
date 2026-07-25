@@ -166,7 +166,18 @@ export function Field({
                 </button>
 
                 <span className="spot-name">
-                  {occupant ? onCard(occupant.name) : spot.slot}
+                  {/*
+                    The position in words, not only in the ring colour — the
+                    colour code is only readable once you've learnt it, and the
+                    label is where the eye already is.
+                  */}
+                  <span
+                    className="spot-pos"
+                    style={occupant ? ({ color } as React.CSSProperties) : undefined}
+                  >
+                    {spot.slot}
+                  </span>
+                  {occupant && <span className="spot-who">{onCard(occupant.name)}</span>}
                   {occupant?.status && (
                     <span className={`spot-status is-${occupant.status.toLowerCase()}`}>
                       {occupant.status}
