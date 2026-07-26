@@ -1,4 +1,12 @@
-import type { FieldEntry, FieldSpot, Opponent, Player, RosterSlot, SpotId } from '../core/types';
+import type {
+  FieldEntry,
+  FieldSpot,
+  Opponent,
+  Player,
+  PlayerId,
+  RosterSlot,
+  SpotId,
+} from '../core/types';
 
 interface FieldProps {
   entries: FieldEntry[];
@@ -9,6 +17,10 @@ interface FieldProps {
   zoomedOn: FieldSpot | null;
   /** Before the week this is a projection; after, what they actually did. */
   figureFor: (player: Player, slot: RosterSlot) => number;
+  /** What a player actually scored — only ever read for `known` players. */
+  outcomeFor: (player: Player, slot: RosterSlot) => number;
+  /** Players you have already watched score in an earlier round. */
+  known: Set<PlayerId>;
   revealed: boolean;
   colorFor: (slot: RosterSlot) => string;
   onSpotTap: (spotId: SpotId) => void;
@@ -81,6 +93,8 @@ export function Field({
   filled,
   zoomedOn,
   figureFor,
+  outcomeFor,
+  known,
   revealed,
   colorFor,
   onSpotTap,
@@ -187,9 +201,9 @@ export function Field({
               .filter(Boolean)
               .join(' ');
 
-            // Before the week only your openings are tappable; after, any spot
-            // of yours with a board behind it is.
-            const tappable = !theirs && (isOpening || (revealed && chosen !== null));
+            // Only your own unplayed openings. After the week there is nothing
+            // behind a spot to open — the board of alternatives is gone.
+            const tappable = !theirs && isOpening && !revealed;
 
             return (
               <div
@@ -221,9 +235,23 @@ export function Field({
                   */}
                   {occupant &&
                     (isOpening && !revealed ? (
-                      <span className="spot-figure is-unknown" aria-label="Unknown until the week is played">
-                        ?
-                      </span>
+                      /*
+                        You already watched this one play, in a round you've
+                        finished — so the number is yours to keep. Anyone else
+                        in an opening is still the question being asked.
+                      */
+                      known.has(occupant.id) ? (
+                        <span className="spot-figure is-known">
+                          {outcomeFor(occupant, spot.slot).toFixed(1)}
+                        </span>
+                      ) : (
+                        <span
+                          className="spot-figure is-unknown"
+                          aria-label="Unknown until the week is played"
+                        >
+                          ?
+                        </span>
+                      )
                     ) : (
                       <span className={`spot-figure${revealed ? ' is-final' : ''}`}>
                         {figureFor(occupant, spot.slot).toFixed(1)}

@@ -69,6 +69,7 @@ export default function App() {
       puzzle={day.puzzle}
       picks={day.picks}
       score={day.score}
+      known={day.known}
       streak={day.streak}
       ready={day.picks.every((p) => p !== null)}
       statLine={statLine}

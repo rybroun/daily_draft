@@ -4,6 +4,10 @@ import { StatusTag } from './StatusTag';
 interface WaiverBoardProps {
   candidates: Player[];
   pickedId: PlayerId | null;
+  /** Players you've already watched score, in a round you've finished. */
+  known: Set<PlayerId>;
+  /** What one actually scored. Only ever called for a player in `known`. */
+  outcomeFor: (player: Player) => number;
   statKeys: (slot: RosterSlot) => StatKey[];
   statLabel: (key: StatKey) => string;
   colorFor: (slot: RosterSlot) => string;
@@ -33,6 +37,8 @@ function Head() {
 export function WaiverBoard({
   candidates,
   pickedId,
+  known,
+  outcomeFor,
   statKeys,
   statLabel,
   colorFor,
@@ -78,6 +84,15 @@ export function WaiverBoard({
                   {player.slot}
                 </span>
                 {player.team}
+                {/*
+                  What they scored, but only for someone you started in a round
+                  you've already played and watched play out. It's the one thing
+                  you carry out of a round, and the reason the wire is worth
+                  re-reading rather than re-guessing.
+                */}
+                {known.has(player.id) && (
+                  <span className="pick-scored">{outcomeFor(player).toFixed(1)}</span>
+                )}
               </span>
             </span>
 

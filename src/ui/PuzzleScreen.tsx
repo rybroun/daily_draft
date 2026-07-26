@@ -12,12 +12,10 @@ import type {
   StatLine,
 } from '../core/types';
 import { Field } from './Field';
-import { explainSlot } from './explainSlot';
 import { Mark } from './Mark';
 import { ThemeToggle } from './ThemeToggle';
 import { Rounds } from './Rounds';
 import { RoundReveal } from './RoundReveal';
-import { ResultSummary, SlotBoard } from './Result';
 import { ScoreBug } from './ScoreBug';
 import { Sheet } from './Sheet';
 import { WaiverBoard } from './WaiverBoard';
@@ -28,6 +26,8 @@ interface PuzzleScreenProps {
   puzzle: Puzzle;
   picks: (PlayerId | null)[];
   score: Score | null;
+  /** Players you've already watched score, from rounds already played. */
+  known: Set<PlayerId>;
   streak: StreakState;
   ready: boolean;
   statLine: (line: StatLine, player: Player) => string;
@@ -50,6 +50,7 @@ export function PuzzleScreen({
   puzzle,
   picks,
   score,
+  known,
   streak,
   ready,
   statLine,
@@ -169,23 +170,38 @@ export function PuzzleScreen({
           filled={filled}
           zoomedOn={openSpot}
           figureFor={figureFor}
+          outcomeFor={outcomeFor}
+          known={known}
           revealed={score !== null}
           colorFor={colorFor}
           onSpotTap={(spotId) => setOpenSpotId(spotId === openSpotId ? null : spotId)}
         />
 
-        {score ? (
-          <ResultSummary
-            score={score}
-            opponentName={puzzle.opponent.name}
-            lines={puzzle.lines}
-            canAdvance={canAdvance}
-            complete={complete}
-            results={results}
-            onNext={onNextRound}
-          />
-        ) : (
-          <div className="foot">
+        {/*
+          One strip at the foot, whatever state the round is in.
+
+          There used to be a panel here after the week was played: your total
+          against the best that had been available, the name of whoever you
+          should have taken, and how many line-ups would have won. It squashed
+          the field, and worse, it answered the next two rounds. Knowing the
+          best score on the wire tells you whether to stand pat or gamble —
+          which is the decision the day is made of, so the game shouldn't make
+          it for you. What you scored, you saw in the play-out. The rest is
+          yours to guess at.
+        */}
+        <div className="foot">
+          {score ? (
+            canAdvance ? (
+              <button type="button" className="kickoff" onClick={onNextRound}>
+                Next round
+              </button>
+            ) : complete ? (
+              <p className="day-done">
+                {results.filter((r) => r === 'won').length} of {results.length} today. Come back
+                tomorrow.
+              </p>
+            ) : null
+          ) : (
             <button
               type="button"
               className="kickoff"
@@ -200,39 +216,39 @@ export function PuzzleScreen({
                 ? 'Lock in your lineup'
                 : `Fill your open spot${puzzle.openings.length === 1 ? '' : 's'} to win`}
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
+        {/*
+          The sheet is the wire and nothing else now. It used to double as a
+          post-round board listing all five candidates and what each of them
+          scored — which handed over the answer to the rounds still to come.
+        */}
         <Sheet
           open={openSpot !== null}
           title={
             openSpot && (
               <>
-                {score ? 'What you passed on at ' : 'Fill your '}
+                Fill your{' '}
                 <strong style={{ color: colorFor(openSpot.slot) }}>{openSpot.slot}</strong>
               </>
             )
           }
-          note={
-            score && openIndex !== -1
-              ? explainSlot(score.slots[openIndex])
-              : 'Form to date. Nothing from this week.'
-          }
+          note="Form to date. Nothing from this week."
           onClose={() => setOpenSpotId(null)}
         >
-          {openSpot &&
-            (score ? (
-              <SlotBoard slot={score.slots[openIndex]} colorFor={colorFor} statLine={statLine} />
-            ) : (
-              <WaiverBoard
-                candidates={puzzle.waivers.filter((p) => p.slot === openSpot.slot)}
-                pickedId={picks[openIndex]}
-                statKeys={statKeys}
-                statLabel={statLabel}
-                colorFor={colorFor}
-                onPick={pick}
-              />
-            ))}
+          {openSpot && (
+            <WaiverBoard
+              candidates={puzzle.waivers.filter((p) => p.slot === openSpot.slot)}
+              pickedId={picks[openIndex]}
+              known={known}
+              outcomeFor={(player) => outcomeFor(player, player.slot)}
+              statKeys={statKeys}
+              statLabel={statLabel}
+              colorFor={colorFor}
+              onPick={pick}
+            />
+          )}
         </Sheet>
       </div>
 

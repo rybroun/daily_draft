@@ -24,6 +24,8 @@ export interface Day {
   picks: (PlayerId | null)[];
   /** Null until this round has been played. */
   score: Score | null;
+  /** Players you have already watched score, from rounds already played. */
+  known: Set<PlayerId>;
   /** How each round finished, in order. `null` for rounds not yet played. */
   results: (MatchupResult | null)[];
   /** False until the intro has been dismissed. */
@@ -103,6 +105,20 @@ export function useDay(
     }
   }, [adapter, puzzle, picks, locked]);
 
+  /**
+   * Players whose week you have already been shown.
+   *
+   * Only your own picks from rounds already played. The wire never changes, so
+   * a player you started in round one is still on it in rounds two and three —
+   * and you watched them score. Everyone else on that wire stays a question
+   * mark, which is the whole shape of the day: you leave each round knowing
+   * exactly one more number than you did, and nothing about what you passed on.
+   */
+  const known = useMemo(
+    () => new Set(rounds.filter((entry) => entry.locked).flatMap((entry) => entry.playerIds)),
+    [rounds],
+  );
+
   /** How each round finished — read back by replaying its own puzzle. */
   const results = useMemo<(MatchupResult | null)[]>(
     () =>
@@ -167,6 +183,7 @@ export function useDay(
     puzzle,
     picks,
     score,
+    known,
     results,
     started: day?.started === true,
     complete,

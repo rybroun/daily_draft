@@ -159,12 +159,9 @@ body {
 /* Every figure in this interface lines up in a column somewhere. */
 .bug-score,
 .need-figure,
-.row-figure-value,
-.ledger-value,
 .spot-figure,
-.streak,
-.form-stats,
-.row-rank {
+.pick-scored,
+.streak {
   font-variant-numeric: tabular-nums;
 }
 
@@ -824,64 +821,6 @@ body {
     0 0.1875rem 0.5rem #0e2a1a38;
 }
 
-/* ---- rows -------------------------------------------------------------- */
-
-.rows {
-  border-radius: 0.5rem;
-  background: var(--paper);
-  overflow: hidden;
-}
-
-/*
-  A colour spine down the left edge, doing the job a border used to: rhythm and
-  position, without boxing each player into their own container.
-*/
-.row {
-  position: relative;
-  inline-size: 100%;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 0.0625rem 0.5625rem;
-  padding: 0.4375rem 0.875rem 0.5rem 0.75rem;
-  border: 0;
-  border-inline-start: 3px solid var(--spine, transparent);
-  border-block-end: 1px solid var(--hairline);
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  text-align: start;
-}
-
-.rows > .row:last-child,
-.rows > li:last-child {
-  border-block-end: 0;
-}
-
-.row-identity {
-  display: flex;
-  flex-direction: column;
-  gap: 0.0625rem;
-  min-inline-size: 0;
-}
-
-.row-name {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  line-height: 1.15;
-}
-
-.row-team {
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-
 .tag {
   padding: 0.0625rem 0.25rem 0;
   border-radius: 0.125rem;
@@ -894,60 +833,6 @@ body {
 
 .tag-out { background: var(--loss); }
 .tag-q { background: var(--you); color: var(--you-ink); }
-
-.row-figure {
-  display: flex;
-  flex-direction: column;
-  align-items: end;
-  gap: 0;
-}
-
-.row-figure-value {
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 1.3125rem;
-  line-height: 1;
-}
-
-.row-figure-label {
-  font-size: 0.5625rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-
-/* Full width, so a stat line gets the pill's column back and stays one line. */
-.row-form {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.0625rem;
-  padding-block-start: 0.1875rem;
-}
-
-.form-line {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-
-.form-label {
-  inline-size: 2.75rem;
-  flex: none;
-  font-size: 0.5625rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-
-.form-stats {
-  font-size: 0.6875rem;
-  letter-spacing: 0.005em;
-  white-space: nowrap;
-  color: var(--muted);
-}
 
 /* ---- the waiver card -------------------------------------------------- */
 
@@ -1157,6 +1042,25 @@ body {
   }
 }
 
+/* A score you already watched happen, kept where the projection never was. */
+.pick-scored {
+  margin-inline-start: 0.375rem;
+  padding: 0.0625rem 0.25rem 0;
+  border-radius: 0.1875rem;
+  background: var(--you);
+  color: var(--you-ink);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.spot-figure.is-known {
+  background: var(--you);
+  color: var(--you-ink);
+}
+
 /* ---- the sheet --------------------------------------------------------- */
 
 /*
@@ -1246,6 +1150,25 @@ body {
   padding: 0.5rem 0.875rem 0.625rem;
 }
 
+/* The day's tally, where the next-round button would be. */
+.day-done {
+  padding-block: 0.5rem;
+  font-family: var(--display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-align: center;
+  color: #ffffff;
+  text-shadow: 0 1px 0.25rem #0e2a1a73;
+}
+
+.reveal-decided {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
 .kickoff {
   inline-size: 100%;
   padding: 0.75rem 1rem 0.6875rem;
@@ -1275,132 +1198,10 @@ body {
   cursor: default;
 }
 
-/* ---- the reveal -------------------------------------------------------- */
-
-/* Sits on the grass, so its type is chalk-white rather than ink. */
-.result {
-  position: relative;
-  z-index: 2;
-  padding: 0.5rem 0.875rem 0.625rem;
-}
-
-.result-headline {
-  font-family: var(--display);
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: 0.005em;
-  text-transform: uppercase;
-  text-wrap: balance;
-  color: #ffffff;
-  text-shadow: 0 1px 0.375rem #0e2a1a80;
-  animation: rise 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* Your two picks against the best two, as a length rather than a subtraction. */
-.ledger {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3125rem;
-  padding-block: 0.625rem 0.4375rem;
-}
-
-.ledger-row {
-  display: grid;
-  grid-template-columns: 4.5rem 1fr auto;
-  align-items: center;
-  gap: 0.625rem;
-}
-
-.ledger-label,
-.result-hint {
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #ffffff;
-  text-shadow: 0 1px 0.25rem #0e2a1a73;
-}
-
-.result-hint {
-  text-transform: none;
-  letter-spacing: 0.01em;
-  font-size: 0.6875rem;
-}
-
-.ledger-track {
-  block-size: 0.5rem;
-  border-radius: 0.25rem;
-  background: #0e2a1a3d;
-  overflow: hidden;
-}
-
-.ledger-fill {
-  display: block;
-  block-size: 100%;
-  border-radius: 0.25rem;
-}
-
-.ledger-fill.is-you { background: var(--you); }
-.ledger-fill.is-best { background: #ffffff; }
-
-.ledger-value {
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 1.0625rem;
-  line-height: 1;
-  color: #ffffff;
-  text-shadow: 0 1px 0.25rem #0e2a1a73;
-}
-
-.rows.is-board { list-style: none; }
-
-.row.is-result {
-  display: grid;
-  grid-template-columns: 1rem 1fr auto;
-  overflow: hidden;
-  animation: rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-  animation-delay: calc(var(--i, 0) * 55ms);
-}
-
 @keyframes rise {
   from { opacity: 0; transform: translateY(0.5rem); }
   to { opacity: 1; transform: none; }
 }
-
-.row-rank {
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 0.8125rem;
-  color: var(--faint);
-}
-
-.row.is-best .row-rank { color: var(--win); }
-.row.is-best { background: color-mix(in srgb, var(--win) 10%, transparent); }
-.row.is-yours { background: color-mix(in srgb, var(--you) 14%, transparent); }
-
-.row-yours {
-  padding: 0.0625rem 0.25rem 0;
-  border-radius: 0.125rem;
-  background: var(--you);
-  color: var(--you-ink);
-  font-family: var(--display);
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.row-bar {
-  position: absolute;
-  inset-block-end: 0;
-  inset-inline-start: 0;
-  block-size: 2px;
-  background: var(--edge);
-}
-
-.row.is-best .row-bar { background: var(--win); }
-.row.is-yours .row-bar { background: var(--you); }
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -1413,14 +1214,6 @@ body {
   .spot.is-active .spot-head {
     box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--you) 45%, transparent);
   }
-}
-
-.result-lines {
-  padding-block-start: 0.125rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #ffffff;
-  text-shadow: 0 1px 0.25rem #0e2a1a73;
 }
 
 /* ---- rounds ------------------------------------------------------------- */
@@ -1464,7 +1257,6 @@ body {
   color: var(--you);
 }
 
-
 .round.is-won { border-color: color-mix(in srgb, var(--win) 45%, transparent); color: var(--win); }
 
 .round.is-lost { border-color: color-mix(in srgb, var(--loss) 40%, transparent); color: var(--loss); }
@@ -1474,17 +1266,6 @@ body {
 .round.is-tied .round-moves {
   font-family: var(--display);
   font-size: 0.8125rem;
-}
-
-.result-day {
-  padding-block-start: 0.5rem;
-  font-family: var(--display);
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: #ffffff;
-  text-shadow: 0 1px 0.25rem #0e2a1a73;
 }
 
 /* ---- the intro ---------------------------------------------------------- */
@@ -1572,47 +1353,6 @@ body {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--you);
-}
-
-/* Who you should have taken. The wire doesn't change, so this is the payoff. */
-.result-best {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  padding-block: 0.4375rem 0.25rem;
-  list-style: none;
-}
-
-.result-best li {
-  display: grid;
-  grid-template-columns: 2.25rem 1fr auto;
-  align-items: baseline;
-  gap: 0.5rem;
-  color: #ffffff;
-  text-shadow: 0 1px 0.25rem #0e2a1a73;
-}
-
-.result-best-slot {
-  font-family: var(--display);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  opacity: 0.75;
-}
-
-.result-best-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.result-best-value {
-  font-family: var(--display);
-  font-size: 1rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
 }
 
 /* ---- the week playing out ----------------------------------------------- */

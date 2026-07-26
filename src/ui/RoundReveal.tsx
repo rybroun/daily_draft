@@ -98,11 +98,22 @@ export function RoundReveal({
         </ul>
 
         {beat >= beats - 1 && (
-          <p className={`reveal-verdict is-${score.result}`}>
-            {score.result === 'tied'
-              ? 'Dead heat'
-              : `${score.result === 'won' ? 'Won' : 'Lost'} by ${Math.abs(score.margin).toFixed(1)}`}
-          </p>
+          <>
+            <p className={`reveal-verdict is-${score.result}`}>
+              {score.result === 'tied'
+                ? 'Dead heat'
+                : `${score.result === 'won' ? 'Won' : 'Lost'} by ${Math.abs(score.margin).toFixed(1)}`}
+            </p>
+            {/*
+              A week nothing could have swung is a different experience from one
+              you threw away, and being told which is fair where being told you
+              were wrong is not. This line used to live in the summary panel
+              under the field; the panel is gone, the honesty isn't.
+            */}
+            {score.alreadyDecided && (
+              <p className="reveal-decided">This one was over before you picked.</p>
+            )}
+          </>
         )}
 
         <p className={`reveal-skip${onVerdict ? ' is-waiting' : ''}`}>
