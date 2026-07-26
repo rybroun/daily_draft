@@ -181,7 +181,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding-block-start: 0.75rem;
+  padding-block-start: 0.5rem;
   background: linear-gradient(to bottom, var(--sky-high), var(--sky-low));
 }
 
@@ -226,7 +226,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0 1rem 0.625rem;
+  padding: 0 1rem 0.4375rem;
 }
 
 .mark {
@@ -300,7 +300,7 @@ body {
 
 .bug {
   position: relative;
-  padding: 0 1rem 0.875rem;
+  padding: 0 1rem 0.5rem;
 }
 
 .bug-line {
@@ -338,7 +338,7 @@ body {
 .bug-score {
   font-family: var(--display);
   font-weight: 700;
-  font-size: 2.25rem;
+  font-size: 1.875rem;
   line-height: 0.9;
   letter-spacing: -0.005em;
 }
@@ -373,7 +373,7 @@ body {
   align-items: baseline;
   justify-content: center;
   gap: 0.4375rem;
-  padding-block-start: 0.5rem;
+  padding-block-start: 0.3125rem;
   font-family: var(--display);
   font-weight: 700;
   text-transform: uppercase;
@@ -381,13 +381,13 @@ body {
 
 .need-verb,
 .need-tail {
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   letter-spacing: 0.12em;
   color: var(--muted);
 }
 
 .need-figure {
-  font-size: 2.75rem;
+  font-size: 2.25rem;
   line-height: 0.85;
   letter-spacing: -0.01em;
   color: var(--you);
@@ -447,7 +447,7 @@ body {
 .field-lines {
   position: absolute;
   inset-inline: 0;
-  inset-block: 12%;
+  inset-block: var(--endzone);
   pointer-events: none;
   background: repeating-linear-gradient(
     to bottom,
@@ -514,7 +514,7 @@ body {
 .endzone {
   position: absolute;
   inset-inline: 0;
-  block-size: 12%;
+  block-size: var(--endzone);
   display: grid;
   place-items: center;
   pointer-events: none;
@@ -603,7 +603,12 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  inline-size: 5.75rem;
+  /*
+    A name plate is this wide, so two spots must sit at least this far apart.
+    The receiver row is 25% apart, which is 94px on a 375-wide phone — 5.75rem
+    left two of them to fight over the same two pixels.
+  */
+  inline-size: 5.5rem;
   translate: -50% -50%;
   text-align: center;
   transition: opacity 0.35s ease;
@@ -1125,6 +1130,33 @@ body {
   color: var(--faint);
 }
 
+/*
+  Short phones. Six rows of heads and name plates have to fit between the goal
+  lines, and on a 667-tall screen the plates were running into the heads below
+  them. Everything on the field steps down a size rather than the rows moving,
+  because the rows are a formation and the formation is the picture.
+*/
+@media (max-height: 740px) {
+  .spot-head {
+    inline-size: 2rem;
+    block-size: 2rem;
+  }
+
+  .head-glyph {
+    inline-size: 1.125rem;
+    block-size: 1.125rem;
+  }
+
+  .spot-name {
+    margin-block-start: 0.1875rem;
+    font-size: 0.75rem;
+  }
+
+  .spot-figure {
+    font-size: 0.6875rem;
+  }
+}
+
 /* ---- the sheet --------------------------------------------------------- */
 
 /*
@@ -1211,12 +1243,12 @@ body {
 .foot {
   position: relative;
   z-index: 2;
-  padding: 0.625rem 1rem 0.875rem;
+  padding: 0.5rem 0.875rem 0.625rem;
 }
 
 .kickoff {
   inline-size: 100%;
-  padding: 0.875rem 1rem 0.8125rem;
+  padding: 0.75rem 1rem 0.6875rem;
   border: 0;
   border-radius: 0.5rem;
   background: var(--you);
@@ -1249,7 +1281,7 @@ body {
 .result {
   position: relative;
   z-index: 2;
-  padding: 0.625rem 1rem 0.875rem;
+  padding: 0.5rem 0.875rem 0.625rem;
 }
 
 .result-headline {
@@ -1396,7 +1428,7 @@ body {
 .rounds {
   display: flex;
   gap: 0.25rem;
-  padding: 0 1rem 0.4375rem;
+  padding: 0 1rem 0.375rem;
   list-style: none;
 }
 
@@ -1406,7 +1438,7 @@ body {
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 0 0.3125rem;
-  padding: 0.25rem 0.375rem 0.1875rem;
+  padding: 0.1875rem 0.375rem 0.125rem;
   border: 1px solid var(--hairline);
   border-radius: 0.375rem;
   font-family: var(--display);

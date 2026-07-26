@@ -24,9 +24,9 @@ export const FORMATION: FieldSpot[] = [
   { id: 'wr2', slot: 'WR', x: 38, y: 59 },
   { id: 'te1', slot: 'TE', x: 62, y: 59 },
   { id: 'wr3', slot: 'WR', x: 87, y: 59 },
-  { id: 'rb1', slot: 'RB', x: 30, y: 76 },
+  { id: 'rb1', slot: 'RB', x: 18, y: 76 },
   { id: 'qb1', slot: 'QB', x: 50, y: 76 },
-  { id: 'rb2', slot: 'RB', x: 70, y: 76 },
+  { id: 'rb2', slot: 'RB', x: 82, y: 76 },
   { id: 'k1', slot: 'K', x: 50, y: 91 },
 ];
 

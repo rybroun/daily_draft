@@ -41,8 +41,16 @@ const ZOOM = 1.45;
  * lineups are compressed into the ground between. The adapter's coordinates are
  * left alone — they describe a formation, not a canvas — and the mapping lives
  * here because where the paint goes is a display question.
+ *
+ * Ten yards of a hundred-and-twenty is 8.3%, and that is about what there is
+ * room for: at 12% the two zones ate a quarter of the field and squeezed six
+ * rows of heads into what was left, which on a shorter phone overlapped.
+ *
+ * Published to CSS as `--endzone` rather than written down again there. The
+ * paint, the goal lines and this mapping have to agree or players stand in the
+ * end zone, and three copies of one number do not stay agreed.
  */
-const END_ZONE = 12;
+const END_ZONE = 8.5;
 const onGround = (y: number) => END_ZONE + (y / 100) * (100 - END_ZONE * 2);
 
 /**
@@ -100,15 +108,17 @@ export function Field({
   // The camera has to aim at where a spot is drawn, not where the formation
   // says it is, or a zoom would centre on bare turf a few percent away.
   const focus = zoomedOn ? onGround(zoomedOn.y) : 0;
+  const ground = { '--endzone': `${END_ZONE}%` } as React.CSSProperties;
   const camera = zoomedOn
     ? ({
+        ...ground,
         '--ox': zoomedOn.x,
         '--oy': focus,
         '--zx': pan(zoomedOn.x, 50),
         '--zy': pan(focus, FOCUS_Y),
         '--zoom': ZOOM,
       } as React.CSSProperties)
-    : undefined;
+    : ground;
 
   return (
     <div className="pitch">

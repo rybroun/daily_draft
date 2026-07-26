@@ -30,11 +30,11 @@ export const FORMATION: FieldSpot[] = [
   { id: 'wr2', slot: 'WR', x: 38, y: 59 },
   { id: 'te1', slot: 'TE', x: 62, y: 59 },
   { id: 'wr3', slot: 'WR', x: 87, y: 59 },
-  { id: 'rb1', slot: 'RB', x: 27, y: 76 },
+  { id: 'rb1', slot: 'RB', x: 18, y: 76 },
   { id: 'qb1', slot: 'QB', x: 50, y: 76 },
-  { id: 'rb2', slot: 'RB', x: 73, y: 76 },
-  { id: 'k1', slot: 'K', x: 35, y: 91 },
-  { id: 'dst1', slot: 'DST', x: 65, y: 91 },
+  { id: 'rb2', slot: 'RB', x: 82, y: 76 },
+  { id: 'k1', slot: 'K', x: 30, y: 91 },
+  { id: 'dst1', slot: 'DST', x: 70, y: 91 },
 ];
 
 /** The positions you actually stream off waivers. */
