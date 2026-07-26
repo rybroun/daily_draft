@@ -55,14 +55,17 @@ export function Intro({ season, week, standings, leaders, moment, streak, onStar
 
           <p className="intro-eyebrow">Daily Waivers</p>
           <h1 className="intro-title">Own the waiver wire.</h1>
+          {/*
+            Two sentences. It ran to two paragraphs explaining what you'd be
+            shown and what you wouldn't, which the game itself says the moment
+            you open the wire — and reading the manual is not the hook.
+          */}
           <p className="intro-body">
-            A week out of football's past, with holes in your lineup. Five names sit on the
-            wire for each one, and all you get is their form so far, who they're about to
-            play, and the injury report — never anything from the week itself.
+            It's a week out of football's past. You're heading into Sunday with holes in
+            your lineup and one waiver wire between you and your opponent.
           </p>
-          <p className="intro-body">
-            Fill the holes and the week plays out. There is always at least one set of picks
-            that wins it. The hard part is finding it.
+          <p className="intro-body is-promise">
+            There is always a lineup that wins. Find it.
           </p>
 
           <ol className="intro-rounds">

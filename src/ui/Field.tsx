@@ -117,7 +117,7 @@ const YARDS = Array.from({ length: 9 }, (_, i) => {
 });
 
 /** Uprights, crossbar and the post that holds them off the ground. */
-function Goalpost({ where }: { where: 'far' | 'near' }) {
+function Goalpost({ where }: { where: 'far' }) {
   return (
     <span className={`goalpost is-${where}`} aria-hidden="true">
       <svg viewBox="0 0 48 24">
@@ -363,9 +363,11 @@ export function Field({
             </span>
           </div>
 
-          {/* The posts stand at the back of each end zone, over the paint. */}
+          {/*
+            One set of posts, at the far end. Yours sat in the same strip of
+            paint as your total and what you still need, and lost.
+          */}
           <Goalpost where="far" />
-          <Goalpost where="near" />
 
           {/*
             Midfield logo, split across the 50: their colour on their side of it,
@@ -417,7 +419,17 @@ export function Field({
                 <button
                   type="button"
                   className="spot-head"
-                  style={{ '--slot-color': `var(--band-${band})` } as React.CSSProperties}
+                  /*
+                    The circle says one thing only: whether this spot is yours
+                    to act on. Sixteen heads ringed in three colours turned the
+                    production signal into wallpaper — it lives on the figure
+                    chips now, where the number it describes already is.
+                  */
+                  style={
+                    {
+                      '--slot-color': isOpening ? 'var(--you)' : 'var(--avatar)',
+                    } as React.CSSProperties
+                  }
                   aria-label={
                     occupant
                       ? `${theirs ? opponent.name : 'You'}, ${spot.slot} ${occupant.name}`

@@ -92,6 +92,9 @@
   --band-low: #c4453f;
   --band-unknown: #7b8a84;
 
+  /* Every head on the field but the ones you can still do something about. */
+  --avatar: #8c9c95;
+
   --qb: #c42e4e;
   --rb: #0b8457;
   --wr: #1f6fb2;
@@ -156,6 +159,7 @@
   --band-mid: #e2b054;
   --band-low: #ff6a58;
   --band-unknown: #8fa39a;
+  --avatar: #75897f;
 
   --qb: #e8556d;
   --rb: #2fb98a;
@@ -436,11 +440,6 @@ body {
 .goalpost { z-index: 1; }
 
 .goalpost.is-far { inset-block-start: 0.1875rem; }
-
-.goalpost.is-near {
-  inset-block-end: 0.125rem;
-  scale: 1 -1;
-}
 
 .goalpost svg {
   inline-size: 100%;
@@ -1786,6 +1785,12 @@ body {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--muted);
+}
+
+/* The promise the whole game rests on, so it doesn't read as another sentence. */
+.intro-body.is-promise {
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .intro-rounds {
