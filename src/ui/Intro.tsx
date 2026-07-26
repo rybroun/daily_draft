@@ -10,6 +10,8 @@ interface IntroProps {
   standings: { name: string; group?: string; detail: string }[];
   /** Who's been best at each position so far. Empty if the sport can't say. */
   leaders: { slot: RosterSlot; players: { name: string; team: string; detail: string }[] }[];
+  /** What else was true that week, outside the sport. Pure flavour. */
+  moment: { label: string; detail: string }[];
   streak: number;
   onStart: () => void;
 }
@@ -41,7 +43,7 @@ function leadEachDivision(table: { name: string; group?: string; detail: string 
  * league side, so "you're playing the Ludlow Ramblers" read as though you were
  * supposed to recognise them.
  */
-export function Intro({ season, week, standings, leaders, streak, onStart }: IntroProps) {
+export function Intro({ season, week, standings, leaders, moment, streak, onStart }: IntroProps) {
   const [briefing, setBriefing] = useState(false);
   const top = leadEachDivision(standings);
 
@@ -102,13 +104,17 @@ export function Intro({ season, week, standings, leaders, streak, onStart }: Int
           of this says anything about the five players on the wire — it's the
           furniture of the moment, not a clue.
         */}
+        {/*
+          One run of chips rather than eight labelled rows. Still every division
+          leader — the grouping is what picks the eight — but the division names
+          were four rows of furniture around eight facts.
+        */}
         {top.length > 0 && (
           <div className="intro-block">
             <p className="intro-block-head">Leading each division</p>
             <ol className="intro-table">
               {top.map((row) => (
-                <li key={row.name}>
-                  <span className="intro-division">{row.group}</span>
+                <li key={row.name} title={row.group}>
                   <span className="intro-team">{row.name}</span>
                   <span className="intro-record">{row.detail}</span>
                 </li>
@@ -135,6 +141,18 @@ export function Intro({ season, week, standings, leaders, streak, onStart }: Int
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* Nothing to do with football, and the fastest way to be in the year. */}
+        {moment.length > 0 && (
+          <div className="intro-block">
+            {moment.map((row) => (
+              <p key={row.label} className="intro-moment">
+                <span className="intro-moment-label">{row.label}</span>
+                <span className="intro-moment-detail">{row.detail}</span>
+              </p>
+            ))}
           </div>
         )}
 

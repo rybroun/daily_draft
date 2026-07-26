@@ -8,6 +8,7 @@ import {
   SLOT_COLORS,
   SLOT_STATS,
   STAT_LABELS,
+  NUMBER_ONE,
   TEAM_NAMES,
   fantasyPoints,
 } from './league';
@@ -149,6 +150,11 @@ export const nflAdapter: SportAdapter = {
   slotColor: (slot) => SLOT_COLORS[slot] ?? 'var(--dst)',
 
   standings: (season, week) => standingsFor(season, week),
+
+  moment: (season, week) => {
+    const hit = NUMBER_ONE[season]?.[week];
+    return hit ? [{ label: 'No. 1 that week', detail: `“${hit.song}” — ${hit.artist}` }] : [];
+  },
 
   /*
    * Read straight off `ranked`, which sorts on season form and nothing else —

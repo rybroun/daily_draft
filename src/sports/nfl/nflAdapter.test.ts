@@ -432,3 +432,33 @@ describe('how a defence has handled the position', () => {
     expect(ranks(9)).toEqual(ranks(9));
   });
 });
+
+describe('the week as a moment in time', () => {
+  it('has a number one for every week the game can deal', () => {
+    for (const { season, week } of everyWeek) {
+      const moment = a.moment!(season, week);
+      expect(moment).toHaveLength(1);
+      expect(moment[0].label).toBe('No. 1 that week');
+      // “Song” — Artist
+      expect(moment[0].detail).toMatch(/^“.+” — .+$/);
+    }
+  });
+
+  it('knows Adele saw out 2015 and Alicia Keys saw out 2007', () => {
+    // Both held number one from mid-November to the end of the season.
+    expect(a.moment!(2015, 17)[0].detail).toContain('Hello');
+    expect(a.moment!(2015, 17)[0].detail).toContain('Adele');
+    expect(a.moment!(2007, 17)[0].detail).toContain('No One');
+    expect(a.moment!(2007, 17)[0].detail).toContain('Alicia Keys');
+  });
+
+  it('changes when the chart changed', () => {
+    // "The Hills" gave way to "Hello" for the chart of 14 November 2015, which
+    // is week 10 — the first Sunday after it.
+    expect(a.moment!(2015, 9)[0].detail).toContain('The Hills');
+    expect(a.moment!(2015, 10)[0].detail).toContain('Hello');
+    // And "Crank That" to "Kiss Kiss" for 10 November 2007, week 10.
+    expect(a.moment!(2007, 9)[0].detail).toContain('Crank That');
+    expect(a.moment!(2007, 10)[0].detail).toContain('Kiss Kiss');
+  });
+});

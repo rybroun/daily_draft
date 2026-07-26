@@ -163,6 +163,14 @@ export interface SportAdapter {
   ): { name: string; group?: string; detail: string }[];
 
   /**
+   * What else was true that week — the world outside the sport.
+   *
+   * A date is an abstraction until something you remember is attached to it.
+   * Optional, and pure flavour: nothing here may bear on a pick.
+   */
+  moment?(season: number, week: number): { label: string; detail: string }[];
+
+  /**
    * Who has been best at each position so far, for the same opening card.
    *
    * Must be built from visible form only — it's shown before a single pick is
