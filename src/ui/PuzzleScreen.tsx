@@ -18,7 +18,6 @@ import { Rounds } from './Rounds';
 import { SlotBoard } from './SlotBoard';
 import { explainSlot } from './explainSlot';
 import { RoundReveal } from './RoundReveal';
-import { ScoreBug } from './ScoreBug';
 import { Sheet } from './Sheet';
 import { WaiverBoard } from './WaiverBoard';
 import { applyTheme, storedTheme } from '../theme';
@@ -130,9 +129,16 @@ export function PuzzleScreen({
 
   return (
     <main className="screen">
+      {/*
+        The mark, which week of history this is, and your streak. The scoreline
+        used to sit under this in a bar of its own; it's painted on the end zones
+        now, and the field has the height back.
+      */}
       <header className="masthead">
         <Mark />
-        <p className="masthead-title">Daily Draft</p>
+        <p className="masthead-when">
+          {puzzle.season} · Wk {puzzle.week}
+        </p>
         <span className="masthead-spacer" />
         <ThemeToggle
           theme={theme}
@@ -151,16 +157,6 @@ export function PuzzleScreen({
         )}
       </header>
 
-      <ScoreBug
-        opponentName={puzzle.opponent.name}
-        season={puzzle.season}
-        week={puzzle.week}
-        yourTotal={totals.yours}
-        opponentTotal={totals.theirs}
-        result={score?.result ?? null}
-        margin={score?.margin ?? 0}
-      />
-
       <Rounds current={round} results={results} />
 
       <div className="stage">
@@ -176,6 +172,13 @@ export function PuzzleScreen({
           known={known}
           revealed={score !== null}
           reviewable={complete}
+          scoreline={{
+            yours: totals.yours,
+            theirs: totals.theirs,
+            need: score ? null : totals.theirs - totals.yours,
+            result: score?.result ?? null,
+            margin: score?.margin ?? 0,
+          }}
           colorFor={colorFor}
           onSpotTap={(spotId) => setOpenSpotId(spotId === openSpotId ? null : spotId)}
         />
@@ -252,7 +255,12 @@ export function PuzzleScreen({
               note={
                 reviewing
                   ? explainSlot(score.slots[openIndex])
-                  : 'Form to date. Nothing from this week.'
+                  : /*
+                      Your end zone is behind this panel while it's open, and
+                      what you need is the one number you're picking against.
+                    */
+                    `Need ${Math.max(0, totals.theirs - totals.yours).toFixed(1)} off the wire. ` +
+                    'Form to date, nothing from this week.'
               }
               onClose={() => setOpenSpotId(null)}
             >

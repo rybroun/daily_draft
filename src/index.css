@@ -168,8 +168,6 @@ body {
 }
 
 /* Every figure in this interface lines up in a column somewhere. */
-.bug-score,
-.need-figure,
 .spot-figure,
 .pick-scored,
 .row-figure-value,
@@ -249,12 +247,13 @@ body {
 .mark-block { fill: var(--ink); }
 .mark-letter { fill: var(--paper); }
 
-.masthead-title {
+.masthead-when {
   font-family: var(--display);
   font-weight: 700;
   font-size: 1.0625rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  color: var(--muted);
 }
 
 .masthead-spacer { flex: 1; }
@@ -305,114 +304,6 @@ body {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--faint);
-}
-
-/* ---- score bug --------------------------------------------------------- */
-
-.bug {
-  position: relative;
-  padding: 0 1rem 0.5rem;
-}
-
-.bug-line {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.625rem;
-}
-
-.bug-team {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-inline-size: 0;
-}
-
-/* The chip carries the team's identity everywhere it appears. */
-.bug-chip {
-  padding: 0.1875rem 0.4375rem 0.125rem;
-  border-radius: 0.1875rem;
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 0.8125rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--you-ink);
-  background: var(--you);
-}
-
-.bug-team.is-them .bug-chip {
-  color: var(--them-ink);
-  background: var(--them);
-}
-
-.bug-score {
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 1.875rem;
-  line-height: 0.9;
-  letter-spacing: -0.005em;
-}
-
-.bug-when {
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.0625rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-
-.bug-season {
-  font-size: 0.6875rem;
-  color: var(--muted);
-}
-
-.bug-week {
-  font-size: 0.625rem;
-}
-
-/*
-  The signature: what you still need, and it falls as you fill each opening.
-  Everything else on this screen is quiet so that this can be loud.
-*/
-.need {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 0.4375rem;
-  padding-block-start: 0.3125rem;
-  font-family: var(--display);
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.need-verb,
-.need-tail {
-  font-size: 0.8125rem;
-  letter-spacing: 0.12em;
-  color: var(--muted);
-}
-
-.need-figure {
-  font-size: 2.25rem;
-  line-height: 0.85;
-  letter-spacing: -0.01em;
-  color: var(--you);
-  transition: color 0.2s ease;
-}
-
-.bug.is-won .need-figure,
-.bug.is-won .need-verb {
-  color: var(--win);
-}
-
-.bug.is-lost .need-figure,
-.bug.is-lost .need-verb {
-  color: var(--loss);
 }
 
 /* ---- the field --------------------------------------------------------- */
@@ -539,8 +430,10 @@ body {
   position: absolute;
   inset-inline: 0;
   block-size: var(--endzone);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding-inline: 0.75rem;
   pointer-events: none;
   overflow: hidden;
 }
@@ -561,14 +454,46 @@ body {
 .endzone-word {
   font-family: var(--display);
   font-weight: 700;
-  font-size: clamp(0.875rem, 4.5vw, 1.375rem);
-  letter-spacing: 0.42em;
-  /* The letter-spacing pads the right side; pull it back so the word centres. */
-  text-indent: 0.42em;
+  font-size: 1rem;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   line-height: 1;
-  opacity: 0.72;
+  opacity: 0.78;
 }
+
+/* Each side's total, at that side's end of the ground. */
+.endzone-total {
+  margin-inline-start: auto;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 2rem;
+  line-height: 0.9;
+  letter-spacing: -0.005em;
+}
+
+/*
+  What you still need, or how it finished. Only ever on your own paint — it's
+  the one number here you can do anything about.
+*/
+.endzone-call {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.15;
+  opacity: 0.85;
+}
+
+.endzone-call strong {
+  font-family: var(--display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.endzone.is-them .endzone-total { color: var(--endzone-them-ink); }
+.endzone.is-you .endzone-total,
+.endzone.is-you .endzone-call { color: var(--endzone-you-ink); }
 
 .endzone.is-them .endzone-word { color: var(--endzone-them-ink); }
 .endzone.is-you .endzone-word { color: var(--endzone-you-ink); }

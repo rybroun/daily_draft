@@ -1,6 +1,7 @@
 import type {
   FieldEntry,
   FieldSpot,
+  MatchupResult,
   Opponent,
   Player,
   PlayerId,
@@ -24,6 +25,19 @@ interface FieldProps {
   revealed: boolean;
   /** True once the day is finished and the boards may be opened. */
   reviewable: boolean;
+  /**
+   * The scoreline, which is painted in the end zones rather than sitting in a
+   * bar above the field. Each side's total belongs at that side's end of the
+   * ground, and the game gets the bar's height back.
+   */
+  scoreline: {
+    yours: number;
+    theirs: number;
+    /** What your openings still have to produce. Null once the week is played. */
+    need: number | null;
+    result: MatchupResult | null;
+    margin: number;
+  };
   colorFor: (slot: RosterSlot) => string;
   onSpotTap: (spotId: SpotId) => void;
 }
@@ -56,15 +70,15 @@ const ZOOM = 1.45;
  * left alone — they describe a formation, not a canvas — and the mapping lives
  * here because where the paint goes is a display question.
  *
- * Ten yards of a hundred-and-twenty is 8.3%, and that is about what there is
- * room for: at 12% the two zones ate a quarter of the field and squeezed six
- * rows of heads into what was left, which on a shorter phone overlapped.
+ * Ten yards of a hundred-and-twenty is 8.3%. This runs a little deeper than
+ * that because the paint carries the scoreline, and the field can afford it now
+ * that the bar above it is gone.
  *
  * Published to CSS as `--endzone` rather than written down again there. The
  * paint, the goal lines and this mapping have to agree or players stand in the
  * end zone, and three copies of one number do not stay agreed.
  */
-const END_ZONE = 8.5;
+const END_ZONE = 10;
 const onGround = (y: number) => END_ZONE + (y / 100) * (100 - END_ZONE * 2);
 
 /**
@@ -99,6 +113,7 @@ export function Field({
   known,
   revealed,
   reviewable,
+  scoreline,
   colorFor,
   onSpotTap,
 }: FieldProps) {
@@ -163,11 +178,41 @@ export function Field({
             nothing you'd recognise. The full name is still spelled out where
             there's room for it, in the intro and the result.
           */}
-          <div className="endzone is-them" aria-hidden="true">
-            <span className="endzone-word">Them</span>
+          <div className="endzone is-them">
+            {/* Their invented league name is still a hover away, as it was on
+                the chip this replaced. */}
+            <span className="endzone-word" title={opponent.name}>
+              Them
+            </span>
+            <span className="endzone-total">{scoreline.theirs.toFixed(1)}</span>
           </div>
-          <div className="endzone is-you" aria-hidden="true">
+          <div className={`endzone is-you${scoreline.result ? ` is-${scoreline.result}` : ''}`}>
             <span className="endzone-word">You</span>
+            {/*
+              What you still need, or how it finished — on your own paint, since
+              it's the only number here you can do anything about.
+            */}
+            <span className="endzone-call">
+              {scoreline.result ? (
+                scoreline.result === 'tied' ? (
+                  'Dead heat'
+                ) : (
+                  <>
+                    {scoreline.result === 'won' ? 'Won by' : 'Lost by'}{' '}
+                    <strong>{Math.abs(scoreline.margin).toFixed(1)}</strong>
+                  </>
+                )
+              ) : scoreline.need !== null && scoreline.need > 0 ? (
+                <>
+                  Need <strong>{scoreline.need.toFixed(1)}</strong> off the wire
+                </>
+              ) : (
+                <>
+                  Up <strong>{Math.abs(scoreline.need ?? 0).toFixed(1)}</strong> before the wire
+                </>
+              )}
+            </span>
+            <span className="endzone-total">{scoreline.yours.toFixed(1)}</span>
           </div>
 
           {/*
