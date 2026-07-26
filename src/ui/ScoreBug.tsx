@@ -17,9 +17,10 @@ const code = (name: string) => name.split(' ')[0].slice(0, 3).toUpperCase();
 /**
  * The scoreline, borrowed from a telecast rather than a dashboard.
  *
- * Underneath it sits the one number this whole game is about: what you still
- * need. It falls as you fill each opening, so the stake of the next pick is
- * never something you have to work out for yourself.
+ * Underneath it sits the one number this whole game is about: what your
+ * openings have to produce between them. It holds still while you pick — it
+ * counts only the starters already on the field, so it states the target
+ * rather than scoring your answer as you type it.
  */
 export function ScoreBug({
   opponentName,
@@ -64,13 +65,13 @@ export function ScoreBug({
           <>
             <span className="need-verb">Need</span>
             <span className="need-figure">{need.toFixed(1)}</span>
-            <span className="need-tail">to win</span>
+            <span className="need-tail">off the wire</span>
           </>
         ) : (
           <>
             <span className="need-verb">Up</span>
             <span className="need-figure">{Math.abs(need).toFixed(1)}</span>
-            <span className="need-tail">on projection</span>
+            <span className="need-tail">before the wire</span>
           </>
         )}
       </p>

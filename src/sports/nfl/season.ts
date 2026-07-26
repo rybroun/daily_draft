@@ -69,90 +69,58 @@ function averageOf(label: string, games: Record<string, number>[], slot: RosterS
   return { label, stats };
 }
 
-/**
- * Who each team played, week by week.
- *
- * Built from the team's own fixtures rather than an individual's, deliberately.
- * Reading a player's schedule off *their* lines would leak whether they played
- * — an absence in week N+1 would quietly announce an injury the player is not
- * supposed to know about yet.
+/*
+ * The schedule used to be reconstructed by scanning every player's week lines
+ * for an opponent code, with a note explaining that it had to be built from the
+ * team's fixtures and not an individual's — reading it off one player's lines
+ * would leak whether *they* played, and an absence would quietly announce an
+ * injury. That care is no longer needed: the fixture now comes from the games
+ * table, which is team-level by construction, so there is no player to leak.
  */
-const schedules = new Map<number, Map<string, Map<number, string>>>();
-
-function schedule(year: number): Map<string, Map<number, string>> {
-  const cached = schedules.get(year);
-  if (cached) return cached;
-
-  const table = new Map<string, Map<number, string>>();
-  for (const p of season(year).players) {
-    for (const [week, line] of Object.entries(p.weeks)) {
-      const opp = line.opp as unknown as string | undefined;
-      if (!opp) continue;
-      if (!table.has(p.team)) table.set(p.team, new Map());
-      table.get(p.team)!.set(Number(week), opp);
-    }
-  }
-  schedules.set(year, table);
-  return table;
-}
 
 /**
- * How generous each defence has been to a position, through the prior weeks.
+ * A team's win–loss record going into a given week.
  *
- * This is the substance behind a projection: not "he'll score 12" but "he's
- * facing the softest secondary in the league". Computed from weeks before the
- * one being played, so it leaks nothing.
+ * Counted only from weeks strictly before the one being played, so it says
+ * where a side stood at that moment and nothing about what happens next.
+ *
+ * This replaced a soft/even/hard colour on each fixture. The tint was a better
+ * fantasy signal — a good team can still be generous to receivers — but it
+ * was three unlabelled colours with no legend anywhere, so it read as
+ * decoration. A record is plainer and it is at least self-explaining.
  */
-const defences = new Map<string, Map<string, 'soft' | 'even' | 'hard'>>();
+const records = new Map<string, string>();
 
-function defenceTiers(year: number, week: number, slot: RosterSlot) {
-  const key = `${year}:${week}:${slot}`;
-  const cached = defences.get(key);
-  if (cached) return cached;
+function recordThrough(year: number, week: number, team: string): string {
+  const key = `${year}:${week}:${team}`;
+  const cached = records.get(key);
+  if (cached !== undefined) return cached;
 
-  const allowed = new Map<string, { points: number; games: number }>();
-  for (const p of season(year).players) {
-    if (p.pos !== slot) continue;
-    for (const [w, line] of Object.entries(p.weeks)) {
-      const opp = line.opp as unknown as string | undefined;
-      if (!opp || Number(w) >= week) continue;
-      const row = allowed.get(opp) ?? { points: 0, games: 0 };
-      row.points += fantasyPoints(line);
-      allowed.set(opp, row);
-    }
-  }
-  for (const [team, games] of schedule(year)) {
-    const played = [...games.keys()].filter((w) => w < week).length;
-    const row = allowed.get(team);
-    if (row) row.games = played;
+  let won = 0;
+  let lost = 0;
+  let tied = 0;
+  for (const [w, game] of Object.entries(season(year).games?.[team] ?? {})) {
+    if (Number(w) >= week) continue;
+    if (game.result === 'W') won++;
+    else if (game.result === 'L') lost++;
+    else tied++;
   }
 
-  const ranked = [...allowed.entries()]
-    .filter(([, r]) => r.games > 0)
-    .map(([team, r]) => ({ team, per: r.points / r.games }))
-    .sort((a, b) => b.per - a.per);
-
-  const tiers = new Map<string, 'soft' | 'even' | 'hard'>();
-  const third = Math.ceil(ranked.length / 3);
-  ranked.forEach(({ team }, i) => {
-    tiers.set(team, i < third ? 'soft' : i < third * 2 ? 'even' : 'hard');
-  });
-  defences.set(key, tiers);
-  return tiers;
+  const record = tied > 0 ? `${won}–${lost}–${tied}` : `${won}–${lost}`;
+  records.set(key, record);
+  return record;
 }
 
-/** The next three fixtures, with how kind each defence has been so far. */
-export function fixturesFor(year: number, week: number, team: string, slot: RosterSlot) {
-  const games = schedule(year).get(team);
-  const tiers = defenceTiers(year, week, slot);
+/** The one game being picked for: who, where, and how they've gone so far. */
+export function nextGameFor(year: number, week: number, team: string) {
+  const game = season(year).games?.[team]?.[String(week)];
+  // No fixture that week is a bye, and you can't start a bye.
+  if (!game) return { label: 'BYE' };
 
-  return [week, week + 1, week + 2]
-    .filter((w) => w <= 17)
-    .map((w) => {
-      const opp = games?.get(w);
-      if (!opp) return { label: 'BYE' as const, tone: 'even' as const };
-      return { label: `${w === week ? '' : ''}${opp}`, tone: tiers.get(opp) ?? 'even' };
-    });
+  return {
+    label: `${game.home ? 'vs' : 'at'} ${game.opp}`,
+    detail: recordThrough(year, week, game.opp),
+  };
 }
 
 /** Every game this player actually played before the given week. */
@@ -183,7 +151,7 @@ export function toPlayer(p: RawPlayer, year: number, week: number): Player {
     slot: p.pos,
     ...(designation ? { status: TAG[designation.status] ?? designation.status } : {}),
     form: [averageOf('Season', games, p.pos), averageOf('Last 3', recent, p.pos)],
-    fixtures: fixturesFor(year, week, p.team, p.pos),
+    next: nextGameFor(year, week, p.team),
     outcome: {
       label: `Week ${week}`,
       // No line means they didn't play: a real zero, not missing data.

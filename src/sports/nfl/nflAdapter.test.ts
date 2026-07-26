@@ -296,3 +296,55 @@ describe('both seasons are in the rotation', () => {
     expect(teams).not.toContain('LA');
   });
 });
+
+describe('the next game, and who it is against', () => {
+  const everyCandidate = everyWeek.flatMap(({ season, week }) =>
+    (['QB', 'RB', 'WR', 'TE', 'K'] as const).flatMap((slot) =>
+      a.candidates(season, week, slot).map((p) => ({ p, season, week })),
+    ),
+  );
+
+  it('names one game, not a run of three — you are only picking for this week', () => {
+    for (const { p } of everyCandidate) {
+      expect(p.next).toBeDefined();
+      // A single object. A list would be the old three-fixture strip.
+      expect(Array.isArray(p.next)).toBe(false);
+    }
+  });
+
+  it('says whether it is home or away, and against whom', () => {
+    for (const { p } of everyCandidate) {
+      expect(p.next!.label).toMatch(/^(vs|at) [A-Z]{2,3}$|^BYE$/);
+    }
+  });
+
+  it('carries the opponent record instead of an unexplained colour', () => {
+    for (const { p } of everyCandidate) {
+      if (p.next!.label === 'BYE') continue;
+      // "4–6" or "4–6–1", en dashes, no W/L letters.
+      expect(p.next!.detail).toMatch(/^\d+–\d+(–\d+)?$/);
+    }
+  });
+
+  it('counts that record only from weeks already played', () => {
+    // A record through week N can never total more than N-1 games.
+    for (const { p, week } of everyCandidate) {
+      if (p.next!.label === 'BYE') continue;
+      const played = p.next!.detail!.split('–').reduce((n, x) => n + Number(x), 0);
+      expect(played).toBeLessThanOrEqual(week - 1);
+    }
+  });
+
+  it('agrees with the result the reveal prints for that same game', () => {
+    // The wire says who they play; the reveal says how it went. Same fixture.
+    for (const { p, season, week } of everyCandidate.slice(0, 400)) {
+      const note = a.gameNote!(p, season, week);
+      if (p.next!.label === 'BYE') {
+        expect(note).toBeNull();
+        continue;
+      }
+      const opponent = p.next!.label.split(' ')[1];
+      expect(note).toContain(opponent);
+    }
+  });
+});

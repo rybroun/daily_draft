@@ -52,12 +52,15 @@ export interface Player {
    */
   form: StatLine[];
   /**
-   * What's ahead of this player, in the adapter's own words — the fixtures a
-   * projection would have been built from, handed over instead of the answer.
-   * Schedules are published in advance, so this is legitimately visible.
+   * The one game being picked for, in the adapter's own words — who it's
+   * against (`label`) and one fact about them (`detail`). Schedules and
+   * standings are both published in advance, so this is legitimately visible.
    * Opaque to core.
+   *
+   * Singular on purpose. It used to be a run of three fixtures, which is what
+   * you'd want for a trade; the question here is only ever about this week.
    */
-  fixtures?: { label: string; tone?: 'soft' | 'even' | 'hard' }[];
+  next?: { label: string; detail?: string };
   /** What actually happened in the scored week. Hidden until the reveal. */
   outcome: StatLine;
 }

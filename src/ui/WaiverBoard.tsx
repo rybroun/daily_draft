@@ -26,8 +26,9 @@ function Head() {
  * There is deliberately no projected score here. A projection is the optimal
  * read of everything on this card already computed — show it and the game
  * collapses into "take the biggest number". What's shown instead is what a
- * projection is *made of*: the season line, the recent line, the injury report
- * and the run of fixtures. The synthesis is the player's job; it's the only job.
+ * projection is *made of*: the season line, the recent line, the injury report,
+ * and the one game they're about to play with the record of the side they're
+ * playing. The synthesis is the player's job; it's the only job.
  */
 export function WaiverBoard({
   candidates,
@@ -80,13 +81,12 @@ export function WaiverBoard({
               </span>
             </span>
 
-            {player.fixtures && (
+            {player.next && (
               <span className="pick-next">
-                {player.fixtures.map((f, i) => (
-                  <span key={`${f.label}-${i}`} className={`fixture is-${f.tone ?? 'even'}`}>
-                    {f.label}
-                  </span>
-                ))}
+                <span className="fixture">{player.next.label}</span>
+                {player.next.detail && (
+                  <span className="fixture-detail">{player.next.detail}</span>
+                )}
               </span>
             )}
 

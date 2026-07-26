@@ -92,19 +92,29 @@ export function PuzzleScreen({
   // Before the week the field shows projections; after, what actually happened.
   const figureFor = score ? outcomeFor : projectionFor;
 
+  /*
+   * Before the week, your total counts only the starters already on the field —
+   * never the players you took off the wire.
+   *
+   * It used to include them, so the need figure fell by exactly the pick's
+   * projection the moment you made it. That gave the number back by
+   * subtraction: fill a spot, watch the figure drop, and you have read the
+   * projection the wire card deliberately withholds. Held still, the figure
+   * becomes the target instead — the same one the reveal opens on.
+   */
   const totals = useMemo(() => {
     if (score) return { yours: score.yourTotal, theirs: score.opponentTotal };
 
-    const yours = puzzle.field.reduce((sum, entry) => {
-      const player = entry.player ?? filled.get(entry.spot.id) ?? null;
-      return sum + (player ? projectionFor(player, entry.spot.slot) : 0);
-    }, 0);
+    const yours = puzzle.field.reduce(
+      (sum, entry) => sum + (entry.player ? projectionFor(entry.player, entry.spot.slot) : 0),
+      0,
+    );
     const theirs = puzzle.opponent.lineup.reduce(
       (sum, entry) => sum + projectionFor(entry.player, entry.spot.slot),
       0,
     );
     return { yours, theirs };
-  }, [score, puzzle, filled, projectionFor]);
+  }, [score, puzzle, projectionFor]);
 
   const pick = (playerId: PlayerId) => {
     if (openIndex === -1) return;

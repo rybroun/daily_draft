@@ -158,11 +158,23 @@ export function Field({
                   {/* Keyed on the occupant so a fresh pick visibly drops into the slot. */}
                   {occupant ? <Head key={occupant.id} /> : <span className="spot-plus">+</span>}
 
-                  {occupant && (
-                    <span className={`spot-figure${revealed ? ' is-final' : ''}`}>
-                      {figureFor(occupant, spot.slot).toFixed(1)}
-                    </span>
-                  )}
+                  {/*
+                    A player taken off the wire wears a question mark until the
+                    week is played. Everyone else's figure is a projection, and
+                    projections were deliberately taken off the wire — printing
+                    one over the head you just picked would hand back exactly
+                    the number the card refused to show you.
+                  */}
+                  {occupant &&
+                    (isOpening && !revealed ? (
+                      <span className="spot-figure is-unknown" aria-label="Unknown until the week is played">
+                        ?
+                      </span>
+                    ) : (
+                      <span className={`spot-figure${revealed ? ' is-final' : ''}`}>
+                        {figureFor(occupant, spot.slot).toFixed(1)}
+                      </span>
+                    ))}
                 </button>
 
                 <span className="spot-name">
