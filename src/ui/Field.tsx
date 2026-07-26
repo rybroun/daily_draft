@@ -20,9 +20,6 @@ const onCard = (name: string) => {
   return rest.length === 0 ? name : `${first[0]}. ${rest.join(' ')}`;
 };
 
-/** Broadcast shorthand: a manager's team becomes three letters. */
-const code = (name: string) => name.split(' ')[0].slice(0, 3).toUpperCase();
-
 /** A head: circle for the skull, arc for the shoulders. Deliberately anonymous. */
 function Head() {
   return (
@@ -132,8 +129,15 @@ export function Field({
             than a pitch, and they're also the clearest place to say whose end
             is whose — painted where it is on a real field.
           */}
+          {/*
+            "Them", not the opponent's initials. The league's team names are
+            invented, and cutting one to three letters produced things like NIN
+            for Ninth Street Storm — a code you can't decipher and that names
+            nothing you'd recognise. The full name is still spelled out where
+            there's room for it, in the intro and the result.
+          */}
           <div className="endzone is-them" aria-hidden="true">
-            <span className="endzone-word">{code(opponent.name)}</span>
+            <span className="endzone-word">Them</span>
           </div>
           <div className="endzone is-you" aria-hidden="true">
             <span className="endzone-word">You</span>

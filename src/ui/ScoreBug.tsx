@@ -11,9 +11,6 @@ interface ScoreBugProps {
   margin: number;
 }
 
-/** Broadcast shorthand: a manager's team becomes three letters on a chip. */
-const code = (name: string) => name.split(' ')[0].slice(0, 3).toUpperCase();
-
 /**
  * The scoreline, borrowed from a telecast rather than a dashboard.
  *
@@ -49,8 +46,9 @@ export function ScoreBug({
 
         <span className="bug-team is-them">
           <span className="bug-score">{opponentTotal.toFixed(1)}</span>
+          {/* Their name in full is a hover away; three letters of it said nothing. */}
           <span className="bug-chip" title={opponentName}>
-            {code(opponentName)}
+            Them
           </span>
         </span>
       </div>
