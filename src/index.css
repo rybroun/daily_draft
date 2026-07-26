@@ -1425,3 +1425,44 @@ body {
   font-weight: 600;
   color: var(--you);
 }
+
+/* Who you should have taken. The wire doesn't change, so this is the payoff. */
+.result-best {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding-block: 0.4375rem 0.25rem;
+  list-style: none;
+}
+
+.result-best li {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr auto;
+  align-items: baseline;
+  gap: 0.5rem;
+  color: #ffffff;
+  text-shadow: 0 1px 0.25rem #0e2a1a73;
+}
+
+.result-best-slot {
+  font-family: var(--display);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+}
+
+.result-best-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-best-value {
+  font-family: var(--display);
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ROUNDS, puzzleFor } from './core/puzzle';
+import { ROUNDS, dayFor } from './core/day';
 import { scorePicks } from './core/scoring';
 import { recordPlay } from './core/streak';
 import type { StreakState } from './core/streak';
@@ -68,17 +68,26 @@ export function useDay(
   const round = reviewing ?? Math.min(played, ROUNDS.length - 1);
   const difficulty = ROUNDS[round];
 
-  const puzzle = useMemo(
-    () => puzzleFor(adapter, today, difficulty),
-    [adapter, today, difficulty],
-  );
+  // One day, three rounds, one wire — built once and indexed by round.
+  const built = useMemo(() => dayFor(adapter, today), [adapter, today]);
+  const puzzle = built.rounds[round];
 
   const openings = puzzle.openings.length;
   const stored = rounds[round];
 
+  /*
+   * Answers carry forward. The openings nest and the wire never changes, so the
+   * spot you filled in round one is still that spot in round two — and now you
+   * know what its five candidates actually did. Keeping your old answer in place
+   * makes the choice explicit: stand by it, or use what the reveal told you.
+   */
   const picks = useMemo<(PlayerId | null)[]>(
-    () => Array.from({ length: openings }, (_, i) => stored?.playerIds[i] ?? null),
-    [stored, openings],
+    () =>
+      Array.from(
+        { length: openings },
+        (_, i) => stored?.playerIds[i] ?? rounds[round - 1]?.playerIds[i] ?? null,
+      ),
+    [stored, openings, rounds, round],
   );
 
   const ready = picks.every((pick) => pick !== null);
@@ -97,16 +106,16 @@ export function useDay(
   /** How each round finished — read back by replaying its own puzzle. */
   const results = useMemo<(MatchupResult | null)[]>(
     () =>
-      ROUNDS.map((level, i) => {
+      ROUNDS.map((_level, i) => {
         const entry = rounds[i];
         if (!entry?.locked) return null;
         try {
-          return scorePicks(adapter, puzzleFor(adapter, today, level), entry.playerIds).result;
+          return scorePicks(adapter, built.rounds[i], entry.playerIds).result;
         } catch {
           return null;
         }
       }),
-    [adapter, today, rounds],
+    [adapter, built, rounds],
   );
 
   const commit = useCallback((next: SavedGame) => {

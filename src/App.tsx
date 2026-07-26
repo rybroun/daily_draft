@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { dateKey } from './core/puzzle';
+import { dateKey } from './core/day';
 import type { Player, RosterSlot, StatKey, StatLine } from './core/types';
 import { nflAdapter } from './sports/nfl/nflAdapter';
 import { PuzzleScreen } from './ui/PuzzleScreen';

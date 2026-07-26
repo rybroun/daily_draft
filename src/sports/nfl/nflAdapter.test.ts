@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { WAIVERS_PER_OPENING, dateKey, puzzleFor } from '../../core/puzzle';
+import { WAIVERS_PER_OPENING, dateKey, dayFor } from '../../core/day';
 import { scorePicks } from '../../core/scoring';
 import { fantasyPoints } from './league';
 import { nflAdapter as a } from './nflAdapter';
@@ -177,22 +177,24 @@ describe('a year of real puzzles', () => {
 
   it('produces a playable, scoreable puzzle every day', () => {
     for (const day of days) {
-      const puzzle = puzzleFor(a, day);
-      const picks = puzzle.openings.map(
-        (spot) => puzzle.waivers.find((p) => p.slot === spot.slot)!.id,
-      );
-      const score = scorePicks(a, puzzle, picks);
+      for (const puzzle of dayFor(a, day).rounds) {
+        const picks = puzzle.openings.map(
+          (spot) => puzzle.waivers.find((p) => p.slot === spot.slot)!.id,
+        );
+        const score = scorePicks(a, puzzle, picks);
 
-      expect(SEASONS).toContain(puzzle.season);
-      expect(score.points).toBeGreaterThanOrEqual(0);
-      expect(score.points).toBeLessThanOrEqual(100);
-      expect(Number.isFinite(score.yourTotal)).toBe(true);
+        expect(SEASONS).toContain(puzzle.season);
+        expect(score.points).toBeGreaterThanOrEqual(0);
+        expect(score.points).toBeLessThanOrEqual(100);
+        expect(Number.isFinite(score.yourTotal)).toBe(true);
+        expect(puzzle.lines.winning).toBeGreaterThan(0);
+      }
     }
   });
 
   it('puts up totals a real fantasy week would recognise', () => {
     const totals = days.map((day) => {
-      const puzzle = puzzleFor(a, day);
+      const [puzzle] = dayFor(a, day).rounds;
       const picks = puzzle.openings.map(
         (spot) => puzzle.waivers.find((p) => p.slot === spot.slot)!.id,
       );
@@ -225,6 +227,50 @@ describe('the two form lines actually say different things', () => {
   });
 });
 
+describe('a day is one matchup that gets harder', () => {
+  const day = dayFor(a, '2026-07-26');
+
+  it('runs three rounds on the same week and the same opponent', () => {
+    for (const puzzle of day.rounds) {
+      expect(puzzle.season).toBe(day.rounds[0].season);
+      expect(puzzle.week).toBe(day.rounds[0].week);
+      expect(puzzle.opponent.name).toBe(day.rounds[0].opponent.name);
+    }
+  });
+
+  it('opens one more spot each round, keeping the earlier ones', () => {
+    expect(day.rounds.map((p) => p.openings.length)).toEqual([1, 2, 3]);
+    for (let i = 1; i < day.rounds.length; i++) {
+      const before = day.rounds[i - 1].openings.map((s) => s.id);
+      expect(day.rounds[i].openings.map((s) => s.id).slice(0, i)).toEqual(before);
+    }
+  });
+
+  it('offers the very same five players for a spot in every round it is open', () => {
+    for (let i = 1; i < day.rounds.length; i++) {
+      for (const spot of day.rounds[i - 1].openings) {
+        const before = day.rounds[i - 1].waivers.filter((p) => p.slot === spot.slot);
+        const now = day.rounds[i].waivers.filter((p) => p.slot === spot.slot);
+
+        expect(now.map((p) => p.id)).toEqual(before.map((p) => p.id));
+      }
+    }
+  });
+
+  it('gives every round at least one way to win', () => {
+    for (const puzzle of day.rounds) {
+      expect(puzzle.lines.winning).toBeGreaterThan(0);
+    }
+  });
+
+  it('leans on you harder each round by taking another starter away', () => {
+    const filled = day.rounds.map((p) => p.field.filter((e) => e.player !== null).length);
+
+    expect(filled[0]).toBeGreaterThan(filled[1]);
+    expect(filled[1]).toBeGreaterThan(filled[2]);
+  });
+});
+
 describe('both seasons are in the rotation', () => {
   it('offers every season it holds', () => {
     expect(SEASONS).toEqual([2007, 2015]);
@@ -232,7 +278,7 @@ describe('both seasons are in the rotation', () => {
 
   it('deals from both across a year of dates', () => {
     const days = Array.from({ length: 365 }, (_, i) => dateKey(new Date(2026, 0, 1 + i)));
-    const dealt = new Set(days.map((day) => puzzleFor(a, day).season));
+    const dealt = new Set(days.map((day) => dayFor(a, day).season));
 
     expect(dealt).toEqual(new Set(SEASONS));
   });

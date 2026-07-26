@@ -672,6 +672,45 @@ fixed sequence that assumes one — worth the rewrite, because fixtures drop it 
 of a day and a script that always expects to start at the intro fails in ways that look like
 product bugs.
 
+## 2026-07-26 — One wire, three rounds
+
+Ryan, after playing it: *"I won, but I only got the player that had seven points, and there was
+someone that had twenty three. You didn't tell me who had twenty three. So now going into the
+second, I know there's someone with twenty three... as long as the players are all the same, I
+can take another guess or keep my seven."*
+
+That turns three separate puzzles into one you learn your way through, and it's a much better
+game than what it replaced.
+
+### The day is one matchup
+
+Same season, same week, same opponent, same lineup, and — the part that matters — the same
+waiver wire. What round one's reveal told you about those five players is still true in rounds
+two and three.
+
+### The openings nest
+
+Round one opens a spot. Round two opens that spot and one more. Round three opens all three.
+Your earlier answer is carried in, so round two starts with round one's pick already placed:
+stand by it, or use what you now know. That's the choice Ryan described, and it only exists
+because the wire holds still.
+
+It gets harder because each round takes another of your own starters off the field, so more of
+your total has to come off the wire — not because the wire gets meaner.
+
+### The reveal names names
+
+*"You didn't tell me who had twenty three"* was the actual bug. The summary said "best there
+32.0" and left the name in a panel you had to know to open. Every round now names the best
+available at each opening, in the open. It isn't a spoiler — the wire doesn't change, so that
+name is the whole mechanism.
+
+### The search now has to satisfy three rounds at once
+
+One matchup has to work three times over at three different sizes, which is a stronger
+constraint than three separate puzzles each working once. Measured over a year: zero rounds
+with no way to win, and 11 of 1,095 rounds outside their band on the real data.
+
 ## Open — deliberately not decided
 
 Which sport ships first and where real data comes from. Logged in `BRIEF.md`. Agents must not

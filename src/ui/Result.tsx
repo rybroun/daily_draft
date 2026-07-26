@@ -89,9 +89,23 @@ export function ResultSummary({
       </div>
 
       {/*
-        The count is the whole chess-puzzle claim made good: there was always a
-        way through, and this is how narrow it was.
+        Name who you should have taken, right here.
+        
+        The wire doesn't change between rounds, so this isn't a spoiler — it's
+        the whole mechanism. What round one tells you about these five players is
+        still true in rounds two and three, and knowing it is the reward for
+        having played.
       */}
+      <ul className="result-best">
+        {score.slots.map((slot) => (
+          <li key={slot.spot.id}>
+            <span className="result-best-slot">{slot.spot.slot}</span>
+            <span className="result-best-name">{slot.best.player.name}</span>
+            <span className="result-best-value">{slot.best.value.toFixed(1)}</span>
+          </li>
+        ))}
+      </ul>
+
       <p className="result-lines">{solutions(score, lines)}</p>
       {canAdvance ? (
         <button type="button" className="kickoff" onClick={onNext}>

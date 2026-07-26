@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { OPENINGS_FOR, WAIVERS_PER_OPENING, dateKey, puzzleFor } from '../../core/puzzle';
+import { OPENINGS_FOR, WAIVERS_PER_OPENING, dateKey, dayFor } from '../../core/day';
 import { scorePicks } from '../../core/scoring';
 import { mockAdapter } from './mockAdapter';
 
@@ -184,21 +184,23 @@ describe('mockAdapter opponents and injuries', () => {
 describe('a year of mock puzzles', () => {
   it('produces a playable, scoreable puzzle every day', () => {
     for (const day of days(365)) {
-      const puzzle = puzzleFor(a, day);
-      const picks = puzzle.openings.map(
-        (spot) => puzzle.waivers.find((p) => p.slot === spot.slot)!.id,
-      );
-      const score = scorePicks(a, puzzle, picks);
+      for (const puzzle of dayFor(a, day).rounds) {
+        const picks = puzzle.openings.map(
+          (spot) => puzzle.waivers.find((p) => p.slot === spot.slot)!.id,
+        );
+        const score = scorePicks(a, puzzle, picks);
 
-      expect(puzzle.openings).toHaveLength(OPENINGS_FOR[puzzle.difficulty]);
-      expect(score.points).toBeGreaterThanOrEqual(0);
-      expect(score.points).toBeLessThanOrEqual(100);
+        expect(puzzle.openings).toHaveLength(OPENINGS_FOR[puzzle.difficulty]);
+        expect(score.points).toBeGreaterThanOrEqual(0);
+        expect(score.points).toBeLessThanOrEqual(100);
+        expect(puzzle.lines.winning).toBeGreaterThan(0);
+      }
     }
   });
 
-  it('never repeats the same puzzle two days running', () => {
+  it('never repeats the same day two days running', () => {
     const signatures = days(365).map((day) => {
-      const p = puzzleFor(a, day);
+      const [p] = dayFor(a, day).rounds;
       return `${p.season}|${p.week}|${p.waivers.map((c) => c.id).join(',')}`;
     });
 
@@ -215,7 +217,7 @@ describe('a year of mock puzzles', () => {
     let openings = 0;
 
     for (const day of days(365)) {
-      const puzzle = puzzleFor(a, day);
+      const puzzle = dayFor(a, day).rounds[2];
       for (const spot of puzzle.openings) {
         const pool = puzzle.waivers.filter((p) => p.slot === spot.slot);
         const byForm = [...pool].sort((x, y) => y.form[0].stats.ppg - x.form[0].stats.ppg)[0];

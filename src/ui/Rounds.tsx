@@ -1,4 +1,4 @@
-import { ROUNDS, OPENINGS_FOR } from '../core/puzzle';
+import { ROUNDS, OPENINGS_FOR } from '../core/day';
 import type { MatchupResult } from '../core/types';
 
 interface RoundsProps {
