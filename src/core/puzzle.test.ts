@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { stubAdapter } from './__fixtures__/stubAdapter';
-import { OPENINGS, WAIVERS_PER_OPENING, dateKey, puzzleFor } from './puzzle';
+import { OPENINGS_FOR, WAIVERS_PER_OPENING, dateKey, puzzleFor } from './puzzle';
 
 describe('dateKey', () => {
   it('formats a date as YYYY-MM-DD in local time', () => {
@@ -47,7 +47,7 @@ describe('puzzleFor', () => {
     const puzzle = puzzleFor(adapter, '2026-07-25');
 
     expect(puzzle.field).toHaveLength(adapter.formation().length);
-    expect(puzzle.field.filter((e) => e.player === null)).toHaveLength(OPENINGS);
+    expect(puzzle.field.filter((e) => e.player === null)).toHaveLength(OPENINGS_FOR[puzzle.difficulty]);
     for (const entry of puzzle.field) {
       expect(entry.player === null || entry.player.slot === entry.spot.slot).toBe(true);
     }
@@ -79,7 +79,7 @@ describe('puzzleFor', () => {
   it('stocks the waiver board with eligible candidates for every opening', () => {
     const puzzle = puzzleFor(adapter, '2026-07-25');
 
-    expect(puzzle.waivers).toHaveLength(OPENINGS * WAIVERS_PER_OPENING);
+    expect(puzzle.waivers).toHaveLength(OPENINGS_FOR[puzzle.difficulty] * WAIVERS_PER_OPENING);
     for (const opening of puzzle.openings) {
       const eligible = puzzle.waivers.filter((p) => p.slot === opening.slot);
 
@@ -141,10 +141,39 @@ describe('puzzleFor', () => {
     expect(() => puzzleFor(stubAdapter({ weeks: () => [] }), '2026-07-25')).toThrow(/week/i);
   });
 
-  it('refuses a formation without enough openable spots', () => {
+  it('plays the hardest a cramped formation allows rather than refusing the day', () => {
+    // One openable slot can only ever be a one-decision puzzle.
     const cramped = stubAdapter({ openableSlots: () => ['SLOT_A'] });
 
-    expect(() => puzzleFor(cramped, '2026-07-25')).toThrow(/openable/i);
+    for (const day of days(20)) {
+      const puzzle = puzzleFor(cramped, day);
+
+      expect(puzzle.difficulty).toBe('easy');
+      expect(puzzle.openings).toHaveLength(1);
+    }
+  });
+
+  it('refuses a formation with nothing openable at all', () => {
+    const shut = stubAdapter({ openableSlots: () => [] });
+
+    expect(() => puzzleFor(shut, '2026-07-25')).toThrow(/openable/i);
+  });
+
+  it('always leaves at least one way to win', () => {
+    for (const day of days(60)) {
+      const puzzle = puzzleFor(adapter, day);
+
+      expect(puzzle.lines.winning).toBeGreaterThan(0);
+      expect(puzzle.lines.total).toBe(WAIVERS_PER_OPENING ** puzzle.openings.length);
+    }
+  });
+
+  it('opens one spot for easy, two for medium and three for hard', () => {
+    for (const day of days(60)) {
+      const puzzle = puzzleFor(adapter, day);
+
+      expect(puzzle.openings).toHaveLength(OPENINGS_FOR[puzzle.difficulty]);
+    }
   });
 
   it('refuses a slot with nothing to choose between', () => {

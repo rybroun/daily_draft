@@ -140,11 +140,22 @@ export interface SportAdapter {
   projectedValue(player: Player, slot: RosterSlot): number;
 }
 
+/** How many spots you have to get right: one, two or three. */
+export type Difficulty = 'easy' | 'medium' | 'hard';
+
 export interface Puzzle {
   date: DateKey;
   sportId: SportId;
   season: number;
   week: number;
+  difficulty: Difficulty;
+  /**
+   * How many complete line-ups beat the opponent, out of how many exist.
+   *
+   * Always at least one. A puzzle you cannot win isn't a puzzle, and this is
+   * the promise the day is built around.
+   */
+  lines: { winning: number; total: number };
   /** The whole field. Openings carry a `null` player. */
   field: FieldEntry[];
   /** The spots to fill, in display order. Never two of the same slot. */

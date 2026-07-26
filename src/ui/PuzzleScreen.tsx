@@ -125,6 +125,7 @@ export function PuzzleScreen({
         opponentName={puzzle.opponent.name}
         season={puzzle.season}
         week={puzzle.week}
+        difficulty={puzzle.difficulty}
         yourTotal={totals.yours}
         opponentTotal={totals.theirs}
         result={score?.result ?? null}
@@ -146,11 +147,13 @@ export function PuzzleScreen({
         />
 
         {score ? (
-          <ResultSummary score={score} opponentName={puzzle.opponent.name} />
+          <ResultSummary score={score} opponentName={puzzle.opponent.name} lines={puzzle.lines} />
         ) : (
           <div className="foot">
             <button type="button" className="kickoff" disabled={!ready} onClick={onPlayWeek}>
-              {ready ? 'Lock in your lineup' : 'Fill your open spots to win'}
+              {ready
+                ? 'Lock in your lineup'
+                : `Fill your open spot${puzzle.openings.length === 1 ? '' : 's'} to win`}
             </button>
           </div>
         )}

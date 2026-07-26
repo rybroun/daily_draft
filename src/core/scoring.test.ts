@@ -34,6 +34,8 @@ const puzzleWith = (
   sportId: 'stub',
   season: 1990,
   week: 4,
+  difficulty: 'medium',
+  lines: { winning: 1, total: 25 },
   field: [
     { spot: SPOT_A, player: null },
     { spot: SPOT_B, player: null },

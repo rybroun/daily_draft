@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { OPENINGS, WAIVERS_PER_OPENING, dateKey, puzzleFor } from '../../core/puzzle';
+import { OPENINGS_FOR, WAIVERS_PER_OPENING, dateKey, puzzleFor } from '../../core/puzzle';
 import { scorePicks } from '../../core/scoring';
 import { mockAdapter } from './mockAdapter';
 
@@ -23,7 +23,7 @@ describe('mockAdapter formation', () => {
       a.formation().filter((s) => a.openableSlots().includes(s.slot)).map((s) => s.slot),
     );
 
-    expect(openable.size).toBeGreaterThanOrEqual(OPENINGS);
+    expect(openable.size).toBeGreaterThanOrEqual(OPENINGS_FOR.hard);
   });
 
   it('places every spot inside the field it is drawn on', () => {
@@ -190,7 +190,7 @@ describe('a year of mock puzzles', () => {
       );
       const score = scorePicks(a, puzzle, picks);
 
-      expect(puzzle.openings).toHaveLength(OPENINGS);
+      expect(puzzle.openings).toHaveLength(OPENINGS_FOR[puzzle.difficulty]);
       expect(score.points).toBeGreaterThanOrEqual(0);
       expect(score.points).toBeLessThanOrEqual(100);
     }

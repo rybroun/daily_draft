@@ -572,6 +572,43 @@ practice wording is matched on its leading word because the source writes
 "Participation in Practice" for full and limited but "Participate In Practice"
 for DNP — an exact-match table silently drops two of the three.
 
+## 2026-07-26 — Making it a puzzle, not a wager
+
+Ryan: *"something on the wire should always allow the user to win. Think of this like a chess
+puzzle — they have to make a set number of moves that is perfect."*
+
+This is the fix for the problem that has been sitting at the top of the roadmap since the
+design conversation: on 58% of days nothing the player picked could change the result. Tuning
+the opponent closer would have improved the odds. Guaranteeing a solution removes the problem.
+
+### Every day has at least one winning line-up
+
+`puzzleFor` no longer takes the first arrangement it draws. It searches — up to sixty
+(season, week) draws in a seeded order — for one where at least one complete set of picks
+beats the opponent, and where the *number* of winning sets falls in the band for that day's
+difficulty. Measured over a year: **zero unwinnable days** on both adapters, and the bands are
+hit on 364 of 365 days. The search costs 90ms for a whole year, so a single day is free.
+
+### Difficulty is how many spots you have to get right
+
+One, two or three openings — easy, medium, hard. It reads as counter-intuitive (three
+openings means more points available) and it isn't: more openings means more ways to drop
+one. The numbers bear it out. On easy about 59% of the five possible line-ups win. On hard
+about 2.8% of a hundred and twenty-five do, which is three or four exact answers.
+
+### The count is the reveal
+
+*"Exactly one line-up out of 125 would have won it."* That single line is the chess-puzzle
+claim made good — it tells the player there was always a way through and exactly how narrow
+it was. It also retires a piece of copy: there is no longer a "nothing on the wire would have
+won this" case, because that can no longer happen.
+
+### Difficulty is capped by the formation, not enforced on it
+
+An adapter with two openable positions has no "hard". Rather than refuse the day, the
+difficulty drops to the hardest the formation supports. The earlier version threw, which is
+the wrong answer to a sport that simply has fewer positions to stream.
+
 ## Open — deliberately not decided
 
 Which sport ships first and where real data comes from. Logged in `BRIEF.md`. Agents must not

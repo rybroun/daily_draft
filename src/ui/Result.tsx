@@ -17,17 +17,33 @@ function headline(score: Score, opponentName: string): string {
       : `Your two picks took it off ${opponentName}.`;
   }
 
-  if (!score.couldHaveWon) return 'Nothing on the wire would have won this one.';
+  // There is no "nothing would have won" case any more: every puzzle is built
+  // with at least one winning line, so the points were always there.
   return 'The points were sitting on the wire.';
 }
 
 /** The verdict and the ledger — everything that fits beside the field. */
+/** How narrow the way through was, said plainly. */
+function solutions(score: Score, lines: { winning: number; total: number }): string {
+  const { winning, total } = lines;
+  if (score.result === 'won') {
+    return winning === 1
+      ? `You found the only line-up that won, out of ${total}.`
+      : `One of ${winning} winning line-ups out of ${total}.`;
+  }
+  return winning === 1
+    ? `Exactly one line-up out of ${total} would have won it.`
+    : `${winning} of ${total} line-ups would have won it.`;
+}
+
 export function ResultSummary({
   score,
   opponentName,
+  lines,
 }: {
   score: Score;
   opponentName: string;
+  lines: { winning: number; total: number };
 }) {
   return (
     <section className="result" aria-live="polite">
@@ -58,7 +74,12 @@ export function ResultSummary({
         </div>
       </div>
 
-      <p className="result-hint">Tap either of your picks to see what you passed on.</p>
+      {/*
+        The count is the whole chess-puzzle claim made good: there was always a
+        way through, and this is how narrow it was.
+      */}
+      <p className="result-lines">{solutions(score, lines)}</p>
+      <p className="result-hint">Tap a pick to see what you passed on.</p>
     </section>
   );
 }

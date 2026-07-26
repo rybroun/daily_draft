@@ -18,7 +18,6 @@ is judgement, not code.
 | Decide whether one week is too random to feel fair | in progress | 2026-07-25 | Partly addressed: the reveal now says when a week was already decided either way. Whether that's enough needs play, not design. |
 | Play it on real data and judge whether it's fun | in progress | 2026-07-26 | Live. 2007 and 2015, weeks 7–17, roughly half the days each. |
 
-| Make the picks decide the week more often | planned | 2026-07-26 | Real data made this worse, not better — 58% of days the picks can't change the result, against 47% on the mock. |
 | Decide what to do about the projection column | planned | 2026-07-25 | It hands the player the optimal use of visible information, which collapses the decision to reading one number. Floor/ceiling instead of a point estimate is the leading candidate. |
 | Make the picks decide the week more often | planned | 2026-07-25 | Currently 53%. The other 47% of days, nothing the player did changed the result — bad for something meant to be played daily. |
 
