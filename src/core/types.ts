@@ -60,7 +60,7 @@ export interface Player {
    * Singular on purpose. It used to be a run of three fixtures, which is what
    * you'd want for a trade; the question here is only ever about this week.
    */
-  next?: { label: string; detail?: string; note?: string };
+  next?: { label: string; detail?: string };
   /** What actually happened in the scored week. Hidden until the reveal. */
   outcome: StatLine;
 }

@@ -179,77 +179,15 @@ export function standingsFor(year: number, week: number) {
     }));
 }
 
-/**
- * How generous each defence has been to a position, through the prior weeks.
- *
- * This is the signal a fantasy manager actually reads on a wire: not "he'll
- * score 12" but "he has the softest secondary in the league this week". It was
- * here once as a soft/even/hard tint, and came out because three unlabelled
- * colours with no legend read as decoration. Said in words it explains itself.
- *
- * Built only from weeks before the one being played, so it leaks nothing.
+/*
+ * A defence-vs-position rank lived here — "5th softest vs WR" on each wire
+ * card. Taken out on 2026-07-26: how it was derived wasn't legible from the
+ * card, and a number whose provenance you can't see is a liability rather than
+ * a signal. Recoverable from commit 7626c7a if it's ever wanted back.
  */
-const defences = new Map<string, Map<string, number>>();
-
-function defenceRanks(year: number, week: number, slot: RosterSlot): Map<string, number> {
-  const key = `${year}:${week}:${slot}`;
-  const cached = defences.get(key);
-  if (cached) return cached;
-
-  const allowed = new Map<string, { points: number; games: number }>();
-  for (const p of season(year).players) {
-    if (p.pos !== slot) continue;
-    for (const [w, line] of Object.entries(p.weeks)) {
-      const game = season(year).games?.[p.team]?.[w];
-      if (!game || Number(w) >= week) continue;
-      const row = allowed.get(game.opp) ?? { points: 0, games: 0 };
-      row.points += fantasyPoints(line);
-      allowed.set(game.opp, row);
-    }
-  }
-  for (const [team, games] of Object.entries(season(year).games ?? {})) {
-    const row = allowed.get(team);
-    if (row) row.games = Object.keys(games).filter((w) => Number(w) < week).length;
-  }
-
-  // 1 is the softest: the defence that has handed this position the most.
-  const ranks = new Map<string, number>();
-  [...allowed.entries()]
-    .filter(([, r]) => r.games > 0)
-    .map(([team, r]) => ({ team, per: r.points / r.games }))
-    .sort((a, b) => b.per - a.per)
-    .forEach(({ team }, i) => ranks.set(team, i + 1));
-
-  defences.set(key, ranks);
-  return ranks;
-}
-
-const ORDINAL = (n: number) => {
-  const tens = n % 100;
-  if (tens >= 11 && tens <= 13) return `${n}th`;
-  return `${n}${['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
-};
-
-/**
- * The matchup in words — "5th softest vs WR", "3rd toughest vs RB".
- *
- * Counted from whichever end is nearer, so it never needs a legend telling you
- * which way the numbers run. "28th softest" is a sentence you have to decode;
- * "5th toughest" is one you don't.
- */
-function matchupNote(year: number, week: number, opponent: string, slot: RosterSlot) {
-  const ranks = defenceRanks(year, week, slot);
-  const rank = ranks.get(opponent);
-  if (!rank) return undefined;
-
-  const of = ranks.size;
-  return rank <= of / 2
-    ? `${ORDINAL(rank)} softest vs ${slot}`
-    : `${ORDINAL(of - rank + 1)} toughest vs ${slot}`;
-}
 
 /** The one game being picked for: who, where, and how they've gone so far. */
-export function nextGameFor(year: number, week: number, team: string, slot: RosterSlot) {
+export function nextGameFor(year: number, week: number, team: string) {
   const game = season(year).games?.[team]?.[String(week)];
   // No fixture that week is a bye, and you can't start a bye.
   if (!game) return { label: 'BYE' };
@@ -257,7 +195,6 @@ export function nextGameFor(year: number, week: number, team: string, slot: Rost
   return {
     label: `${game.home ? 'vs' : 'at'} ${game.opp}`,
     detail: recordThrough(year, week, game.opp),
-    note: matchupNote(year, week, game.opp, slot),
   };
 }
 
@@ -289,7 +226,7 @@ export function toPlayer(p: RawPlayer, year: number, week: number): Player {
     slot: p.pos,
     ...(designation ? { status: TAG[designation.status] ?? designation.status } : {}),
     form: [averageOf('Season', games, p.pos), averageOf('Last 3', recent, p.pos)],
-    next: nextGameFor(year, week, p.team, p.pos),
+    next: nextGameFor(year, week, p.team),
     outcome: {
       label: `Week ${week}`,
       // No line means they didn't play: a real zero, not missing data.

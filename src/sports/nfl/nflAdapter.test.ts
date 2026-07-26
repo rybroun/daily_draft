@@ -406,33 +406,6 @@ describe('the league is grouped the way football groups it', () => {
   });
 });
 
-describe('how a defence has handled the position', () => {
-  it('tells every candidate what they are walking into', () => {
-    for (const { season, week } of everyWeek) {
-      for (const slot of ['QB', 'RB', 'WR', 'TE', 'K'] as const) {
-        for (const p of a.candidates(season, week, slot)) {
-          if (p.next!.label === 'BYE') continue;
-          // "5th softest vs WR" / "3rd toughest vs RB" — no legend needed.
-          expect(p.next!.note).toMatch(/^\d+(st|nd|rd|th) (softest|toughest) vs [A-Z]{1,3}$/);
-        }
-      }
-    }
-  });
-
-  it('never ranks a defence on the week being picked for', () => {
-    // Week 7 is the first offered. If the week itself leaked in, the rank in
-    // week 7 would differ from one built on weeks 1-6 alone.
-    const ranks = (week: number) =>
-      a
-        .candidates(2015, week, 'WR')
-        .filter((p) => p.next!.label !== 'BYE')
-        .map((p) => `${p.team}:${p.next!.note}`);
-
-    // Same fixture list, ranked twice, must be stable — it's pure history.
-    expect(ranks(9)).toEqual(ranks(9));
-  });
-});
-
 describe('the week as a moment in time', () => {
   it('has a number one for every week the game can deal', () => {
     for (const { season, week } of everyWeek) {

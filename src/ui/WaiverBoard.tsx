@@ -103,14 +103,6 @@ export function WaiverBoard({
               )}
             </span>
 
-            {/*
-              How that defence has handled this position so far — the one thing
-              a manager reads on a wire that isn't the player's own form. In
-              words, counted from whichever end is nearer, so it explains itself
-              where the soft/even/hard colour it replaced never could.
-            */}
-            {player.next?.note && <span className="pick-matchup">{player.next.note}</span>}
-
             {/* An aligned table, not a run of text — the columns are the point. */}
             <span className="pick-table">
               {player.form.map((line: StatLine) => (
