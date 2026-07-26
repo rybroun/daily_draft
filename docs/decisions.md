@@ -512,6 +512,66 @@ The waiting button said "Tap a gap to fill it", which describes the gesture rath
 point. It now says "Fill your open spots to win". Ryan's words were "fill your open players";
 *spots* are what get filled and players are what fill them.
 
+## 2026-07-26 — Taking the projection away
+
+Ryan on the waiver panel: it reads as a wall of monospace, add avatars, and
+*"I wanna get away from the projected, because I do think that gives quite a bit
+away... maybe we can give other things like who they're playing in the next couple
+weeks and other data that might be part of that projected number."*
+
+That is the fix this project has needed since the design conversation, arrived at
+independently from the other side.
+
+### The projection was the answer, pre-computed
+
+Every candidate carried a projected score that was the optimal read of everything
+else on the card. Shown it, the dominant strategy was to take the biggest number,
+and a football fan brought nothing a spreadsheet didn't. It's gone from the wire.
+
+What replaces it is what it was *made of*: the season line, the recent line, the
+injury report — and now the run of fixtures, tinted by how generous each defence
+has been to that position through the prior weeks. Not "he'll score 12" but "he
+has the softest secondary in the league next, and he's trending up".
+
+### Points per game stays
+
+The one summary that survives, and deliberately. It summarises what *happened*
+rather than guessing what will. Without it, comparing "1.8 rec, 42 yds" against
+"4.6 rec, 56 yds" means half-PPR arithmetic in your head five times a day — which
+rewards being quick with numbers rather than knowing football, the exact failure
+this change exists to remove.
+
+### Fixtures come from the team, not the player
+
+Reading a player's upcoming schedule off their own game lines would leak whether
+they played. An absence in week N+1 would quietly announce an injury the player
+isn't supposed to know about. Schedules are built per team instead.
+
+### Cards, not rows
+
+Avatars in the position colour, name and team stacked, and the two form lines as
+an aligned table under one set of column headings rather than a run of
+comma-separated text. The columns are what makes it scannable — the previous
+version read as monospace because it was a uniform run of glyphs, not because of
+the typeface.
+
+### Three bugs, all of the same shape
+
+Adding the opponent code to each stat line meant `fantasyPoints` multiplied a
+string by a weight, and NaN spread silently through every projection and total.
+Non-numeric values are skipped now.
+
+Adding `ppg` to a slot's columns made the averaging loop overwrite the computed
+value with a lookup for a key the raw lines don't carry — zeroing every
+projection downstream. It's computed last now, with a comment saying why.
+
+And re-fetching the seasons overwrote the 2015 injury file with an empty one: the
+injuries release names its column `game_type` where the stats release names the
+same thing `season_type`, so the filter matched nothing. Restored, and the
+practice wording is matched on its leading word because the source writes
+"Participation in Practice" for full and limited but "Participate In Practice"
+for DNP — an exact-match table silently drops two of the three.
+
 ## Open — deliberately not decided
 
 Which sport ships first and where real data comes from. Logged in `BRIEF.md`. Agents must not

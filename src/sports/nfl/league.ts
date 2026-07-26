@@ -41,13 +41,23 @@ export const SLOT_COLORS: Record<RosterSlot, string> = {
 };
 
 /** Which stats describe a position, in display order. */
+/*
+ * Points per game leads every line.
+ *
+ * It's a summary, which is the thing the projection was removed for being — but
+ * it's a summary of what *happened*, not a guess at what will. Without it,
+ * comparing "1.8 rec, 42 yds" against "4.6 rec, 56 yds" means doing half-PPR
+ * arithmetic in your head five times a day, which rewards being quick with
+ * numbers rather than knowing football. That's the failure this whole change
+ * was meant to fix.
+ */
 export const SLOT_STATS: Record<RosterSlot, StatKey[]> = {
-  QB: ['passYds', 'passTd', 'int'],
+  QB: ['ppg', 'passYds', 'passTd', 'int'],
   // Backs catch passes in half-PPR, so their line has to show both.
-  RB: ['rushAtt', 'rushYds', 'rec', 'recYds', 'td'],
-  WR: ['rec', 'recYds', 'td'],
-  TE: ['rec', 'recYds', 'td'],
-  K: ['fgMade', 'patMade'],
+  RB: ['ppg', 'rushAtt', 'rushYds', 'rec', 'td'],
+  WR: ['ppg', 'rec', 'recYds', 'td'],
+  TE: ['ppg', 'rec', 'recYds', 'td'],
+  K: ['ppg', 'fgMade', 'patMade'],
 };
 
 export const STAT_LABELS: Record<StatKey, string> = {
@@ -94,6 +104,9 @@ const POINTS: Record<StatKey, number> = {
 export function fantasyPoints(stats: Record<StatKey, number>): number {
   let total = 0;
   for (const [key, value] of Object.entries(stats)) {
+    // A stat line also carries the opponent's code. Multiplying a string by a
+    // weight yields NaN, and NaN spreads through every total it touches.
+    if (typeof value !== 'number') continue;
     total += value * (POINTS[key] ?? 0);
   }
   // Only when the distance bands are missing entirely.

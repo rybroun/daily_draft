@@ -129,13 +129,15 @@ export const nflAdapter: SportAdapter = {
 
   statKeys: (slot) => SLOT_STATS[slot] ?? [],
 
+  statLabel: (key) => STAT_LABELS[key] ?? key.toUpperCase(),
+
   /*
    * Only the stats that describe this position, plus a fumble when there was
    * one — otherwise a line reading "4 CAR · 18 YDS" scores minus 0.2 and the
    * player has no way of seeing why.
    */
   formatStatLine: (line, slot) => {
-    const shown = new Set([...(SLOT_STATS[slot] ?? []), 'ppg', 'fumLost']);
+    const shown = new Set([...(SLOT_STATS[slot] ?? []), 'fumLost']);
     return ORDER.filter((key) => shown.has(key) && key in line.stats && line.stats[key] !== 0)
       .map((key) => `${format(line.stats[key])} ${STAT_LABELS[key] ?? key.toUpperCase()}`)
       .join(' · ');

@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { dateKey } from './core/puzzle';
-import type { Player, RosterSlot, StatLine } from './core/types';
+import type { Player, RosterSlot, StatKey, StatLine } from './core/types';
 import { nflAdapter } from './sports/nfl/nflAdapter';
 import { PuzzleScreen } from './ui/PuzzleScreen';
 import { useGame } from './useGame';
@@ -43,6 +43,8 @@ export default function App() {
     [],
   );
   const colorFor = useCallback((slot: RosterSlot) => adapter.slotColor(slot), []);
+  const statKeys = useCallback((slot: RosterSlot) => adapter.statKeys(slot), []);
+  const statLabel = useCallback((key: StatKey) => adapter.statLabel(key), []);
 
   return (
     <PuzzleScreen
@@ -52,6 +54,8 @@ export default function App() {
       streak={game.streak}
       ready={game.ready}
       statLine={statLine}
+      statKeys={statKeys}
+      statLabel={statLabel}
       projectionFor={projectionFor}
       outcomeFor={outcomeFor}
       colorFor={colorFor}

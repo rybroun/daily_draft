@@ -56,6 +56,8 @@ export const mockAdapter: SportAdapter = {
   candidates: (season, week, slot) =>
     makePool(`${season}:${week}:waiver:${slot}`, slot, week, POOL_SIZE),
 
+  statLabel: (key) => STAT_LABELS[key] ?? key.toUpperCase(),
+
   statKeys: (slot) => SLOT_STATS[slot] ?? [],
 
   formatStatLine: (line) =>

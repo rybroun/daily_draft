@@ -46,6 +46,7 @@ export function stubAdapter(overrides: Partial<SportAdapter> = {}): SportAdapter
       Array.from({ length: 8 }, (_, i) => player(`${slot}-w${week}-${i}`, slot, i * 4)),
     statKeys: (): StatKey[] => ['alpha'],
     formatStatLine: (line) => `${line.label} ${line.stats.alpha}`,
+    statLabel: (key) => key.toUpperCase(),
     outcomeValue: (candidate) => candidate.outcome.stats.alpha,
     projectedValue: (candidate) => candidate.form[0].stats.alpha,
     slotColor: () => '#888888',

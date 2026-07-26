@@ -1,5 +1,5 @@
 import type { Player, RosterSlot, Score, SlotResult, StatLine } from '../core/types';
-import { StatusTag } from './PlayerRow';
+import { StatusTag } from './StatusTag';
 
 /**
  * The line that matters most, and the one worth getting right.

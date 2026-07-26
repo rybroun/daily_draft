@@ -7,6 +7,7 @@ import type {
   RosterSlot,
   Score,
   SpotId,
+  StatKey,
   StatLine,
 } from '../core/types';
 import { Field } from './Field';
@@ -27,6 +28,8 @@ interface PuzzleScreenProps {
   streak: StreakState;
   ready: boolean;
   statLine: (line: StatLine, player: Player) => string;
+  statKeys: (slot: RosterSlot) => StatKey[];
+  statLabel: (key: StatKey) => string;
   projectionFor: (player: Player, slot: RosterSlot) => number;
   outcomeFor: (player: Player, slot: RosterSlot) => number;
   colorFor: (slot: RosterSlot) => string;
@@ -41,6 +44,8 @@ export function PuzzleScreen({
   streak,
   ready,
   statLine,
+  statKeys,
+  statLabel,
   projectionFor,
   outcomeFor,
   colorFor,
@@ -174,9 +179,9 @@ export function PuzzleScreen({
               <WaiverBoard
                 candidates={puzzle.waivers.filter((p) => p.slot === openSpot.slot)}
                 pickedId={picks[openIndex]}
-                projectionFor={projectionFor}
+                statKeys={statKeys}
+                statLabel={statLabel}
                 colorFor={colorFor}
-                statLine={statLine}
                 onPick={pick}
               />
             ))}

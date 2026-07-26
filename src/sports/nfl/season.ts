@@ -50,11 +50,99 @@ const perGame = (games: Record<string, number>[], key: StatKey) =>
 /** A form line: the average game, headed by the average score. */
 function averageOf(label: string, games: Record<string, number>[], slot: RosterSlot): StatLine {
   const round1 = (n: number) => Math.round(n * 10) / 10;
-  const stats: Record<StatKey, number> = {
-    ppg: round1(games.reduce((sum, g) => sum + fantasyPoints(g), 0) / games.length),
-  };
+  const stats: Record<StatKey, number> = {};
   for (const key of SLOT_STATS[slot] ?? []) stats[key] = round1(perGame(games, key));
+  // Last, and deliberately: `ppg` is now one of the slot's columns, and the
+  // loop above would otherwise overwrite it with a lookup for a key the raw
+  // week lines don't carry — quietly zeroing every projection downstream.
+  stats.ppg = round1(games.reduce((sum, g) => sum + fantasyPoints(g), 0) / games.length);
   return { label, stats };
+}
+
+/**
+ * Who each team played, week by week.
+ *
+ * Built from the team's own fixtures rather than an individual's, deliberately.
+ * Reading a player's schedule off *their* lines would leak whether they played
+ * — an absence in week N+1 would quietly announce an injury the player is not
+ * supposed to know about yet.
+ */
+const schedules = new Map<number, Map<string, Map<number, string>>>();
+
+function schedule(year: number): Map<string, Map<number, string>> {
+  const cached = schedules.get(year);
+  if (cached) return cached;
+
+  const table = new Map<string, Map<number, string>>();
+  for (const p of season(year).players) {
+    for (const [week, line] of Object.entries(p.weeks)) {
+      const opp = line.opp as unknown as string | undefined;
+      if (!opp) continue;
+      if (!table.has(p.team)) table.set(p.team, new Map());
+      table.get(p.team)!.set(Number(week), opp);
+    }
+  }
+  schedules.set(year, table);
+  return table;
+}
+
+/**
+ * How generous each defence has been to a position, through the prior weeks.
+ *
+ * This is the substance behind a projection: not "he'll score 12" but "he's
+ * facing the softest secondary in the league". Computed from weeks before the
+ * one being played, so it leaks nothing.
+ */
+const defences = new Map<string, Map<string, 'soft' | 'even' | 'hard'>>();
+
+function defenceTiers(year: number, week: number, slot: RosterSlot) {
+  const key = `${year}:${week}:${slot}`;
+  const cached = defences.get(key);
+  if (cached) return cached;
+
+  const allowed = new Map<string, { points: number; games: number }>();
+  for (const p of season(year).players) {
+    if (p.pos !== slot) continue;
+    for (const [w, line] of Object.entries(p.weeks)) {
+      const opp = line.opp as unknown as string | undefined;
+      if (!opp || Number(w) >= week) continue;
+      const row = allowed.get(opp) ?? { points: 0, games: 0 };
+      row.points += fantasyPoints(line);
+      allowed.set(opp, row);
+    }
+  }
+  for (const [team, games] of schedule(year)) {
+    const played = [...games.keys()].filter((w) => w < week).length;
+    const row = allowed.get(team);
+    if (row) row.games = played;
+  }
+
+  const ranked = [...allowed.entries()]
+    .filter(([, r]) => r.games > 0)
+    .map(([team, r]) => ({ team, per: r.points / r.games }))
+    .sort((a, b) => b.per - a.per);
+
+  const tiers = new Map<string, 'soft' | 'even' | 'hard'>();
+  const third = Math.ceil(ranked.length / 3);
+  ranked.forEach(({ team }, i) => {
+    tiers.set(team, i < third ? 'soft' : i < third * 2 ? 'even' : 'hard');
+  });
+  defences.set(key, tiers);
+  return tiers;
+}
+
+/** The next three fixtures, with how kind each defence has been so far. */
+export function fixturesFor(year: number, week: number, team: string, slot: RosterSlot) {
+  const games = schedule(year).get(team);
+  const tiers = defenceTiers(year, week, slot);
+
+  return [week, week + 1, week + 2]
+    .filter((w) => w <= 17)
+    .map((w) => {
+      const opp = games?.get(w);
+      if (!opp) return { label: 'BYE' as const, tone: 'even' as const };
+      return { label: `${w === week ? '' : ''}${opp}`, tone: tiers.get(opp) ?? 'even' };
+    });
 }
 
 /** Every game this player actually played before the given week. */
@@ -73,7 +161,7 @@ export function isActive(p: RawPlayer, week: number): boolean {
   return (played || listed) && priorGames(p, week).length >= MIN_GAMES;
 }
 
-export function toPlayer(p: RawPlayer, week: number): Player {
+export function toPlayer(p: RawPlayer, year: number, week: number): Player {
   const games = priorGames(p, week);
   const recent = games.slice(-3);
   const designation = p.status?.[String(week)];
@@ -85,6 +173,7 @@ export function toPlayer(p: RawPlayer, week: number): Player {
     slot: p.pos,
     ...(designation ? { status: TAG[designation.status] ?? designation.status } : {}),
     form: [averageOf('Season', games, p.pos), averageOf('Last 3', recent, p.pos)],
+    fixtures: fixturesFor(year, week, p.team, p.pos),
     outcome: {
       label: `Week ${week}`,
       // No line means they didn't play: a real zero, not missing data.
@@ -111,6 +200,6 @@ export function project(player: Player): number {
 export function ranked(year: number, week: number, slot: RosterSlot): Player[] {
   return season(year).players
     .filter((p) => p.pos === slot && isActive(p, week))
-    .map((p) => toPlayer(p, week))
+    .map((p) => toPlayer(p, year, week))
     .sort((a, b) => b.form[0].stats.ppg - a.form[0].stats.ppg);
 }

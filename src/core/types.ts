@@ -51,6 +51,13 @@ export interface Player {
    * history up to the puzzle's week — never anything from the week itself.
    */
   form: StatLine[];
+  /**
+   * What's ahead of this player, in the adapter's own words — the fixtures a
+   * projection would have been built from, handed over instead of the answer.
+   * Schedules are published in advance, so this is legitimately visible.
+   * Opaque to core.
+   */
+  fixtures?: { label: string; tone?: 'soft' | 'even' | 'hard' }[];
   /** What actually happened in the scored week. Hidden until the reveal. */
   outcome: StatLine;
 }
@@ -106,6 +113,8 @@ export interface SportAdapter {
   /** Which stats to show for this slot, in display order. */
   statKeys(slot: RosterSlot): StatKey[];
   formatStatLine(line: StatLine, slot: RosterSlot): string;
+  /** The short heading for one stat, e.g. "REC". Opaque to core. */
+  statLabel(key: StatKey): string;
   /**
    * The colour this slot is drawn in. Sports have their own conventions for
    * this and core has no opinion — it's presentation, so it sits beside the

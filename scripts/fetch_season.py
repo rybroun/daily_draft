@@ -31,6 +31,22 @@ STATS = {
     "fg_made": "fgMade", "fg_att": "fgAtt", "fg_made_40_49": "fgMade40_49",
     "pat_made": "patMade", "pat_att": "patAtt",
 }
+def practice(raw):
+    """Shorten the published practice wording.
+
+    Matched on the leading word rather than the whole string: the source writes
+    "Participation in Practice" for full and limited but "Participate In
+    Practice" for DNP, and an exact-match table silently drops two of the three.
+    """
+    text = (raw or "").strip().lower()
+    if text.startswith("full"):
+        return "FULL"
+    if text.startswith("limited"):
+        return "LIMITED"
+    if text.startswith("did not") or text.startswith("out"):
+        return "DNP"
+    return None
+
 SUMMED = {
     "twoPt": ["rushing_2pt_conversions", "receiving_2pt_conversions"],
     "fgMade0_39": ["fg_made_0_19", "fg_made_20_29", "fg_made_30_39"],
@@ -93,6 +109,11 @@ def main(year):
             value = sum(number(row, c) for c in columns)
             if value:
                 line[key] = int(value)
+        # Who they faced. Schedules are known in advance, so this is legitimate
+        # pre-kickoff information — and it's what a projection is made of.
+        opp = codes.get(row["opponent_team"], row["opponent_team"])
+        if opp:
+            line["opp"] = opp
         p["weeks"][row["week"]] = line
 
     # The same involvement filter the 2015 pull used, so seasons are comparable.
@@ -120,9 +141,12 @@ def main(year):
     print(f"{year}: {len(kept)} players, weeks {weeks[0]}-{weeks[-1]}, "
           f"{Counter(p['pos'] for p in kept)}")
 
+    # NB: the injuries release names this column `game_type`, while the stats
+    # release names the same thing `season_type`. Filtering on the wrong one
+    # matches nothing and silently yields an empty injury report.
     try:
         inj = [r for r in fetch(f"injuries/injuries_{year}.csv")
-               if r.get("season_type") == "REG"]
+               if r.get("game_type") == "REG"]
     except urllib.error.HTTPError:
         print(f"{year}: no injury report published — skipping (nflverse starts at 2009)")
         return
@@ -135,7 +159,7 @@ def main(year):
         })
         entry["weeks"][row["week"]] = {
             "status": row.get("report_status") or None,
-            "practice": row.get("practice_status") or None,
+            "practice": practice(row.get("practice_status")),
         }
     with open(f"data/nfl-{year}-injuries.json", "w") as f:
         json.dump({"season": int(year), "players": list(by_player.values())}, f)
