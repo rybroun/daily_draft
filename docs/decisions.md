@@ -711,6 +711,42 @@ One matchup has to work three times over at three different sizes, which is a st
 constraint than three separate puzzles each working once. Measured over a year: zero rounds
 with no way to win, and 11 of 1,095 rounds outside their band on the real data.
 
+## 2026-07-26 — The week plays out
+
+Ryan: *"right now it kinda goes to a screen that says you won or not — it just adjusts the top
+bar. I'd love there to be a flow."*
+
+Locking a round now takes over the screen and walks the week: what you needed off the wire,
+then each player you took and what they actually did — their line, and how their real side
+fared that day — and finally whether it was enough. Tapping skips a beat, so it never holds
+anyone up.
+
+### Beats are 1.25 seconds
+
+A three-pick round plays out in about six. The first pass was 1.9s and a hard round took nine
+seconds, which is a sixth of the minute the whole game is meant to take.
+
+### The overlay is opaque, not a scrim
+
+At 95% the summary underneath stayed readable — you could see who you should have taken before
+the sequence got there. There's now a browser check that does a hit test on the best-available
+name and fails if anything but the overlay is on top of it, because "looks covered" and "is
+covered" are different claims.
+
+### `gameNote` is a method, not a field
+
+Whether a player's real side won that week describes the week being scored, so putting it on
+`Player` would leave it one careless render away from appearing next to a pick that hasn't been
+made yet. It's an optional adapter method the reveal calls and nothing else does.
+
+### The data came from a cheaper model
+
+Ryan asked for Sonnet where the work was mechanical, and fetching 2007 and 2015 game results
+was exactly that. Verified here rather than taken on trust: every game agrees from both sides,
+the era-correct team codes join to the player data in both directions with no strays, and the
+spot checks land — New England 38–35 at the Giants in week 17 of 2007, Minnesota 35–17 on the
+day Adrian Peterson ran for 296.
+
 ## Open — deliberately not decided
 
 Which sport ships first and where real data comes from. Logged in `BRIEF.md`. Agents must not

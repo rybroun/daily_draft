@@ -1466,3 +1466,140 @@ body {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+
+/* ---- the week playing out ----------------------------------------------- */
+
+/*
+ * The result used to arrive by quietly re-rendering the scoreline. This is the
+ * only moment the game has, so it gets the whole screen for a few seconds.
+ */
+.reveal {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem 1.25rem;
+  /*
+   * Opaque, not a scrim. At 95% the summary underneath stayed readable — you
+   * could see who you should have taken before the sequence got there, which
+   * undercuts the only moment the game has.
+   */
+  background: linear-gradient(to bottom, #123a24, #04120b);
+  cursor: pointer;
+  animation: reveal-in 0.28s ease;
+}
+
+@keyframes reveal-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.reveal-inner {
+  inline-size: 100%;
+  max-inline-size: 24rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  color: #ffffff;
+}
+
+.reveal-need {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 0.0625rem;
+}
+
+.reveal-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+.reveal-need-figure {
+  font-family: var(--display);
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
+}
+
+.reveal-picks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  list-style: none;
+}
+
+/* Each pick arrives on its own beat rather than the set appearing at once. */
+.reveal-pick {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 0.125rem 0.5rem;
+  padding-block-start: 0.625rem;
+  border-block-start: 1px solid #ffffff26;
+  animation: reveal-beat 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes reveal-beat {
+  from { opacity: 0; transform: translateY(0.625rem); }
+  to { opacity: 1; transform: none; }
+}
+
+.reveal-slot {
+  font-family: var(--display);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.reveal-name {
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.reveal-points {
+  font-family: var(--display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.reveal-stats,
+.reveal-note {
+  grid-column: 2 / -1;
+  font-size: 0.75rem;
+  opacity: 0.78;
+}
+
+.reveal-note {
+  padding-block-start: 0.125rem;
+  font-weight: 600;
+  opacity: 0.62;
+}
+
+.reveal-verdict {
+  font-family: var(--display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  animation: reveal-beat 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-verdict.is-won { color: var(--win); }
+.reveal-verdict.is-lost { color: var(--loss); }
+
+.reveal-skip {
+  padding-block-start: 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.45;
+}

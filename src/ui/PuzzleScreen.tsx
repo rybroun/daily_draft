@@ -16,6 +16,7 @@ import { explainSlot } from './explainSlot';
 import { Mark } from './Mark';
 import { ThemeToggle } from './ThemeToggle';
 import { Rounds } from './Rounds';
+import { RoundReveal } from './RoundReveal';
 import { ResultSummary, SlotBoard } from './Result';
 import { ScoreBug } from './ScoreBug';
 import { Sheet } from './Sheet';
@@ -40,6 +41,7 @@ interface PuzzleScreenProps {
   canAdvance: boolean;
   complete: boolean;
   onNextRound: () => void;
+  gameNote: (player: Player) => string | null;
   onFill: (openingIndex: number, playerId: PlayerId) => void;
   onPlayWeek: () => void;
 }
@@ -61,10 +63,13 @@ export function PuzzleScreen({
   canAdvance,
   complete,
   onNextRound,
+  gameNote,
   onFill,
   onPlayWeek,
 }: PuzzleScreenProps) {
   const [openSpotId, setOpenSpotId] = useState<SpotId | null>(null);
+  /** Non-null while the week is playing out for the round just locked in. */
+  const [playingOut, setPlayingOut] = useState<number | null>(null);
   const [theme, setTheme] = useState<Theme>(storedTheme);
 
   const byId = useMemo(
@@ -171,7 +176,16 @@ export function PuzzleScreen({
           />
         ) : (
           <div className="foot">
-            <button type="button" className="kickoff" disabled={!ready} onClick={onPlayWeek}>
+            <button
+              type="button"
+              className="kickoff"
+              disabled={!ready}
+              onClick={() => {
+                onPlayWeek();
+                setPlayingOut(round);
+                setOpenSpotId(null);
+              }}
+            >
               {ready
                 ? 'Lock in your lineup'
                 : `Fill your open spot${puzzle.openings.length === 1 ? '' : 's'} to win`}
@@ -211,6 +225,17 @@ export function PuzzleScreen({
             ))}
         </Sheet>
       </div>
+
+      {playingOut === round && score && (
+        <RoundReveal
+          puzzle={puzzle}
+          score={score}
+          statLine={statLine}
+          colorFor={colorFor}
+          gameNote={gameNote}
+          onDone={() => setPlayingOut(null)}
+        />
+      )}
     </main>
   );
 }

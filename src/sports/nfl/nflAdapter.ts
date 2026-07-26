@@ -11,7 +11,7 @@ import {
   TEAM_NAMES,
   fantasyPoints,
 } from './league';
-import { project, ranked, seasonYears } from './season';
+import { gameNote, project, ranked, seasonYears } from './season';
 
 /**
  * A real NFL season, as a league you're in.
@@ -148,4 +148,6 @@ export const nflAdapter: SportAdapter = {
   outcomeValue: (player) => fantasyPoints(player.outcome.stats),
 
   projectedValue: (player) => project(player),
+
+  gameNote: (player, season, week) => gameNote(player.team, season, week),
 };

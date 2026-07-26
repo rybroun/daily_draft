@@ -55,11 +55,24 @@ for (const year of years) {
     })
     .filter((p) => Object.keys(p.weeks).length >= 4);
 
-  seasons[year] = { year: Number(year), hasInjuryReport: statusById.size > 0, players };
+  // How every side fared that week, for the reveal.
+  let games = {};
+  const gamesPath = `data/nfl-${year}-games.json`;
+  if (existsSync(gamesPath)) {
+    games = JSON.parse(readFileSync(gamesPath, 'utf8')).games ?? {};
+  }
+
+  seasons[year] = {
+    year: Number(year),
+    hasInjuryReport: statusById.size > 0,
+    players,
+    games,
+  };
 
   const designations = players.reduce((n, p) => n + Object.keys(p.status ?? {}).length, 0);
   console.log(
-    `${year}: ${players.length} players, ${designations} designations` +
+    `${year}: ${players.length} players, ${designations} designations, ` +
+      `${Object.keys(games).length} teams' results` +
       (statusById.size ? '' : ' (no injury report published for this season)'),
   );
 }

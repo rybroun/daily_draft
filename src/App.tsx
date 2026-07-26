@@ -44,6 +44,11 @@ export default function App() {
     [],
   );
   const colorFor = useCallback((slot: RosterSlot) => adapter.slotColor(slot), []);
+  const gameNote = useCallback(
+    (player: Player) =>
+      adapter.gameNote?.(player, day.puzzle.season, day.puzzle.week) ?? null,
+    [day.puzzle.season, day.puzzle.week],
+  );
   const statKeys = useCallback((slot: RosterSlot) => adapter.statKeys(slot), []);
   const statLabel = useCallback((key: StatKey) => adapter.statLabel(key), []);
 
@@ -77,6 +82,7 @@ export default function App() {
       canAdvance={day.canAdvance}
       complete={day.complete}
       onNextRound={day.nextRound}
+      gameNote={gameNote}
       onFill={day.fill}
       onPlayWeek={day.playRound}
     />

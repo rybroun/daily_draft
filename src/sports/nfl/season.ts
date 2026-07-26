@@ -19,11 +19,21 @@ interface RawPlayer {
   status?: Record<string, { status: string; practice: string | null }>;
 }
 
+interface RawGame {
+  opp: string;
+  home: boolean;
+  for: number;
+  against: number;
+  result: 'W' | 'L' | 'T';
+}
+
 interface RawSeason {
   year: number;
   /** False for seasons before the injury report was published — 2009 onward. */
   hasInjuryReport: boolean;
   players: RawPlayer[];
+  /** Every side's result, by team then week. */
+  games: Record<string, Record<string, RawGame>>;
 }
 
 // The JSON import infers a vast literal type; the shape is asserted here once.
@@ -202,4 +212,19 @@ export function ranked(year: number, week: number, slot: RosterSlot): Player[] {
     .filter((p) => p.pos === slot && isActive(p, week))
     .map((p) => toPlayer(p, year, week))
     .sort((a, b) => b.form[0].stats.ppg - a.form[0].stats.ppg);
+}
+
+/**
+ * How this player's real side fared that week.
+ *
+ * Shown only once the week has been played — it describes the result, so it has
+ * no business anywhere near the pick.
+ */
+export function gameNote(team: string, year: number, week: number): string | null {
+  const game = season(year).games?.[team]?.[String(week)];
+  if (!game) return null;
+
+  const verb = game.result === 'W' ? 'won' : game.result === 'L' ? 'lost' : 'tied';
+  const where = game.home ? 'vs' : 'at';
+  return `${team} ${verb} ${game.for}\u2013${game.against} ${where} ${game.opp}`;
 }

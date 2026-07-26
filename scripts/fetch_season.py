@@ -166,5 +166,54 @@ def main(year):
     print(f"{year}: {sum(len(p['weeks']) for p in by_player.values())} injury rows")
 
 
+def games(year):
+    """Pull final scores from the `schedules` release and write nfl-<year>-games.json.
+
+    One file (games.csv) covers every season nflverse has, so this filters down
+    to regular-season games for the requested year. Unlike stats_player, the
+    schedules release already carries era-correct team codes (a 2007 row says
+    SD/OAK/STL, not the modern LAC/LV/LA) — confirmed by diffing against the
+    codes already in nfl-<year>.json, so no era_codes() recovery is needed here.
+    """
+    rows = [r for r in fetch("schedules/games.csv")
+            if r.get("season") == str(year) and r.get("game_type") == "REG"]
+
+    def result(for_, against):
+        if for_ > against:
+            return "W"
+        if for_ < against:
+            return "L"
+        return "T"
+
+    by_team = defaultdict(dict)
+    for row in rows:
+        week = row["week"]
+        home, away = row["home_team"], row["away_team"]
+        home_score, away_score = int(row["home_score"]), int(row["away_score"])
+        by_team[home][week] = {
+            "opp": away, "home": True,
+            "for": home_score, "against": away_score,
+            "result": result(home_score, away_score),
+        }
+        by_team[away][week] = {
+            "opp": home, "home": False,
+            "for": away_score, "against": home_score,
+            "result": result(away_score, home_score),
+        }
+
+    out = {
+        "season": int(year),
+        "source": "nflverse-data release `schedules`, asset games.csv",
+        "licence": "CC-BY-4.0 (nflverse-data). Attribution: nflverse.",
+        "fetchedAt": datetime.now(timezone.utc).isoformat(),
+        "games": dict(by_team),
+    }
+    with open(f"data/nfl-{year}-games.json", "w") as f:
+        json.dump(out, f)
+    weeks = sorted({int(w) for team in by_team.values() for w in team})
+    print(f"{year}: {len(by_team)} teams, {len(rows)} games, weeks {weeks[0]}-{weeks[-1]}")
+
+
 if __name__ == "__main__":
     main(sys.argv[1])
+    games(sys.argv[1])

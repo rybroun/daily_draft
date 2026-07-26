@@ -138,6 +138,16 @@ export interface SportAdapter {
    * from exactly what the player can see.
    */
   projectedValue(player: Player, slot: RosterSlot): number;
+
+  /**
+   * One line on how this player's real side fared that week — "Seattle won
+   * 30–13 at Baltimore". Optional, and for the reveal only.
+   *
+   * Deliberately a method rather than a field on `Player`: it describes the
+   * week being scored, so putting it on the player object would put it one
+   * careless render away from leaking before the pick is made.
+   */
+  gameNote?(player: Player, season: number, week: number): string | null;
 }
 
 /** How many spots you have to get right: one, two or three. */
