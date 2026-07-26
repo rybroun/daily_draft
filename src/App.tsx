@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { dateKey } from './core/puzzle';
 import type { Player, RosterSlot, StatLine } from './core/types';
-import { nflAdapter } from './sports/nfl2015/nflAdapter';
+import { nflAdapter } from './sports/nfl/nflAdapter';
 import { PuzzleScreen } from './ui/PuzzleScreen';
 import { useGame } from './useGame';
 
@@ -13,9 +13,22 @@ import { useGame } from './useGame';
 const adapter = nflAdapter;
 
 export default function App() {
-  // Fixed at mount so the puzzle can't change under a player at midnight.
-  const today = useMemo(() => dateKey(new Date()), []);
-  const game = useGame(adapter, today);
+  /*
+   * Fixed at mount so the puzzle can't change under a player at midnight.
+   *
+   * `?date=YYYY-MM-DD` plays that day instead. Selection is date-seeded, so any
+   * past or future day is already a real puzzle — this just lets you reach one
+   * without waiting for it, which is the archive feature in embryo.
+   */
+  const asked = useMemo(() => {
+    const value = new URLSearchParams(window.location.search).get('date');
+    return value && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
+  }, []);
+  // Both must be computed unconditionally — a hook behind `??` is a hook that
+  // sometimes doesn't run.
+  const realToday = useMemo(() => dateKey(new Date()), []);
+  const today = asked ?? realToday;
+  const game = useGame(adapter, today, asked === null);
 
   const statLine = useCallback(
     (line: StatLine, player: Player) => adapter.formatStatLine(line, player.slot),

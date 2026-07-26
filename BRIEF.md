@@ -100,7 +100,7 @@ playing it will say.
 | Question | Status | Notes |
 |---|---|---|
 | Which sport ships first? | **answered 2026-07-25 — football** | Confirmed by Ryan. The waiver-wire format wanted it all along: weekly scoring, a real waiver culture, positions on a field. |
-| Where does real data come from? | in progress | 2015 NFL, week-by-week game logs. Season totals are useless here — the whole game is the gap between weeks 1..N-1 and week N. Injury designations for 2015 are the open part; without them the sharpest read in the game is missing. |
+| Where does real data come from? | **answered — nflverse** | Week-by-week game logs, CC-BY-4.0. 2007 and 2015 are in. One caveat that shapes which seasons are worth adding: **injury reports only exist from 2009**, and the injury read is one of the sharpest in the game, so pre-2009 seasons play a thinner version of it. |
 | How do stats become a score? | answered structurally, open in content | `SportAdapter.outcomeValue` holds it, so core no longer needs it. The mock uses half-PPR fantasy points. A real sport still needs its own rule. |
 | What makes a puzzle *good*? | open | The mock is tuned so reading the season line picks the winner ~39% of the time against 20% for guessing. Whether real data lands anywhere near that band is unknown. |
 | Is one week too random to feel fair? | open | See "The known risk" above. Needs play, not design. |

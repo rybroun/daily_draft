@@ -27,7 +27,12 @@ export interface Game {
  * Every rule lives in `core/` — this only decides when to call it and where the
  * answer is kept.
  */
-export function useGame(adapter: SportAdapter, today: DateKey): Game {
+export function useGame(
+  adapter: SportAdapter,
+  today: DateKey,
+  /** False when replaying an archive day, which must not build a streak. */
+  countsTowardStreak = true,
+): Game {
   const puzzle = useMemo(() => puzzleFor(adapter, today), [adapter, today]);
   const [saved, setSaved] = useState(() => loadGame(window.localStorage));
 
@@ -40,9 +45,12 @@ export function useGame(adapter: SportAdapter, today: DateKey): Game {
 
   const ready = picks.every((pick) => pick !== null);
 
-  // The week is played exactly when the streak is recorded, so one flag does
-  // both jobs and there's no second piece of state to fall out of step.
-  const played = ready && saved.streak.lastPlayed === today;
+  /*
+   * Whether the week has been played is its own stored fact rather than being
+   * inferred from the streak. Inferring it meant an archive day — which must
+   * not build a streak — could never show its result either.
+   */
+  const played = ready && saved.picks?.date === today && saved.picks.locked === true;
 
   const score = useMemo(() => {
     if (!played) return null;
@@ -100,10 +108,10 @@ export function useGame(adapter: SportAdapter, today: DateKey): Game {
     // One week a day. A second tap after the reveal must not restreak.
     if (!ready || played) return;
     commit({
-      streak: recordPlay(saved.streak, today),
-      picks: { date: today, playerIds: picks as PlayerId[] },
+      streak: countsTowardStreak ? recordPlay(saved.streak, today) : saved.streak,
+      picks: { date: today, playerIds: picks as PlayerId[], locked: true },
     });
-  }, [ready, played, commit, saved.streak, today, picks]);
+  }, [ready, played, commit, saved.streak, today, picks, countsTowardStreak]);
 
   return { puzzle, picks, score, streak: saved.streak, ready, fill, clear, playWeek };
 }

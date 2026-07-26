@@ -11,10 +11,10 @@ import {
   TEAM_NAMES,
   fantasyPoints,
 } from './league';
-import { project, ranked, seasonYear } from './season';
+import { project, ranked, seasonYears } from './season';
 
 /**
- * The 2015 NFL season, as a league you're in.
+ * A real NFL season, as a league you're in.
  *
  * Two managers field eight players each and the rest of that position's talent
  * sits on the wire. Who's rostered and who isn't is drawn from the date, so the
@@ -54,7 +54,7 @@ function deal(season: number, week: number): Squads {
   const wire = new Map<RosterSlot, Player[]>();
 
   for (const slot of Object.keys(TIERS) as RosterSlot[]) {
-    const pool = ranked(week, slot);
+    const pool = ranked(season, week, slot);
     const tier = TIERS[slot];
     const spots = FORMATION.filter((s) => s.slot === slot);
     const needed = spots.length * 2;
@@ -107,7 +107,7 @@ export const nflAdapter: SportAdapter = {
   id: 'nfl2015',
   displayName: 'NFL',
 
-  seasons: () => [seasonYear],
+  seasons: () => seasonYears,
 
   weeks: () => Array.from({ length: LAST_WEEK - FIRST_WEEK + 1 }, (_, i) => FIRST_WEEK + i),
 

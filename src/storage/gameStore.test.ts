@@ -51,6 +51,25 @@ describe('gameStore', () => {
     expect(loadGame(storage)).toEqual(played);
   });
 
+  it('remembers that a week was locked in, not just what was picked', () => {
+    const locked: SavedGame = {
+      streak: emptyStreak(),
+      picks: { date: '2026-07-26', playerIds: ['a', 'b'], locked: true },
+    };
+    saveGame(storage, locked);
+
+    expect(loadGame(storage).picks?.locked).toBe(true);
+  });
+
+  it('treats a set of picks with no lock as still open', () => {
+    saveGame(storage, {
+      streak: emptyStreak(),
+      picks: { date: '2026-07-26', playerIds: ['a', 'b'] },
+    });
+
+    expect(loadGame(storage).picks?.locked).toBeUndefined();
+  });
+
   it('keeps a half-finished set of picks, so one pick survives a refresh', () => {
     const halfway: SavedGame = {
       streak: emptyStreak(),

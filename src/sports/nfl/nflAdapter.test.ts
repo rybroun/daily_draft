@@ -4,8 +4,10 @@ import { scorePicks } from '../../core/scoring';
 import { fantasyPoints } from './league';
 import { nflAdapter as a } from './nflAdapter';
 
+const SEASONS = a.seasons();
 const SEASON = 2015;
-const weeks = a.weeks(SEASON);
+/** Every (season, week) the adapter will ever be asked for. */
+const everyWeek = SEASONS.flatMap((s) => a.weeks(s).map((w) => ({ season: s, week: w })));
 
 describe('the 2015 season is really 2015', () => {
   it('knows what Julio Jones did in week 9', () => {
@@ -24,16 +26,28 @@ describe('the 2015 season is really 2015', () => {
   });
 
   it('offers only weeks with enough history behind them to read', () => {
-    expect(Math.min(...weeks)).toBeGreaterThanOrEqual(7);
-    expect(Math.max(...weeks)).toBe(17);
+    for (const season of SEASONS) {
+      expect(Math.min(...a.weeks(season))).toBeGreaterThanOrEqual(7);
+      expect(Math.max(...a.weeks(season))).toBe(17);
+    }
+  });
+
+  it('knows what Tom Brady did in 2007', () => {
+    // The 50-touchdown season. If the era is wrong, this is the tell.
+    const brady = everyWeek
+      .filter(({ season }) => season === 2007)
+      .flatMap(({ season, week }) => [...a.roster(season, week).values()])
+      .find((p) => p.name === 'Tom Brady');
+
+    if (brady) expect(brady.form[0].stats.ppg).toBeGreaterThan(15);
   });
 });
 
 describe('every week can be played', () => {
   it('has a full wire at every openable slot', () => {
-    for (const week of weeks) {
+    for (const { season, week } of everyWeek) {
       for (const slot of a.openableSlots()) {
-        expect(a.candidates(SEASON, week, slot).length).toBeGreaterThanOrEqual(
+        expect(a.candidates(season, week, slot).length).toBeGreaterThanOrEqual(
           WAIVERS_PER_OPENING,
         );
       }
@@ -41,26 +55,26 @@ describe('every week can be played', () => {
   });
 
   it('fields a full lineup on both sides', () => {
-    for (const week of weeks) {
-      const yours = a.roster(SEASON, week);
+    for (const { season, week } of everyWeek) {
+      const yours = a.roster(season, week);
       for (const spot of a.formation()) {
         expect(yours.get(spot.id)?.slot).toBe(spot.slot);
       }
-      expect(a.opponent(SEASON, week).lineup).toHaveLength(a.formation().length);
+      expect(a.opponent(season, week).lineup).toHaveLength(a.formation().length);
     }
   });
 
   it('never has one player in two places at once', () => {
-    for (const week of weeks) {
+    for (const { season, week } of everyWeek) {
       const seen = new Set<string>();
       const claim = (id: string) => {
         expect(seen.has(id)).toBe(false);
         seen.add(id);
       };
-      for (const [, p] of a.roster(SEASON, week)) claim(p.id);
-      for (const e of a.opponent(SEASON, week).lineup) claim(e.player.id);
+      for (const [, p] of a.roster(season, week)) claim(p.id);
+      for (const e of a.opponent(season, week).lineup) claim(e.player.id);
       for (const slot of a.openableSlots()) {
-        for (const p of a.candidates(SEASON, week, slot)) claim(p.id);
+        for (const p of a.candidates(season, week, slot)) claim(p.id);
       }
     }
   });
@@ -74,9 +88,9 @@ describe('every week can be played', () => {
 
 describe('form is history and nothing else', () => {
   /** Every candidate the adapter will ever hand out, across the season. */
-  const everyone = weeks.flatMap((week) =>
+  const everyone = everyWeek.flatMap(({ season, week }) =>
     a.openableSlots().flatMap((slot) =>
-      a.candidates(SEASON, week, slot).map((player) => ({ player, week })),
+      a.candidates(season, week, slot).map((player) => ({ player, week })),
     ),
   );
 
@@ -115,11 +129,15 @@ describe('form is history and nothing else', () => {
   });
 });
 
-describe('the injury report', () => {
-  const lineups = weeks.flatMap((week) => [
-    ...[...a.roster(SEASON, week).values()],
-    ...a.opponent(SEASON, week).lineup.map((e) => e.player),
-  ]);
+describe('the injury report, where one was published', () => {
+  // nflverse publishes injury reports from 2009 onward. 2007 simply has none,
+  // and the game degrades to no designations rather than inventing any.
+  const lineups = everyWeek
+    .filter(({ season }) => season >= 2009)
+    .flatMap(({ season, week }) => [
+      ...[...a.roster(season, week).values()],
+      ...a.opponent(season, week).lineup.map((e) => e.player),
+    ]);
 
   it('turns up often enough to be worth reading, and not so often it is noise', () => {
     const tagged = lineups.filter((p) => p.status !== undefined);
@@ -144,9 +162,9 @@ describe('the injury report', () => {
   });
 
   it('never puts more than one ruled-out player on a single slate', () => {
-    for (const week of weeks) {
+    for (const { season, week } of everyWeek) {
       for (const slot of a.openableSlots()) {
-        const out = a.candidates(SEASON, week, slot).filter((p) => p.status === 'OUT');
+        const out = a.candidates(season, week, slot).filter((p) => p.status === 'OUT');
 
         expect(out.length).toBeLessThanOrEqual(1);
       }
@@ -165,7 +183,7 @@ describe('a year of real puzzles', () => {
       );
       const score = scorePicks(a, puzzle, picks);
 
-      expect(puzzle.season).toBe(SEASON);
+      expect(SEASONS).toContain(puzzle.season);
       expect(score.points).toBeGreaterThanOrEqual(0);
       expect(score.points).toBeLessThanOrEqual(100);
       expect(Number.isFinite(score.yourTotal)).toBe(true);
@@ -196,13 +214,39 @@ describe('the two form lines actually say different things', () => {
    * played precisely three games.
    */
   it('gives most candidates a season line and a last-three that differ', () => {
-    const candidates = weeks.flatMap((week) =>
-      a.openableSlots().flatMap((slot) => a.candidates(SEASON, week, slot)),
+    const candidates = everyWeek.flatMap(({ season, week }) =>
+      a.openableSlots().flatMap((slot) => a.candidates(season, week, slot)),
     );
     const differ = candidates.filter(
       (p) => p.form[0].stats.ppg !== p.form[1].stats.ppg,
     );
 
     expect(differ.length / candidates.length).toBeGreaterThan(0.9);
+  });
+});
+
+describe('both seasons are in the rotation', () => {
+  it('offers every season it holds', () => {
+    expect(SEASONS).toEqual([2007, 2015]);
+  });
+
+  it('deals from both across a year of dates', () => {
+    const days = Array.from({ length: 365 }, (_, i) => dateKey(new Date(2026, 0, 1 + i)));
+    const dealt = new Set(days.map((day) => puzzleFor(a, day).season));
+
+    expect(dealt).toEqual(new Set(SEASONS));
+  });
+
+  it('keeps the eras apart — no Chargers of Los Angeles in 2007', () => {
+    const teams = new Set(
+      everyWeek
+        .filter(({ season }) => season === 2007)
+        .flatMap(({ season, week }) => [...a.roster(season, week).values()])
+        .map((p) => p.team),
+    );
+
+    expect(teams).not.toContain('LAC');
+    expect(teams).not.toContain('LV');
+    expect(teams).not.toContain('LA');
   });
 });

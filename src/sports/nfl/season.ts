@@ -1,6 +1,6 @@
 import type { Player, RosterSlot, StatKey, StatLine } from '../../core/types';
 import { SLOT_STATS, fantasyPoints } from './league';
-import raw from './season2015.json';
+import raw from './seasons.json';
 
 /**
  * Turning the season table into players the engine can use.
@@ -19,8 +19,20 @@ interface RawPlayer {
   status?: Record<string, { status: string; practice: string | null }>;
 }
 
+interface RawSeason {
+  year: number;
+  /** False for seasons before the injury report was published — 2009 onward. */
+  hasInjuryReport: boolean;
+  players: RawPlayer[];
+}
+
 // The JSON import infers a vast literal type; the shape is asserted here once.
-const SEASON = raw as unknown as { season: number; weeks: number[]; players: RawPlayer[] };
+const DATA = raw as unknown as { seasons: Record<string, RawSeason> };
+
+const season = (year: number): RawSeason => DATA.seasons[String(year)];
+
+export const seasonYears = Object.keys(DATA.seasons).map(Number).sort();
+export const hasInjuryReport = (year: number) => season(year).hasInjuryReport;
 
 /** Enough of a record that the season line and the last three can disagree. */
 const MIN_GAMES = 4;
@@ -31,9 +43,6 @@ const TAG: Record<string, string> = {
   Doubtful: 'D',
   Questionable: 'Q',
 };
-
-export const players = SEASON.players;
-export const seasonYear = SEASON.season;
 
 const perGame = (games: Record<string, number>[], key: StatKey) =>
   games.reduce((sum, g) => sum + (g[key] ?? 0), 0) / games.length;
@@ -99,8 +108,8 @@ export function project(player: Player): number {
  * Ordering by season form is what lets the roster take from the top and the
  * wire take from further down — which is what a waiver wire actually is.
  */
-export function ranked(week: number, slot: RosterSlot): Player[] {
-  return SEASON.players
+export function ranked(year: number, week: number, slot: RosterSlot): Player[] {
+  return season(year).players
     .filter((p) => p.pos === slot && isActive(p, week))
     .map((p) => toPlayer(p, week))
     .sort((a, b) => b.form[0].stats.ppg - a.form[0].stats.ppg);

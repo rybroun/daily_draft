@@ -19,9 +19,14 @@ was good; you are being asked who was about to be, against a specific opponent.
    Sports plug in behind `SportAdapter`. Other sports have to fit without changing engine
    code. This is the single most important design constraint.
 2. **Football, and real data.** Ryan confirmed the sport on 2026-07-25 and lifted the
-   mock-only rule at the same time. The first real season is **2015 NFL**. `MockAdapter`
-   stays — it's a *fictional* league that proves the seam holds for a sport that doesn't
-   exist, and the core tests run against it — but it is no longer the only adapter.
+   mock-only rule at the same time. Live seasons: **2007 and 2015 NFL**, from nflverse
+   (CC-BY-4.0). `MockAdapter` stays — it's a *fictional* league that proves the seam holds
+   for a sport that doesn't exist, and the core tests run against it — but it is no longer
+   the only adapter.
+
+   Adding a season is two commands: `python3 scripts/fetch_season.py <year>` then
+   `npm run data`. **Injury reports only exist from 2009 onward**, so earlier seasons play
+   without designations rather than with invented ones.
 3. **60 seconds, then done.** If a puzzle takes longer to play than that, the design is wrong.
 4. **The player never sees the week they're picking for.** Form to date, projections and
    injury tags are all they get. If a number from the scored week reaches the screen before
@@ -48,8 +53,8 @@ src/
     streak.ts     pure streak arithmetic over calendar days
     random.ts     seeded PRNG. There is no Math.random in the engine.
   sports/
-    mock/         MockAdapter — an invented football league
-    (real adapters arrive later, behind the same interface)
+    mock/         MockAdapter — an invented football league, proof of the seam
+    nfl/          the real thing: 2007 and 2015, behind the same interface
   storage/        localStorage read/write, tolerant of corrupt data
   ui/             React components. Presentational; no game rules here.
   useGame.ts      wires engine to browser. Calls core; never reimplements it.
