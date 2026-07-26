@@ -22,6 +22,8 @@ interface FieldProps {
   /** Players you have already watched score in an earlier round. */
   known: Set<PlayerId>;
   revealed: boolean;
+  /** True once the day is finished and the boards may be opened. */
+  reviewable: boolean;
   colorFor: (slot: RosterSlot) => string;
   onSpotTap: (spotId: SpotId) => void;
 }
@@ -96,6 +98,7 @@ export function Field({
   outcomeFor,
   known,
   revealed,
+  reviewable,
   colorFor,
   onSpotTap,
 }: FieldProps) {
@@ -201,9 +204,10 @@ export function Field({
               .filter(Boolean)
               .join(' ');
 
-            // Only your own unplayed openings. After the week there is nothing
-            // behind a spot to open — the board of alternatives is gone.
-            const tappable = !theirs && isOpening && !revealed;
+            // Your own unplayed openings while there's a round left, and your
+            // own picks again once the day is done and the boards open up.
+            const tappable =
+              !theirs && isOpening && (!revealed || (reviewable && chosen !== null));
 
             return (
               <div

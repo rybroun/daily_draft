@@ -71,6 +71,13 @@
   --endzone-you: var(--you);
   --endzone-you-ink: var(--you-ink);
 
+  /*
+    The two halves of the ground. Their end sits in shade and yours in sun, so
+    the 50 reads as an edge rather than a line you have to go looking for.
+  */
+  --half-theirs: #05170d38;
+  --half-yours: #ffffff20;
+
   --qb: #c42e4e;
   --rb: #0b8457;
   --wr: #1f6fb2;
@@ -127,6 +134,10 @@
   --endzone-you: color-mix(in srgb, var(--you) 28%, #0b1d14);
   --endzone-you-ink: color-mix(in srgb, var(--you) 86%, #ffffff);
 
+  /* At night the far half falls away and yours is the half under the lights. */
+  --half-theirs: #00000059;
+  --half-yours: #ffffff16;
+
   --qb: #e8556d;
   --rb: #2fb98a;
   --wr: #4a9ff5;
@@ -161,6 +172,9 @@ body {
 .need-figure,
 .spot-figure,
 .pick-scored,
+.row-figure-value,
+.row-rank,
+.form-stats,
 .streak {
   font-variant-numeric: tabular-nums;
 }
@@ -478,12 +492,25 @@ body {
   inset: 0;
   pointer-events: none;
   background:
+    /*
+      A hard step at the 50, not a fade through it. The tint used to wash out to
+      nothing across the middle, which left the one line that says whose half is
+      whose with no tonal edge behind it at all.
+    */
     linear-gradient(
       to bottom,
-      color-mix(in srgb, var(--them) 16%, transparent) 0%,
-      transparent 38%,
-      transparent 62%,
-      color-mix(in srgb, var(--you) 14%, transparent) 100%
+      var(--half-theirs) 0%,
+      var(--half-theirs) 50%,
+      var(--half-yours) 50%,
+      var(--half-yours) 100%
+    ),
+    /* and a hint of each side's colour, strongest at its own goal line */
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--them) 20%, transparent) 0%,
+      color-mix(in srgb, var(--them) 5%, transparent) 46%,
+      color-mix(in srgb, var(--you) 5%, transparent) 54%,
+      color-mix(in srgb, var(--you) 18%, transparent) 100%
     );
 }
 
@@ -1061,6 +1088,171 @@ body {
   color: var(--you-ink);
 }
 
+/* ---- the board, once the day is done ----------------------------------- */
+
+/*
+  Every candidate that was on one wire, ranked by what the week was worth.
+  Reachable only after all three rounds — see SlotBoard.tsx for why.
+*/
+/* ---- rows -------------------------------------------------------------- */
+
+.rows {
+  border-radius: 0.5rem;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+/*
+  A colour spine down the left edge, doing the job a border used to: rhythm and
+  position, without boxing each player into their own container.
+*/
+.row {
+  position: relative;
+  inline-size: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.0625rem 0.5625rem;
+  padding: 0.4375rem 0.875rem 0.5rem 0.75rem;
+  border: 0;
+  border-inline-start: 3px solid var(--spine, transparent);
+  border-block-end: 1px solid var(--hairline);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+
+.rows > .row:last-child,
+.rows > li:last-child {
+  border-block-end: 0;
+}
+
+.row-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  min-inline-size: 0;
+}
+
+.row-name {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.row-team {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.row-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  gap: 0;
+}
+
+.row-figure-value {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.3125rem;
+  line-height: 1;
+}
+
+.row-figure-label {
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* Full width, so a stat line gets the pill's column back and stays one line. */
+.row-form {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  padding-block-start: 0.1875rem;
+}
+
+.form-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.form-label {
+  inline-size: 2.75rem;
+  flex: none;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.form-stats {
+  font-size: 0.6875rem;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.rows.is-board { list-style: none; }
+
+.row.is-result {
+  display: grid;
+  grid-template-columns: 1rem 1fr auto;
+  overflow: hidden;
+  animation: rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+
+.row-rank {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--faint);
+}
+
+.row.is-best .row-rank { color: var(--win); }
+
+.row.is-best { background: color-mix(in srgb, var(--win) 10%, transparent); }
+
+.row.is-yours { background: color-mix(in srgb, var(--you) 14%, transparent); }
+
+.row-yours {
+  padding: 0.0625rem 0.25rem 0;
+  border-radius: 0.125rem;
+  background: var(--you);
+  color: var(--you-ink);
+  font-family: var(--display);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.row-bar {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  block-size: 2px;
+  background: var(--edge);
+}
+
+.row.is-best .row-bar { background: var(--win); }
+
+.row.is-yours .row-bar { background: var(--you); }
+
 /* ---- the sheet --------------------------------------------------------- */
 
 /*
@@ -1152,14 +1344,25 @@ body {
 
 /* The day's tally, where the next-round button would be. */
 .day-done {
-  padding-block: 0.5rem;
+  padding-block: 0.375rem;
+  text-align: center;
+}
+
+.day-tally {
   font-family: var(--display);
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  text-align: center;
   color: #ffffff;
+  text-shadow: 0 1px 0.25rem #0e2a1a73;
+}
+
+.day-hint {
+  padding-block-start: 0.125rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #ffffffc4;
   text-shadow: 0 1px 0.25rem #0e2a1a73;
 }
 
@@ -1329,24 +1532,30 @@ body {
 
 .intro-rounds li {
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 0.5rem;
+  padding-block: 0.1875rem;
+  border-block-start: 1px solid var(--hairline);
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--muted);
 }
 
-.intro-rounds span {
-  display: grid;
-  place-items: center;
-  inline-size: 1.25rem;
-  block-size: 1.25rem;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+.intro-round-name {
+  flex: 1;
   font-family: var(--display);
-  font-size: 0.6875rem;
+  font-size: 0.9375rem;
   font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--ink);
+}
+
+.intro-round-spots {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
 }
 
 .intro-streak {

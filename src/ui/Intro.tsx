@@ -1,3 +1,4 @@
+import { OPENINGS_FOR, ROUNDS } from '../core/day';
 import { Mark } from './Mark';
 
 interface IntroProps {
@@ -31,16 +32,22 @@ export function Intro({ season, week, opponentName, streak, onStart }: IntroProp
           one set of picks that wins — the hard part is finding it.
         </p>
 
+        {/*
+          Read off the same list the round strip uses rather than written out
+          again. Spelled out by hand, this card was still promising "Easy,
+          Medium, Hard" long after the game had stopped saying it anywhere else.
+        */}
         <ol className="intro-rounds">
-          <li>
-            <span>1</span> Easy — one spot
-          </li>
-          <li>
-            <span>2</span> Medium — two spots
-          </li>
-          <li>
-            <span>3</span> Hard — three spots
-          </li>
+          {ROUNDS.map((level, i) => (
+            <li key={level}>
+              {/* Worded exactly as the round strip words it, since this is a
+                  preview of that strip and not a second way of saying it. */}
+              <span className="intro-round-name">Round {i + 1}</span>
+              <span className="intro-round-spots">
+                {OPENINGS_FOR[level]} spot{OPENINGS_FOR[level] === 1 ? '' : 's'}
+              </span>
+            </li>
+          ))}
         </ol>
 
         <button type="button" className="kickoff" onClick={onStart}>
