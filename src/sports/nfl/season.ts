@@ -112,7 +112,33 @@ function recordThrough(year: number, week: number, team: string): string {
 }
 
 /**
- * How the league stood going into a given week, best record first.
+ * Which division each club plays in.
+ *
+ * Football is tracked by division and always has been — playoff seeding runs
+ * off it, and no broadcast or table anywhere shows a flat thirty-two.
+ *
+ * One map covers both seasons: the current alignment dates from the 2002
+ * expansion, and 2007 and 2015 field the same thirty-two clubs under the same
+ * codes. A season from before 2002, or after the Chargers and Rams moved,
+ * would need its own.
+ */
+const DIVISIONS: Record<string, string[]> = {
+  'AFC East': ['BUF', 'MIA', 'NE', 'NYJ'],
+  'AFC North': ['BAL', 'CIN', 'CLE', 'PIT'],
+  'AFC South': ['HOU', 'IND', 'JAX', 'TEN'],
+  'AFC West': ['DEN', 'KC', 'OAK', 'SD'],
+  'NFC East': ['DAL', 'NYG', 'PHI', 'WAS'],
+  'NFC North': ['CHI', 'DET', 'GB', 'MIN'],
+  'NFC South': ['ATL', 'CAR', 'NO', 'TB'],
+  'NFC West': ['ARI', 'SEA', 'SF', 'STL'],
+};
+
+const DIVISION_OF = new Map(
+  Object.entries(DIVISIONS).flatMap(([division, clubs]) => clubs.map((c) => [c, division] as const)),
+);
+
+/**
+ * How the league stood going into a given week, by division and best first.
  *
  * Context, not information: the puzzle is about five players on a wire, and
  * knowing that New England were 10-0 doesn't tell you what any of them did.
@@ -138,17 +164,92 @@ export function standingsFor(year: number, week: number) {
 
   return table
     .filter((row) => row.played > 0)
-    // Record first, then points scored — an 8-2 that scores 300 is a better
-    // read on "who's good" than an 8-2 that scores 180.
-    .sort((a, b) => b.rate - a.rate || b.points - a.points)
+    .sort(
+      (a, b) =>
+        (DIVISION_OF.get(a.team) ?? '').localeCompare(DIVISION_OF.get(b.team) ?? '') ||
+        // Record first, then points scored — an 8-2 that scores 300 is a better
+        // read on "who's good" than an 8-2 that scores 180.
+        b.rate - a.rate ||
+        b.points - a.points,
+    )
     .map((row) => ({
       name: row.team,
+      group: DIVISION_OF.get(row.team) ?? 'Unaligned',
       detail: row.tied > 0 ? `${row.won}–${row.lost}–${row.tied}` : `${row.won}–${row.lost}`,
     }));
 }
 
+/**
+ * How generous each defence has been to a position, through the prior weeks.
+ *
+ * This is the signal a fantasy manager actually reads on a wire: not "he'll
+ * score 12" but "he has the softest secondary in the league this week". It was
+ * here once as a soft/even/hard tint, and came out because three unlabelled
+ * colours with no legend read as decoration. Said in words it explains itself.
+ *
+ * Built only from weeks before the one being played, so it leaks nothing.
+ */
+const defences = new Map<string, Map<string, number>>();
+
+function defenceRanks(year: number, week: number, slot: RosterSlot): Map<string, number> {
+  const key = `${year}:${week}:${slot}`;
+  const cached = defences.get(key);
+  if (cached) return cached;
+
+  const allowed = new Map<string, { points: number; games: number }>();
+  for (const p of season(year).players) {
+    if (p.pos !== slot) continue;
+    for (const [w, line] of Object.entries(p.weeks)) {
+      const game = season(year).games?.[p.team]?.[w];
+      if (!game || Number(w) >= week) continue;
+      const row = allowed.get(game.opp) ?? { points: 0, games: 0 };
+      row.points += fantasyPoints(line);
+      allowed.set(game.opp, row);
+    }
+  }
+  for (const [team, games] of Object.entries(season(year).games ?? {})) {
+    const row = allowed.get(team);
+    if (row) row.games = Object.keys(games).filter((w) => Number(w) < week).length;
+  }
+
+  // 1 is the softest: the defence that has handed this position the most.
+  const ranks = new Map<string, number>();
+  [...allowed.entries()]
+    .filter(([, r]) => r.games > 0)
+    .map(([team, r]) => ({ team, per: r.points / r.games }))
+    .sort((a, b) => b.per - a.per)
+    .forEach(({ team }, i) => ranks.set(team, i + 1));
+
+  defences.set(key, ranks);
+  return ranks;
+}
+
+const ORDINAL = (n: number) => {
+  const tens = n % 100;
+  if (tens >= 11 && tens <= 13) return `${n}th`;
+  return `${n}${['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
+};
+
+/**
+ * The matchup in words — "5th softest vs WR", "3rd toughest vs RB".
+ *
+ * Counted from whichever end is nearer, so it never needs a legend telling you
+ * which way the numbers run. "28th softest" is a sentence you have to decode;
+ * "5th toughest" is one you don't.
+ */
+function matchupNote(year: number, week: number, opponent: string, slot: RosterSlot) {
+  const ranks = defenceRanks(year, week, slot);
+  const rank = ranks.get(opponent);
+  if (!rank) return undefined;
+
+  const of = ranks.size;
+  return rank <= of / 2
+    ? `${ORDINAL(rank)} softest vs ${slot}`
+    : `${ORDINAL(of - rank + 1)} toughest vs ${slot}`;
+}
+
 /** The one game being picked for: who, where, and how they've gone so far. */
-export function nextGameFor(year: number, week: number, team: string) {
+export function nextGameFor(year: number, week: number, team: string, slot: RosterSlot) {
   const game = season(year).games?.[team]?.[String(week)];
   // No fixture that week is a bye, and you can't start a bye.
   if (!game) return { label: 'BYE' };
@@ -156,6 +257,7 @@ export function nextGameFor(year: number, week: number, team: string) {
   return {
     label: `${game.home ? 'vs' : 'at'} ${game.opp}`,
     detail: recordThrough(year, week, game.opp),
+    note: matchupNote(year, week, game.opp, slot),
   };
 }
 
@@ -187,7 +289,7 @@ export function toPlayer(p: RawPlayer, year: number, week: number): Player {
     slot: p.pos,
     ...(designation ? { status: TAG[designation.status] ?? designation.status } : {}),
     form: [averageOf('Season', games, p.pos), averageOf('Last 3', recent, p.pos)],
-    next: nextGameFor(year, week, p.team),
+    next: nextGameFor(year, week, p.team, p.pos),
     outcome: {
       label: `Week ${week}`,
       // No line means they didn't play: a real zero, not missing data.

@@ -60,7 +60,7 @@ export interface Player {
    * Singular on purpose. It used to be a run of three fixtures, which is what
    * you'd want for a trade; the question here is only ever about this week.
    */
-  next?: { label: string; detail?: string };
+  next?: { label: string; detail?: string; note?: string };
   /** What actually happened in the scored week. Hidden until the reveal. */
   outcome: StatLine;
 }
@@ -157,7 +157,10 @@ export interface SportAdapter {
    * for the opening card only — it grounds you in a season already in progress
    * and says nothing about what any candidate is about to do.
    */
-  standings?(season: number, week: number): { name: string; detail: string }[];
+  standings?(
+    season: number,
+    week: number,
+  ): { name: string; group?: string; detail: string }[];
 
   /**
    * Who has been best at each position so far, for the same opening card.

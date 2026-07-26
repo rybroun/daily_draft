@@ -6,16 +6,28 @@ import { Mark } from './Mark';
 interface IntroProps {
   season: number;
   week: number;
-  /** How the real league stood going in, best first. Empty if the sport can't say. */
-  standings: { name: string; detail: string }[];
+  /** How the real league stood going in, grouped and best first. */
+  standings: { name: string; group?: string; detail: string }[];
   /** Who's been best at each position so far. Empty if the sport can't say. */
   leaders: { slot: RosterSlot; players: { name: string; team: string; detail: string }[] }[];
   streak: number;
   onStart: () => void;
 }
 
-/** Enough of the table to read the week at a glance, not enough to study. */
-const SHOWN = 6;
+/**
+ * One club per division: the leaders, and nothing below them.
+ *
+ * Football is tracked by division, but eight tables of four is a page, not a
+ * card. The top of each is where a fan's eye goes anyway.
+ */
+function leadEachDivision(table: { name: string; group?: string; detail: string }[]) {
+  const seen = new Set<string>();
+  return table.filter((row) => {
+    if (!row.group || seen.has(row.group)) return false;
+    seen.add(row.group);
+    return true;
+  });
+}
 
 /**
  * The two cards the day opens on.
@@ -31,7 +43,7 @@ const SHOWN = 6;
  */
 export function Intro({ season, week, standings, leaders, streak, onStart }: IntroProps) {
   const [briefing, setBriefing] = useState(false);
-  const top = standings.slice(0, SHOWN);
+  const top = leadEachDivision(standings);
 
   if (!briefing) {
     return (
@@ -92,10 +104,11 @@ export function Intro({ season, week, standings, leaders, streak, onStart }: Int
         */}
         {top.length > 0 && (
           <div className="intro-block">
-            <p className="intro-block-head">Best records going in</p>
+            <p className="intro-block-head">Leading each division</p>
             <ol className="intro-table">
               {top.map((row) => (
                 <li key={row.name}>
+                  <span className="intro-division">{row.group}</span>
                   <span className="intro-team">{row.name}</span>
                   <span className="intro-record">{row.detail}</span>
                 </li>

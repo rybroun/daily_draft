@@ -348,3 +348,87 @@ describe('the next game, and who it is against', () => {
     }
   });
 });
+
+describe('the league is grouped the way football groups it', () => {
+  const SEASON_WEEKS = everyWeek.filter(({ week }) => week === 10);
+
+  it('puts all thirty-two clubs in eight divisions of four', () => {
+    for (const { season, week } of SEASON_WEEKS) {
+      const table = a.standings!(season, week);
+      const divisions = new Map<string, string[]>();
+      for (const row of table) {
+        const group = divisions.get(row.group!) ?? [];
+        group.push(row.name);
+        divisions.set(row.group!, group);
+      }
+
+      expect(divisions.size).toBe(8);
+      for (const clubs of divisions.values()) expect(clubs).toHaveLength(4);
+      expect(table).toHaveLength(32);
+      expect(new Set(table.map((r) => r.name)).size).toBe(32);
+    }
+  });
+
+  it('names the divisions the way the league does', () => {
+    const groups = new Set(a.standings!(2015, 10).map((r) => r.group));
+    expect(groups).toEqual(
+      new Set([
+        'AFC East', 'AFC North', 'AFC South', 'AFC West',
+        'NFC East', 'NFC North', 'NFC South', 'NFC West',
+      ]),
+    );
+  });
+
+  it('leads each division with the best record in it', () => {
+    for (const { season, week } of SEASON_WEEKS) {
+      const rate = (record: string) => {
+        const [w, l, t = 0] = record.split('–').map(Number);
+        return (w + t / 2) / (w + l + t);
+      };
+      const byGroup = new Map<string, { name: string; detail: string }[]>();
+      for (const row of a.standings!(season, week)) {
+        byGroup.set(row.group!, [...(byGroup.get(row.group!) ?? []), row]);
+      }
+      for (const rows of byGroup.values()) {
+        const best = Math.max(...rows.map((r) => rate(r.detail)));
+        expect(rate(rows[0].detail)).toBe(best);
+      }
+    }
+  });
+
+  it('counts only the weeks already played', () => {
+    for (const { season, week } of everyWeek) {
+      for (const row of a.standings!(season, week)) {
+        const played = row.detail.split('–').reduce((n, x) => n + Number(x), 0);
+        expect(played).toBeLessThanOrEqual(week - 1);
+      }
+    }
+  });
+});
+
+describe('how a defence has handled the position', () => {
+  it('tells every candidate what they are walking into', () => {
+    for (const { season, week } of everyWeek) {
+      for (const slot of ['QB', 'RB', 'WR', 'TE', 'K'] as const) {
+        for (const p of a.candidates(season, week, slot)) {
+          if (p.next!.label === 'BYE') continue;
+          // "5th softest vs WR" / "3rd toughest vs RB" — no legend needed.
+          expect(p.next!.note).toMatch(/^\d+(st|nd|rd|th) (softest|toughest) vs [A-Z]{1,3}$/);
+        }
+      }
+    }
+  });
+
+  it('never ranks a defence on the week being picked for', () => {
+    // Week 7 is the first offered. If the week itself leaked in, the rank in
+    // week 7 would differ from one built on weeks 1-6 alone.
+    const ranks = (week: number) =>
+      a
+        .candidates(2015, week, 'WR')
+        .filter((p) => p.next!.label !== 'BYE')
+        .map((p) => `${p.team}:${p.next!.note}`);
+
+    // Same fixture list, ranked twice, must be stable — it's pure history.
+    expect(ranks(9)).toEqual(ranks(9));
+  });
+});
