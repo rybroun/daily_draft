@@ -1,15 +1,16 @@
 import { useCallback, useMemo } from 'react';
 import { dateKey } from './core/puzzle';
 import type { Player, RosterSlot, StatLine } from './core/types';
-import { mockAdapter } from './sports/mock/mockAdapter';
+import { nflAdapter } from './sports/nfl2015/nflAdapter';
 import { PuzzleScreen } from './ui/PuzzleScreen';
 import { useGame } from './useGame';
 
 /**
- * The only place a sport is chosen. Swapping `mockAdapter` for a real one is the
- * whole cost of shipping a sport.
+ * The only place a sport is chosen — and swapping the fictional league for the
+ * real 2015 NFL season was exactly this one line, which is what the seam was
+ * for. `mockAdapter` still exists and the core tests still run against it.
  */
-const adapter = mockAdapter;
+const adapter = nflAdapter;
 
 export default function App() {
   // Fixed at mount so the puzzle can't change under a player at midnight.

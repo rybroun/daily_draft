@@ -16,7 +16,9 @@ is judgement, not code.
 |---|---|---|---|
 | Play it for a few days and judge whether it's fun | in progress | 2026-07-25 | **Live at https://bananas-mac-mini.tail6d208c.ts.net** (tailnet only). The prototype exists to answer this and nothing else. |
 | Decide whether one week is too random to feel fair | in progress | 2026-07-25 | Partly addressed: the reveal now says when a week was already decided either way. Whether that's enough needs play, not design. |
-| Build the 2015 NFL adapter | in progress | 2026-07-26 | Data landed and verified. Next: construct two fantasy lineups and a waiver pool per week, deterministically from the date. |
+| Play it on real 2015 data and judge whether it's fun | in progress | 2026-07-26 | Live. Weeks 7–17, real players, real injury reports. |
+| Decide what to do about the projection column | planned | 2026-07-26 | Unchanged by real data, and arguably worse: the projection still hands over the optimal read. Floor/ceiling is the leading fix. |
+| Make the picks decide the week more often | planned | 2026-07-26 | Real data made this worse, not better — 58% of days the picks can't change the result, against 47% on the mock. |
 | Decide what to do about the projection column | planned | 2026-07-25 | It hands the player the optimal use of visible information, which collapses the decision to reading one number. Floor/ceiling instead of a point estimate is the leading candidate. |
 | Make the picks decide the week more often | planned | 2026-07-25 | Currently 53%. The other 47% of days, nothing the player did changed the result — bad for something meant to be played daily. |
 
