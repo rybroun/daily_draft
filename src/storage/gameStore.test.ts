@@ -51,6 +51,15 @@ describe('gameStore', () => {
     expect(loadGame(storage)).toEqual(played);
   });
 
+  it('remembers which difficulty the picks were made against', () => {
+    saveGame(storage, {
+      streak: emptyStreak(),
+      picks: { date: '2026-07-26', difficulty: 'hard', playerIds: ['a', 'b', 'c'] },
+    });
+
+    expect(loadGame(storage).picks?.difficulty).toBe('hard');
+  });
+
   it('remembers that a week was locked in, not just what was picked', () => {
     const locked: SavedGame = {
       streak: emptyStreak(),

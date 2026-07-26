@@ -11,7 +11,7 @@ export interface SavedGame {
    * Picks already made today, in opening order. Shorter than the number of
    * openings while the board is half-filled — a refresh mid-decision keeps them.
    */
-  picks: { date: DateKey; playerIds: PlayerId[]; locked?: boolean } | null;
+  picks: { date: DateKey; difficulty?: string; playerIds: PlayerId[]; locked?: boolean } | null;
 }
 
 /** The slice of `localStorage` we use — narrowed so it can be faked in tests. */
@@ -80,10 +80,18 @@ function parsePicks(value: unknown): SavedGame['picks'] {
   if (value === null || value === undefined) return null;
   if (typeof value !== 'object') throw new Error('saved picks are not an object');
 
-  const { date, playerIds, locked } = value as Record<string, unknown>;
+  const { date, difficulty, playerIds, locked } = value as Record<string, unknown>;
   if (typeof date !== 'string') throw new Error('saved picks have no date');
   if (!Array.isArray(playerIds) || playerIds.some((id) => typeof id !== 'string')) {
     throw new Error('saved picks are not a list of players');
   }
-  return { date, playerIds, ...(locked === true ? { locked: true } : {}) };
+  if (difficulty !== undefined && typeof difficulty !== 'string') {
+    throw new Error('saved picks have a malformed difficulty');
+  }
+  return {
+    date,
+    playerIds,
+    ...(difficulty ? { difficulty } : {}),
+    ...(locked === true ? { locked: true } : {}),
+  };
 }

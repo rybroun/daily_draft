@@ -1007,7 +1007,7 @@ body {
   z-index: 3;
   display: flex;
   flex-direction: column;
-  max-block-size: 78%;
+  max-block-size: 83%;
   padding: 0.625rem 0.75rem 0.75rem;
   border-start-start-radius: 1rem;
   border-start-end-radius: 1rem;
@@ -1271,4 +1271,64 @@ body {
   font-weight: 600;
   color: #ffffff;
   text-shadow: 0 1px 0.25rem #0e2a1a73;
+}
+
+/* ---- difficulty --------------------------------------------------------- */
+
+.grades {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.1875rem 0.25rem;
+  padding: 0 1rem 0.375rem;
+}
+
+.grade {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.0625rem;
+  padding: 0.25rem 0.25rem 0.1875rem;
+  border: 1px solid var(--hairline);
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--faint);
+  font-family: var(--display);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.grade-moves {
+  font-family: var(--body);
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  opacity: 0.85;
+}
+
+.grade:disabled { cursor: default; opacity: 0.55; }
+
+.grade.is-easy.is-on { background: var(--win); border-color: var(--win); color: #ffffff; }
+.grade.is-medium.is-on { background: var(--you); border-color: var(--you); color: var(--you-ink); }
+.grade.is-hard.is-on { background: var(--loss); border-color: var(--loss); color: #ffffff; }
+
+.grade:focus-visible {
+  outline: 2px solid var(--you);
+  outline-offset: 2px;
+}
+
+/* Flows beneath the chips rather than floating over the turf below them. */
+.grades-note {
+  flex-basis: 100%;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
 }

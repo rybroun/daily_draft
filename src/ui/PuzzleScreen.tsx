@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { StreakState } from '../core/streak';
 import type {
+  Difficulty,
   Player,
   PlayerId,
   Puzzle,
@@ -14,6 +15,7 @@ import { Field } from './Field';
 import { explainSlot } from './explainSlot';
 import { Mark } from './Mark';
 import { ThemeToggle } from './ThemeToggle';
+import { DifficultyPicker } from './DifficultyPicker';
 import { ResultSummary, SlotBoard } from './Result';
 import { ScoreBug } from './ScoreBug';
 import { Sheet } from './Sheet';
@@ -33,6 +35,9 @@ interface PuzzleScreenProps {
   projectionFor: (player: Player, slot: RosterSlot) => number;
   outcomeFor: (player: Player, slot: RosterSlot) => number;
   colorFor: (slot: RosterSlot) => string;
+  difficulty: Difficulty;
+  chosen: Difficulty | null;
+  onChooseDifficulty: (difficulty: Difficulty | null) => void;
   onFill: (openingIndex: number, playerId: PlayerId) => void;
   onPlayWeek: () => void;
 }
@@ -49,6 +54,9 @@ export function PuzzleScreen({
   projectionFor,
   outcomeFor,
   colorFor,
+  difficulty,
+  chosen,
+  onChooseDifficulty,
   onFill,
   onPlayWeek,
 }: PuzzleScreenProps) {
@@ -125,11 +133,20 @@ export function PuzzleScreen({
         opponentName={puzzle.opponent.name}
         season={puzzle.season}
         week={puzzle.week}
-        difficulty={puzzle.difficulty}
         yourTotal={totals.yours}
         opponentTotal={totals.theirs}
         result={score?.result ?? null}
         margin={score?.margin ?? 0}
+      />
+
+      <DifficultyPicker
+        current={difficulty}
+        chosen={chosen}
+        onChoose={(next) => {
+          onChooseDifficulty(next);
+          setOpenSpotId(null);
+        }}
+        disabled={score !== null}
       />
 
       <div className="stage">

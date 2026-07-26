@@ -3,7 +3,7 @@ import { puzzleFor } from './core/puzzle';
 import { scorePicks } from './core/scoring';
 import { recordPlay } from './core/streak';
 import type { StreakState } from './core/streak';
-import type { DateKey, PlayerId, Puzzle, Score, SportAdapter } from './core/types';
+import type { DateKey, Difficulty, PlayerId, Puzzle, Score, SportAdapter } from './core/types';
 import { loadGame, saveGame } from './storage/gameStore';
 import type { SavedGame } from './storage/gameStore';
 
@@ -30,18 +30,30 @@ export interface Game {
 export function useGame(
   adapter: SportAdapter,
   today: DateKey,
-  /** False when replaying an archive day, which must not build a streak. */
+  /** Ask for a difficulty; null for whatever the day chose. */
+  asked: Difficulty | null,
+  /** False for an archive day or a practice difficulty — neither may streak. */
   countsTowardStreak = true,
 ): Game {
-  const puzzle = useMemo(() => puzzleFor(adapter, today), [adapter, today]);
+  const puzzle = useMemo(() => puzzleFor(adapter, today, asked ?? undefined), [adapter, today, asked]);
   const [saved, setSaved] = useState(() => loadGame(window.localStorage));
 
   const openings = puzzle.openings.length;
 
-  const picks = useMemo<(PlayerId | null)[]>(() => {
-    const stored = saved.picks?.date === today ? saved.picks.playerIds : [];
-    return Array.from({ length: openings }, (_, i) => stored[i] ?? null);
-  }, [saved.picks, today, openings]);
+  /*
+   * Picks belong to a date *and* a difficulty. Switching difficulty gives a
+   * different puzzle with a different number of openings, so yesterday's answer
+   * to a different question must not be carried into it.
+   */
+  const mine =
+    saved.picks?.date === today && saved.picks.difficulty === puzzle.difficulty
+      ? saved.picks
+      : null;
+
+  const picks = useMemo<(PlayerId | null)[]>(
+    () => Array.from({ length: openings }, (_, i) => mine?.playerIds[i] ?? null),
+    [mine, openings],
+  );
 
   const ready = picks.every((pick) => pick !== null);
 
@@ -50,7 +62,7 @@ export function useGame(
    * inferred from the streak. Inferring it meant an archive day — which must
    * not build a streak — could never show its result either.
    */
-  const played = ready && saved.picks?.date === today && saved.picks.locked === true;
+  const played = ready && mine?.locked === true;
 
   const score = useMemo(() => {
     if (!played) return null;
@@ -78,10 +90,10 @@ export function useGame(
 
       commit({
         streak: saved.streak,
-        picks: { date: today, playerIds: filled as PlayerId[] },
+        picks: { date: today, difficulty: puzzle.difficulty, playerIds: filled as PlayerId[] },
       });
     },
-    [commit, saved.streak, today],
+    [commit, saved.streak, today, puzzle.difficulty],
   );
 
   const fill = useCallback(
@@ -109,9 +121,14 @@ export function useGame(
     if (!ready || played) return;
     commit({
       streak: countsTowardStreak ? recordPlay(saved.streak, today) : saved.streak,
-      picks: { date: today, playerIds: picks as PlayerId[], locked: true },
+      picks: {
+        date: today,
+        difficulty: puzzle.difficulty,
+        playerIds: picks as PlayerId[],
+        locked: true,
+      },
     });
-  }, [ready, played, commit, saved.streak, today, picks, countsTowardStreak]);
+  }, [ready, played, commit, saved.streak, today, picks, countsTowardStreak, puzzle.difficulty]);
 
   return { puzzle, picks, score, streak: saved.streak, ready, fill, clear, playWeek };
 }

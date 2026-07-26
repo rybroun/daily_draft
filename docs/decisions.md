@@ -609,6 +609,28 @@ An adapter with two openable positions has no "hard". Rather than refuse the day
 difficulty drops to the hardest the formation supports. The earlier version threw, which is
 the wrong answer to a sport that simply has fewer positions to stream.
 
+## 2026-07-26 — A difficulty toggle, and what it costs
+
+Ryan wanted to try all three rather than wait for the day to serve them.
+
+Picking a difficulty is a **practice run**: it doesn't build a streak. The day's real puzzle is
+the one the date chose, and letting a player shop for an easy day when the hard one is going
+badly would empty the streak of meaning. Same rule the `?date=` archive already follows.
+
+### Each difficulty is a different puzzle, necessarily
+
+Switching also switches the week and the matchup. That's not a shortcut — it falls out of the
+guarantee. A hard day needs a matchup where about three of a hundred and twenty-five line-ups
+win; the same matchup cannot simultaneously be one where three of five do. The search finds a
+different arrangement for each, so "today" is really three puzzles and you play one for the
+streak.
+
+### Picks are keyed to the puzzle, not the day
+
+Storage now records which difficulty a set of picks was made against. Without that, filling
+two spots on medium and switching to hard would carry two answers into a three-question
+puzzle — stale picks for a question that was never asked.
+
 ## Open — deliberately not decided
 
 Which sport ships first and where real data comes from. Logged in `BRIEF.md`. Agents must not

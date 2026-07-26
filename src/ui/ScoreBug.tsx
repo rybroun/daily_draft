@@ -1,10 +1,9 @@
-import type { Difficulty, MatchupResult } from '../core/types';
+import type { MatchupResult } from '../core/types';
 
 interface ScoreBugProps {
   opponentName: string;
   season: number;
   week: number;
-  difficulty: Difficulty;
   yourTotal: number;
   opponentTotal: number;
   /** Set once the week is played; until then these are projections. */
@@ -26,7 +25,6 @@ export function ScoreBug({
   opponentName,
   season,
   week,
-  difficulty,
   yourTotal,
   opponentTotal,
   result,
@@ -46,7 +44,6 @@ export function ScoreBug({
         <span className="bug-when">
           <span className="bug-season">{season}</span>
           <span className="bug-week">Wk {week}</span>
-          <span className={`bug-grade is-${difficulty}`}>{difficulty}</span>
         </span>
 
         <span className="bug-team is-them">

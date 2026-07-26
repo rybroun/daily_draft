@@ -1,6 +1,6 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { dateKey } from './core/puzzle';
-import type { Player, RosterSlot, StatKey, StatLine } from './core/types';
+import type { Difficulty, Player, RosterSlot, StatKey, StatLine } from './core/types';
 import { nflAdapter } from './sports/nfl/nflAdapter';
 import { PuzzleScreen } from './ui/PuzzleScreen';
 import { useGame } from './useGame';
@@ -28,7 +28,13 @@ export default function App() {
   // sometimes doesn't run.
   const realToday = useMemo(() => dateKey(new Date()), []);
   const today = asked ?? realToday;
-  const game = useGame(adapter, today, asked === null);
+  /*
+   * Asking for a difficulty makes it a practice run, the same way an archive
+   * date does: the day's real puzzle is the one the date chose, and only that
+   * one can build a streak.
+   */
+  const [chosen, setChosen] = useState<Difficulty | null>(null);
+  const game = useGame(adapter, today, chosen, asked === null && chosen === null);
 
   const statLine = useCallback(
     (line: StatLine, player: Player) => adapter.formatStatLine(line, player.slot),
@@ -59,6 +65,9 @@ export default function App() {
       projectionFor={projectionFor}
       outcomeFor={outcomeFor}
       colorFor={colorFor}
+      difficulty={game.puzzle.difficulty}
+      chosen={chosen}
+      onChooseDifficulty={setChosen}
       onFill={game.fill}
       onPlayWeek={game.playWeek}
     />

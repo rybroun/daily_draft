@@ -168,6 +168,23 @@ describe('puzzleFor', () => {
     }
   });
 
+  it('gives the difficulty that was asked for', () => {
+    for (const wanted of ['easy', 'medium', 'hard'] as const) {
+      const puzzle = puzzleFor(adapter, '2026-07-26', wanted);
+
+      expect(puzzle.difficulty).toBe(wanted);
+      expect(puzzle.openings).toHaveLength(OPENINGS_FOR[wanted]);
+      expect(puzzle.lines.winning).toBeGreaterThan(0);
+    }
+  });
+
+  it('still gives the same puzzle for the same date and difficulty', () => {
+    const a = puzzleFor(adapter, '2026-07-26', 'hard');
+    const b = puzzleFor(adapter, '2026-07-26', 'hard');
+
+    expect(b.waivers.map((p) => p.id)).toEqual(a.waivers.map((p) => p.id));
+  });
+
   it('opens one spot for easy, two for medium and three for hard', () => {
     for (const day of days(60)) {
       const puzzle = puzzleFor(adapter, day);

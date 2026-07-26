@@ -45,7 +45,12 @@ export function dateKey(date: Date): string {
  * searches for one that can actually be won, because a day where nothing you
  * pick changes the result is a day not worth opening the game for.
  */
-export function puzzleFor(adapter: SportAdapter, date: string): Puzzle {
+export function puzzleFor(
+  adapter: SportAdapter,
+  date: string,
+  /** Ask for a specific difficulty. Omit for the one the date chose. */
+  asked?: Difficulty,
+): Puzzle {
   const random = seededRandom(hashString(`${adapter.id}:${date}`));
 
   /*
@@ -57,7 +62,10 @@ export function puzzleFor(adapter: SportAdapter, date: string): Puzzle {
   if (room === 0) {
     throw new Error(`${adapter.id}: formation has no openable slots`);
   }
-  const wanted = pickOne(DIFFICULTIES, random);
+  // The draw happens either way, so asking for a difficulty doesn't shift the
+  // seed and change which weeks get searched.
+  const drawn = pickOne(DIFFICULTIES, random);
+  const wanted = asked ?? drawn;
   const difficulty =
     OPENINGS_FOR[wanted] <= room
       ? wanted
