@@ -34,7 +34,6 @@ interface PuzzleScreenProps {
   statLine: (line: StatLine, player: Player) => string;
   statKeys: (slot: RosterSlot) => StatKey[];
   statLabel: (key: StatKey) => string;
-  projectionFor: (player: Player, slot: RosterSlot) => number;
   outcomeFor: (player: Player, slot: RosterSlot) => number;
   round: number;
   results: (MatchupResult | null)[];
@@ -56,7 +55,6 @@ export function PuzzleScreen({
   statLine,
   statKeys,
   statLabel,
-  projectionFor,
   outcomeFor,
   round,
   results,
@@ -89,32 +87,44 @@ export function PuzzleScreen({
   const openIndex = puzzle.openings.findIndex((spot) => spot.id === openSpotId);
   const openSpot = openIndex === -1 ? null : puzzle.openings[openIndex];
 
-  // Before the week the field shows projections; after, what actually happened.
-  const figureFor = score ? outcomeFor : projectionFor;
+  /*
+   * Every figure on the field is what actually happened that week — before the
+   * pick as well as after.
+   *
+   * This used to be a projection until the week was played, which put two kinds
+   * of number on one screen with nothing to tell them apart: the scoreboard said
+   * you needed 15.3, then the play-out opened on 26.5, because the first was
+   * against the opponent's forecast and the second against their real week.
+   *
+   * Nothing is given away by it. The sixteen players on this field are not on
+   * the wire, so what they did tells you nothing about what the five candidates
+   * will do — and that, and only that, is the puzzle. What it buys is a target
+   * that is exactly true: need 26.5, find 26.5.
+   */
+  const figureFor = outcomeFor;
 
   /*
    * Before the week, your total counts only the starters already on the field —
    * never the players you took off the wire.
    *
-   * It used to include them, so the need figure fell by exactly the pick's
-   * projection the moment you made it. That gave the number back by
-   * subtraction: fill a spot, watch the figure drop, and you have read the
-   * projection the wire card deliberately withholds. Held still, the figure
-   * becomes the target instead — the same one the reveal opens on.
+   * It used to include them, so the need figure fell the moment you picked,
+   * handing back by subtraction the number the wire card withholds. Held still,
+   * and now counted in real points, it states the target exactly: this is what
+   * your openings have to produce between them, to the tenth.
    */
   const totals = useMemo(() => {
     if (score) return { yours: score.yourTotal, theirs: score.opponentTotal };
 
     const yours = puzzle.field.reduce(
-      (sum, entry) => sum + (entry.player ? projectionFor(entry.player, entry.spot.slot) : 0),
+      (sum, entry) => sum + (entry.player ? outcomeFor(entry.player, entry.spot.slot) : 0),
       0,
     );
     const theirs = puzzle.opponent.lineup.reduce(
-      (sum, entry) => sum + projectionFor(entry.player, entry.spot.slot),
+      (sum, entry) => sum + outcomeFor(entry.player, entry.spot.slot),
       0,
     );
     return { yours, theirs };
-  }, [score, puzzle, projectionFor]);
+  }, [score, puzzle, outcomeFor]);
 
   const pick = (playerId: PlayerId) => {
     if (openIndex === -1) return;
@@ -256,8 +266,8 @@ export function PuzzleScreen({
                       Your end zone is behind this panel while it's open, and
                       what you need is the one number you're picking against.
                     */
-                    `Need ~${Math.max(0, totals.theirs - totals.yours).toFixed(1)} on projection. ` +
-                    'Form to date, nothing from this week.'
+                    `Need ${Math.max(0, totals.theirs - totals.yours).toFixed(1)} off the wire. ` +
+                    'Form to date — nothing here is from this week.'
               }
               onClose={() => setOpenSpotId(null)}
             >

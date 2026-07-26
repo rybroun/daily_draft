@@ -510,18 +510,6 @@ body {
   letter-spacing: 0;
 }
 
-/* Says out loud that this figure is a forecast, not the week. */
-.endzone-proj {
-  margin-inline-start: 0.1875rem;
-  font-family: var(--body);
-  font-size: 0.5625rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  vertical-align: 0.6em;
-  opacity: 0.6;
-}
-
 .endzone.is-them .endzone-total { color: var(--endzone-them-ink); }
 .endzone.is-you .endzone-total,
 .endzone.is-you .endzone-call { color: var(--endzone-you-ink); }

@@ -141,8 +141,14 @@ export interface SportAdapter {
   /**
    * What the week looks like it will be worth, from visible form alone.
    *
-   * Never reads `outcome` — it's shown before kickoff, so it must be derivable
-   * from exactly what the player can see.
+   * Never reads `outcome`, and asserted by test. Nothing renders it now: the
+   * field shows the real week and the wire shows no number at all, because a
+   * projection is the optimal read of the visible evidence already computed and
+   * printing one collapses the decision into "take the biggest number".
+   *
+   * Kept on the seam because it is the natural place for a sport to express
+   * that reading, and because any ordering or tiering the engine might want
+   * later has to come from visible form rather than from `outcome`.
    */
   projectedValue(player: Player, slot: RosterSlot): number;
 

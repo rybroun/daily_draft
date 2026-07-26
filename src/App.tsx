@@ -35,10 +35,6 @@ export default function App() {
     (line: StatLine, player: Player) => adapter.formatStatLine(line, player.slot),
     [],
   );
-  const projectionFor = useCallback(
-    (player: Player, slot: RosterSlot) => adapter.projectedValue(player, slot),
-    [],
-  );
   const outcomeFor = useCallback(
     (player: Player, slot: RosterSlot) => adapter.outcomeValue(player, slot),
     [],
@@ -74,7 +70,6 @@ export default function App() {
       statLine={statLine}
       statKeys={statKeys}
       statLabel={statLabel}
-      projectionFor={projectionFor}
       outcomeFor={outcomeFor}
       round={day.round}
       results={day.results}

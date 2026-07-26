@@ -247,10 +247,7 @@ export function Field({
             <span className="endzone-word" title={opponent.name}>
               Opponent
             </span>
-            <span className="endzone-total">
-              {scoreline.theirs.toFixed(1)}
-              {scoreline.result === null && <span className="endzone-proj">proj</span>}
-            </span>
+            <span className="endzone-total">{scoreline.theirs.toFixed(1)}</span>
           </div>
           <div className={`endzone is-you${scoreline.result ? ` is-${scoreline.result}` : ''}`}>
             <span className="endzone-word">You</span>
@@ -270,24 +267,20 @@ export function Field({
                 )
               ) : scoreline.need !== null && scoreline.need > 0 ? (
                 /*
-                  "On projection", and not a rounded figure dressed as a target.
-                  Their total up there is a forecast, so this is too — and when
-                  they beat it, the play-out opens on a bigger number than this
-                  one. Said flat, that reads as the game contradicting itself.
+                  Exact, not an estimate. Every figure on this field is the real
+                  week, so this is the real bar — the same number the play-out
+                  will open on when it scores you against it.
                 */
                 <>
-                  Need <strong>~{scoreline.need.toFixed(1)}</strong> on projection
+                  Need <strong>{scoreline.need.toFixed(1)}</strong> off the wire
                 </>
               ) : (
                 <>
-                  Up <strong>{Math.abs(scoreline.need ?? 0).toFixed(1)}</strong> on projection
+                  Up <strong>{Math.abs(scoreline.need ?? 0).toFixed(1)}</strong> before the wire
                 </>
               )}
             </span>
-            <span className="endzone-total">
-              {scoreline.yours.toFixed(1)}
-              {scoreline.result === null && <span className="endzone-proj">proj</span>}
-            </span>
+            <span className="endzone-total">{scoreline.yours.toFixed(1)}</span>
           </div>
 
           {/*

@@ -32,9 +32,28 @@ was good; you are being asked who was about to be, against a specific opponent.
    `npm run data`. **Injury reports only exist from 2009 onward**, so earlier seasons play
    without designations rather than with invented ones.
 3. **60 seconds, then done.** If a puzzle takes longer to play than that, the design is wrong.
-4. **The player never sees the week they're picking for.** Form to date, projections and
-   injury tags are all they get. If a number from the scored week reaches the screen before
-   the reveal, the game is broken. `projectedValue` must never read `outcome`.
+4. **The wire is the only thing hidden.** Revised 2026-07-26 — this rule used to cover the
+   whole screen, and Ryan narrowed it deliberately.
+
+   A **candidate on the wire** shows form to date, the fixture, and an injury tag. Never a
+   number from the week being played, and never a projection either: a projection is the
+   optimal read of the visible evidence already computed, so printing one collapses the
+   decision into "take the biggest number". If a candidate's scored week reaches the screen
+   before you've locked in, the game is broken.
+
+   **Everything else on the field is the real week**, before the pick as well as after —
+   both lineups, both totals, and the bar you're chasing. Those sixteen players aren't on
+   the wire, so what they did says nothing about what the five candidates will do. What it
+   buys is a target that is exactly true: *need 26.5, find 26.5*. Showing projections there
+   instead meant the scoreboard said 15.3 while the play-out scored you against 26.5, with
+   nothing on screen to reconcile them.
+
+   The one exception is a candidate you already started in a round you've finished and
+   watched play out. You've seen that number, so it stays visible — that's the whole reason
+   the three rounds share one wire.
+
+   `projectedValue` still must never read `outcome`, and is still asserted by test — but
+   nothing renders it now. See the note on the seam in `core/types.ts`.
 5. **The decision is against an opponent, not in a vacuum.** How much you need depends on what
    they're fielding, which is why their lineup and their injuries are fully visible.
 
