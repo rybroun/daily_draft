@@ -5,7 +5,6 @@ interface RoundRevealProps {
   puzzle: Puzzle;
   score: Score;
   statLine: (line: StatLine, player: Player) => string;
-  colorFor: (slot: string) => string;
   gameNote: (player: Player) => string | null;
   onDone: () => void;
 }
@@ -34,7 +33,6 @@ export function RoundReveal({
   puzzle,
   score,
   statLine,
-  colorFor,
   gameNote,
   onDone,
 }: RoundRevealProps) {
@@ -73,7 +71,13 @@ export function RoundReveal({
       }}
     >
       <div className="reveal-inner">
+        {/*
+          What they actually scored comes first, because it is why this number
+          is not the one the scoreboard showed while you were picking. That was
+          their projection; this is the week.
+        */}
         <p className="reveal-need">
+          <span className="reveal-theirs">They scored {score.opponentTotal.toFixed(1)}</span>
           <span className="reveal-label">You needed</span>
           <span className="reveal-need-figure">{Math.max(0, needed).toFixed(1)}</span>
           <span className="reveal-label">off the wire</span>
@@ -85,9 +89,7 @@ export function RoundReveal({
             const note = gameNote(player);
             return (
               <li key={slot.spot.id} className="reveal-pick">
-                <span className="reveal-slot" style={{ color: colorFor(slot.spot.slot) }}>
-                  {slot.spot.slot}
-                </span>
+                <span className="reveal-slot">{slot.spot.slot}</span>
                 <span className="reveal-name">{player.name}</span>
                 <span className="reveal-points">{slot.picked.value.toFixed(1)}</span>
                 <span className="reveal-stats">{statLine(player.outcome, player)}</span>

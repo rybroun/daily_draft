@@ -10,7 +10,6 @@ interface WaiverBoardProps {
   outcomeFor: (player: Player) => number;
   statKeys: (slot: RosterSlot) => StatKey[];
   statLabel: (key: StatKey) => string;
-  colorFor: (slot: RosterSlot) => string;
   onPick: (playerId: PlayerId) => void;
 }
 
@@ -41,7 +40,6 @@ export function WaiverBoard({
   outcomeFor,
   statKeys,
   statLabel,
-  colorFor,
   onPick,
 }: WaiverBoardProps) {
   const columns = candidates.length ? statKeys(candidates[0].slot) : [];
@@ -58,15 +56,12 @@ export function WaiverBoard({
         ))}
       </div>
       {candidates.map((player) => {
-        const color = colorFor(player.slot);
         return (
           <button
             key={player.id}
             type="button"
             className={`pick${player.id === pickedId ? ' is-picked' : ''}`}
-            style={
-              { '--slot-color': color, '--cols': columns.length } as React.CSSProperties
-            }
+            style={{ '--cols': columns.length } as React.CSSProperties}
             aria-pressed={player.id === pickedId}
             onClick={() => onPick(player.id)}
           >
@@ -80,9 +75,7 @@ export function WaiverBoard({
                 {player.status && <StatusTag status={player.status} />}
               </span>
               <span className="pick-meta">
-                <span className="pick-pos" style={{ color }}>
-                  {player.slot}
-                </span>
+                <span className="pick-pos">{player.slot}</span>
                 {player.team}
                 {/*
                   What they scored, but only for someone you started in a round

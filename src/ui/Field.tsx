@@ -38,7 +38,6 @@ interface FieldProps {
     result: MatchupResult | null;
     margin: number;
   };
-  colorFor: (slot: RosterSlot) => string;
   onSpotTap: (spotId: SpotId) => void;
 }
 
@@ -103,6 +102,50 @@ interface Placed {
   theirs: boolean;
 }
 
+/**
+ * How a head is coloured: by what they're producing, not by what they play.
+ *
+ * Position was the old colour code, but the position is already written next to
+ * every name, so the colour was saying a second time what the label already
+ * said. What it wasn't saying is the thing you actually scan a field for —
+ * who's carrying it and who isn't.
+ *
+ * `unknown` is its own colour rather than yours. Your pick used to wear the
+ * team orange, which made "mine" and "not yet known" the same colour on a
+ * screen where they are the two most different things.
+ */
+type Band = 'high' | 'mid' | 'low' | 'unknown';
+
+/**
+ * Banded within position across both lineups, never across all of them: seven
+ * points is a fine day for a kicker and a wasted one for a quarterback, so a
+ * single league-wide ramp would just colour the field by position again.
+ */
+function bandsFor(figures: { key: string; slot: string; value: number | null }[]): Map<string, Band> {
+  const bands = new Map<string, Band>();
+  const bySlot = new Map<string, { key: string; value: number }[]>();
+
+  for (const f of figures) {
+    if (f.value === null) {
+      bands.set(f.key, 'unknown');
+      continue;
+    }
+    const group = bySlot.get(f.slot) ?? [];
+    group.push({ key: f.key, value: f.value });
+    bySlot.set(f.slot, group);
+  }
+
+  for (const group of bySlot.values()) {
+    const ranked = [...group].sort((a, b) => b.value - a.value);
+    const third = Math.ceil(ranked.length / 3);
+    ranked.forEach((entry, i) => {
+      bands.set(entry.key, i < third ? 'high' : i < ranked.length - third ? 'mid' : 'low');
+    });
+  }
+
+  return bands;
+}
+
 export function Field({
   entries,
   opponent,
@@ -114,7 +157,6 @@ export function Field({
   revealed,
   reviewable,
   scoreline,
-  colorFor,
   onSpotTap,
 }: FieldProps) {
   /*
@@ -136,6 +178,27 @@ export function Field({
       theirs: true,
     })),
   ];
+
+  /*
+   * The figure a head is showing, or null when it's showing a question mark.
+   * One place, so the colour and the number can never disagree about a player.
+   */
+  const figureOf = (entry: Placed): number | null => {
+    const occupant = entry.player ?? (entry.theirs ? null : (filled.get(entry.spot.id) ?? null));
+    if (!occupant) return null;
+    const isOpening = !entry.theirs && entry.player === null;
+    if (isOpening && !revealed) {
+      return known.has(occupant.id) ? outcomeFor(occupant, entry.spot.slot) : null;
+    }
+    return figureFor(occupant, entry.spot.slot);
+  };
+
+  const keyOf = (entry: Placed) => `${entry.theirs ? 'x' : 'o'}-${entry.spot.id}`;
+  const bands = bandsFor(
+    placed
+      .filter((entry) => entry.player ?? (!entry.theirs && filled.has(entry.spot.id)))
+      .map((entry) => ({ key: keyOf(entry), slot: entry.spot.slot, value: figureOf(entry) })),
+  );
 
   // The camera has to aim at where a spot is drawn, not where the formation
   // says it is, or a zoom would centre on bare turf a few percent away.
@@ -172,19 +235,22 @@ export function Field({
             is whose — painted where it is on a real field.
           */}
           {/*
-            "Them", not the opponent's initials. The league's team names are
+            "Opponent", not the team's initials. The league's names are
             invented, and cutting one to three letters produced things like NIN
-            for Ninth Street Storm — a code you can't decipher and that names
-            nothing you'd recognise. The full name is still spelled out where
-            there's room for it, in the intro and the result.
+            for Ninth Street Storm — a code you can't decipher that names
+            nothing you'd recognise. The full name is still a hover away, and
+            spelled out in the intro and the result.
           */}
           <div className="endzone is-them">
             {/* Their invented league name is still a hover away, as it was on
                 the chip this replaced. */}
             <span className="endzone-word" title={opponent.name}>
-              Them
+              Opponent
             </span>
-            <span className="endzone-total">{scoreline.theirs.toFixed(1)}</span>
+            <span className="endzone-total">
+              {scoreline.theirs.toFixed(1)}
+              {scoreline.result === null && <span className="endzone-proj">proj</span>}
+            </span>
           </div>
           <div className={`endzone is-you${scoreline.result ? ` is-${scoreline.result}` : ''}`}>
             <span className="endzone-word">You</span>
@@ -203,16 +269,25 @@ export function Field({
                   </>
                 )
               ) : scoreline.need !== null && scoreline.need > 0 ? (
+                /*
+                  "On projection", and not a rounded figure dressed as a target.
+                  Their total up there is a forecast, so this is too — and when
+                  they beat it, the play-out opens on a bigger number than this
+                  one. Said flat, that reads as the game contradicting itself.
+                */
                 <>
-                  Need <strong>{scoreline.need.toFixed(1)}</strong> off the wire
+                  Need <strong>~{scoreline.need.toFixed(1)}</strong> on projection
                 </>
               ) : (
                 <>
-                  Up <strong>{Math.abs(scoreline.need ?? 0).toFixed(1)}</strong> before the wire
+                  Up <strong>{Math.abs(scoreline.need ?? 0).toFixed(1)}</strong> on projection
                 </>
               )}
             </span>
-            <span className="endzone-total">{scoreline.yours.toFixed(1)}</span>
+            <span className="endzone-total">
+              {scoreline.yours.toFixed(1)}
+              {scoreline.result === null && <span className="endzone-proj">proj</span>}
+            </span>
           </div>
 
           {/*
@@ -229,11 +304,12 @@ export function Field({
             </svg>
           </div>
 
-          {placed.map(({ spot, player, at, theirs }) => {
+          {placed.map((entry) => {
+            const { spot, player, at, theirs } = entry;
             const chosen = theirs ? null : (filled.get(spot.id) ?? null);
             const occupant = player ?? chosen;
             const isOpening = !theirs && player === null;
-            const color = colorFor(spot.slot);
+            const band = occupant ? (bands.get(keyOf(entry)) ?? 'unknown') : 'unknown';
             const focused = !theirs && zoomedOn?.id === spot.id;
 
             const classes = [
@@ -241,6 +317,7 @@ export function Field({
               theirs ? 'is-theirs' : 'is-ours',
               isOpening ? 'is-opening' : 'is-set',
               occupant ? 'is-filled' : 'is-empty',
+              `is-${band}`,
               focused ? 'is-focused' : '',
               zoomedOn && !focused ? 'is-hushed' : '',
               !zoomedOn && isOpening && !occupant ? 'is-active' : '',
@@ -263,7 +340,7 @@ export function Field({
                 <button
                   type="button"
                   className="spot-head"
-                  style={{ '--slot-color': color } as React.CSSProperties}
+                  style={{ '--slot-color': `var(--band-${band})` } as React.CSSProperties}
                   aria-label={
                     occupant
                       ? `${theirs ? opponent.name : 'You'}, ${spot.slot} ${occupant.name}`
@@ -310,16 +387,11 @@ export function Field({
 
                 <span className="spot-name">
                   {/*
-                    The position in words, not only in the ring colour — the
-                    colour code is only readable once you've learnt it, and the
-                    label is where the eye already is.
+                    The position in words. It used to be colour-coded too, which
+                    said the same thing twice and spent the field's whole palette
+                    doing it — the colours mean production now.
                   */}
-                  <span
-                    className="spot-pos"
-                    style={occupant ? ({ color } as React.CSSProperties) : undefined}
-                  >
-                    {spot.slot}
-                  </span>
+                  <span className="spot-pos">{spot.slot}</span>
                   {occupant && <span className="spot-who">{onCard(occupant.name)}</span>}
                   {occupant?.status && (
                     <span className={`spot-status is-${occupant.status.toLowerCase()}`}>

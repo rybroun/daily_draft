@@ -1,4 +1,4 @@
-import type { Player, RosterSlot, SlotResult, StatLine } from '../core/types';
+import type { Player, SlotResult, StatLine } from '../core/types';
 import { StatusTag } from './StatusTag';
 
 /**
@@ -13,11 +13,9 @@ import { StatusTag } from './StatusTag';
  */
 export function SlotBoard({
   slot,
-  colorFor,
   statLine,
 }: {
   slot: SlotResult;
-  colorFor: (slot: RosterSlot) => string;
   statLine: (line: StatLine, player: Player) => string;
 }) {
   return (
@@ -37,7 +35,10 @@ export function SlotBoard({
             style={
               {
                 '--i': i,
-                '--spine': colorFor(entry.player.slot),
+                // Same production ramp as the field, on a list already ordered by it.
+                '--spine': `var(--band-${
+                  entry.rank === 1 ? 'high' : entry.rank === slot.board.length ? 'low' : 'mid'
+                })`,
               } as React.CSSProperties
             }
           >

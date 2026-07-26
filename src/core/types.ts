@@ -119,9 +119,13 @@ export interface SportAdapter {
   /** The short heading for one stat, e.g. "REC". Opaque to core. */
   statLabel(key: StatKey): string;
   /**
-   * The colour this slot is drawn in. Sports have their own conventions for
-   * this and core has no opinion — it's presentation, so it sits beside the
-   * other presentation the adapter already owns.
+   * A colour for a position.
+   *
+   * Nothing renders this today: the field colours heads by what they're
+   * producing rather than what they play, since the position is already written
+   * beside every name. Kept on the seam because it's a legitimate thing for a
+   * sport to know about itself, and a sport whose positions aren't labelled in
+   * words would need it back.
    */
   slotColor(slot: RosterSlot): string;
 

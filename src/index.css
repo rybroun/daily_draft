@@ -78,6 +78,20 @@
   --half-theirs: #05170d38;
   --half-yours: #ffffff20;
 
+  /*
+    What a head is coloured by: production, not position. The position is
+    already written next to every name, so colouring by it said the same thing
+    twice and spent the whole palette doing it.
+
+    `unknown` is deliberately not --you. Your pick used to wear the team orange,
+    which made "mine" and "not yet known" the same colour on a screen where they
+    are the two most different things.
+  */
+  --band-high: #0f8f52;
+  --band-mid: #b8862a;
+  --band-low: #c4453f;
+  --band-unknown: #7b8a84;
+
   --qb: #c42e4e;
   --rb: #0b8457;
   --wr: #1f6fb2;
@@ -137,6 +151,11 @@
   /* At night the far half falls away and yours is the half under the lights. */
   --half-theirs: #00000059;
   --half-yours: #ffffff16;
+
+  --band-high: #3fd189;
+  --band-mid: #e2b054;
+  --band-low: #ff6a58;
+  --band-unknown: #8fa39a;
 
   --qb: #e8556d;
   --rb: #2fb98a;
@@ -491,6 +510,18 @@ body {
   letter-spacing: 0;
 }
 
+/* Says out loud that this figure is a forecast, not the week. */
+.endzone-proj {
+  margin-inline-start: 0.1875rem;
+  font-family: var(--body);
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  vertical-align: 0.6em;
+  opacity: 0.6;
+}
+
 .endzone.is-them .endzone-total { color: var(--endzone-them-ink); }
 .endzone.is-you .endzone-total,
 .endzone.is-you .endzone-call { color: var(--endzone-you-ink); }
@@ -645,6 +676,7 @@ body {
   font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.04em;
+  color: var(--faint);
 }
 
 /*
@@ -695,30 +727,32 @@ body {
 }
 
 /*
-  At the reveal every head shows a figure, so the team colour has to stay
-  reserved for the two you actually chose — otherwise "yours" stops meaning
-  anything at exactly the moment it matters most.
+  The two you chose used to go the team orange at the reveal, so that "yours"
+  didn't get lost among sixteen figures. Hue means production now, and it can't
+  mean two things — so "yours" became a ring instead of a colour. A shape cue
+  and a colour cue can sit on the same head without either one lying.
 */
-.spot-figure.is-final {
-  background: #0e2a1a99;
-  color: #ffffff;
-}
-
-.spot.is-opening.is-filled .spot-figure.is-final {
-  background: var(--you);
-  color: var(--you-ink);
+.spot.is-ours.is-opening.is-filled .spot-head {
+  box-shadow:
+    0 0 0 0.1875rem var(--paper),
+    0 0 0 0.3125rem var(--you),
+    0 0.1875rem 0.5rem #0e2a1a38;
 }
 
 /*
-  Your pick, before the week. It carries your colour because it is yours, and a
-  question mark because what it will score is the thing being asked — the whole
-  game is that this number does not exist yet.
+  A pick whose week hasn't happened. Its own neutral, never the team colour —
+  "this is mine" and "nobody knows this yet" must not look alike.
 */
 .spot-figure.is-unknown {
-  background: var(--you);
-  color: var(--you-ink);
+  background: var(--band-unknown);
+  color: #ffffff;
   padding-inline: 0.3125rem;
 }
+
+/* Figures follow the head: the number and its colour say the same thing. */
+.spot.is-high .spot-figure { background: var(--band-high); color: #ffffff; }
+.spot.is-mid .spot-figure { background: var(--band-mid); color: #ffffff; }
+.spot.is-low .spot-figure { background: var(--band-low); color: #ffffff; }
 
 /* Everything the camera isn't looking at steps back. */
 .spot.is-hushed { opacity: 0.32; }
@@ -1536,6 +1570,13 @@ body {
   flex-direction: column;
   align-items: start;
   gap: 0.0625rem;
+}
+
+.reveal-theirs {
+  padding-block-end: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  opacity: 0.72;
 }
 
 .reveal-label {

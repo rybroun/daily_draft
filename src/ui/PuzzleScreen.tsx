@@ -36,7 +36,6 @@ interface PuzzleScreenProps {
   statLabel: (key: StatKey) => string;
   projectionFor: (player: Player, slot: RosterSlot) => number;
   outcomeFor: (player: Player, slot: RosterSlot) => number;
-  colorFor: (slot: RosterSlot) => string;
   round: number;
   results: (MatchupResult | null)[];
   canAdvance: boolean;
@@ -59,7 +58,6 @@ export function PuzzleScreen({
   statLabel,
   projectionFor,
   outcomeFor,
-  colorFor,
   round,
   results,
   canAdvance,
@@ -179,7 +177,6 @@ export function PuzzleScreen({
             result: score?.result ?? null,
             margin: score?.margin ?? 0,
           }}
-          colorFor={colorFor}
           onSpotTap={(spotId) => setOpenSpotId(spotId === openSpotId ? null : spotId)}
         />
 
@@ -248,7 +245,7 @@ export function PuzzleScreen({
                 openSpot && (
                   <>
                     {reviewing ? 'What you passed on at ' : 'Fill your '}
-                    <strong style={{ color: colorFor(openSpot.slot) }}>{openSpot.slot}</strong>
+                    <strong>{openSpot.slot}</strong>
                   </>
                 )
               }
@@ -259,18 +256,14 @@ export function PuzzleScreen({
                       Your end zone is behind this panel while it's open, and
                       what you need is the one number you're picking against.
                     */
-                    `Need ${Math.max(0, totals.theirs - totals.yours).toFixed(1)} off the wire. ` +
+                    `Need ~${Math.max(0, totals.theirs - totals.yours).toFixed(1)} on projection. ` +
                     'Form to date, nothing from this week.'
               }
               onClose={() => setOpenSpotId(null)}
             >
               {openSpot &&
                 (reviewing ? (
-                  <SlotBoard
-                    slot={score.slots[openIndex]}
-                    colorFor={colorFor}
-                    statLine={statLine}
-                  />
+                  <SlotBoard slot={score.slots[openIndex]} statLine={statLine} />
                 ) : (
                   <WaiverBoard
                     candidates={puzzle.waivers.filter((p) => p.slot === openSpot.slot)}
@@ -279,7 +272,6 @@ export function PuzzleScreen({
                     outcomeFor={(player) => outcomeFor(player, player.slot)}
                     statKeys={statKeys}
                     statLabel={statLabel}
-                    colorFor={colorFor}
                     onPick={pick}
                   />
                 ))}
@@ -293,7 +285,6 @@ export function PuzzleScreen({
           puzzle={puzzle}
           score={score}
           statLine={statLine}
-          colorFor={colorFor}
           gameNote={gameNote}
           onDone={() => setPlayingOut(null)}
         />

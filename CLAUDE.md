@@ -1,5 +1,9 @@
 # daily_draft
 
+**The game is called Daily Waivers** (renamed 2026-07-26). The repo, directory and
+package are still `daily_draft` — only the name the player sees changed, and renaming
+the infrastructure is Ryan's call to make, not a side effect of a copy change.
+
 A daily habit game: a chess-puzzle for fantasy sports history. One puzzle a day.
 
 > *"It's week 9. You're 16 points behind the Blackbirds on projection, their WR1 is OUT, and

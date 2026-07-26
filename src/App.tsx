@@ -43,7 +43,6 @@ export default function App() {
     (player: Player, slot: RosterSlot) => adapter.outcomeValue(player, slot),
     [],
   );
-  const colorFor = useCallback((slot: RosterSlot) => adapter.slotColor(slot), []);
   const gameNote = useCallback(
     (player: Player) =>
       adapter.gameNote?.(player, day.puzzle.season, day.puzzle.week) ?? null,
@@ -77,7 +76,6 @@ export default function App() {
       statLabel={statLabel}
       projectionFor={projectionFor}
       outcomeFor={outcomeFor}
-      colorFor={colorFor}
       round={day.round}
       results={day.results}
       canAdvance={day.canAdvance}

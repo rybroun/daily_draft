@@ -1,12 +1,12 @@
 /**
- * The Daily Draft mark: a single letter in a solid block.
+ * The Daily Waivers mark: a single letter in a solid block.
  *
  * Drawn rather than set in type so it renders identically before the webfont
  * lands and at any size, and so it never depends on a font being present.
  */
 export function Mark() {
   return (
-    <svg className="mark" viewBox="0 0 32 32" role="img" aria-label="Daily Draft">
+    <svg className="mark" viewBox="0 0 32 32" role="img" aria-label="Daily Waivers">
       <rect width="32" height="32" rx="7" className="mark-block" />
       {/* A condensed D, cut as a path so the counter stays crisp at 26px. */}
       <path
