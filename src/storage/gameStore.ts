@@ -2,16 +2,22 @@ import { emptyStreak } from '../core/streak';
 import type { StreakState } from '../core/streak';
 import type { DateKey, PlayerId } from '../core/types';
 
-/** Bumped from v1 when a puzzle went from one pick to a set of them. */
-export const STORAGE_KEY = 'daily_draft.v2';
+/** Bumped from v2 when a day went from one puzzle to three rounds. */
+export const STORAGE_KEY = 'daily_draft.v3';
+
+/** One round's answer. `locked` means it's been played and can't be changed. */
+export interface SavedRound {
+  playerIds: PlayerId[];
+  locked?: boolean;
+}
 
 export interface SavedGame {
   streak: StreakState;
   /**
-   * Picks already made today, in opening order. Shorter than the number of
-   * openings while the board is half-filled — a refresh mid-decision keeps them.
+   * Today's progress. `started` is whether the intro has been dismissed;
+   * `rounds` is one entry per round in order, growing as they're played.
    */
-  picks: { date: DateKey; difficulty?: string; playerIds: PlayerId[]; locked?: boolean } | null;
+  day: { date: DateKey; started?: boolean; rounds: SavedRound[] } | null;
 }
 
 /** The slice of `localStorage` we use — narrowed so it can be faked in tests. */
@@ -20,7 +26,7 @@ export interface GameStorage {
   setItem(key: string, value: string): void;
 }
 
-const newGame = (): SavedGame => ({ streak: emptyStreak(), picks: null });
+const newGame = (): SavedGame => ({ streak: emptyStreak(), day: null });
 
 /**
  * Read the saved game, falling back to a fresh one on anything unexpected.
@@ -57,9 +63,9 @@ function parseGame(value: unknown): SavedGame {
   if (typeof value !== 'object' || value === null) {
     throw new Error('saved game is not an object');
   }
-  const { streak, picks } = value as Record<string, unknown>;
+  const { streak, day } = value as Record<string, unknown>;
 
-  return { streak: parseStreak(streak), picks: parsePicks(picks) };
+  return { streak: parseStreak(streak), day: parseDay(day) };
 }
 
 function parseStreak(value: unknown): StreakState {
@@ -76,22 +82,28 @@ function parseStreak(value: unknown): StreakState {
   return { current, best, lastPlayed };
 }
 
-function parsePicks(value: unknown): SavedGame['picks'] {
+function parseDay(value: unknown): SavedGame['day'] {
   if (value === null || value === undefined) return null;
-  if (typeof value !== 'object') throw new Error('saved picks are not an object');
+  if (typeof value !== 'object') throw new Error('saved day is not an object');
 
-  const { date, difficulty, playerIds, locked } = value as Record<string, unknown>;
-  if (typeof date !== 'string') throw new Error('saved picks have no date');
-  if (!Array.isArray(playerIds) || playerIds.some((id) => typeof id !== 'string')) {
-    throw new Error('saved picks are not a list of players');
-  }
-  if (difficulty !== undefined && typeof difficulty !== 'string') {
-    throw new Error('saved picks have a malformed difficulty');
-  }
+  const { date, started, rounds } = value as Record<string, unknown>;
+  if (typeof date !== 'string') throw new Error('saved day has no date');
+  if (!Array.isArray(rounds)) throw new Error('saved day has no rounds');
+
   return {
     date,
-    playerIds,
-    ...(difficulty ? { difficulty } : {}),
-    ...(locked === true ? { locked: true } : {}),
+    ...(started === true ? { started: true } : {}),
+    rounds: rounds.map(parseRound),
   };
+}
+
+function parseRound(value: unknown): SavedRound {
+  if (typeof value !== 'object' || value === null) {
+    throw new Error('a saved round is not an object');
+  }
+  const { playerIds, locked } = value as Record<string, unknown>;
+  if (!Array.isArray(playerIds) || playerIds.some((id) => typeof id !== 'string')) {
+    throw new Error('a saved round is not a list of players');
+  }
+  return { playerIds: playerIds as PlayerId[], ...(locked === true ? { locked: true } : {}) };
 }

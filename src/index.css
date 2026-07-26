@@ -1332,3 +1332,170 @@ body {
   text-transform: uppercase;
   color: var(--faint);
 }
+
+/* ---- rounds ------------------------------------------------------------- */
+
+.rounds {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0 1rem 0.4375rem;
+  list-style: none;
+}
+
+.round {
+  flex: 1;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0 0.3125rem;
+  padding: 0.25rem 0.375rem 0.1875rem;
+  border: 1px solid var(--hairline);
+  border-radius: 0.375rem;
+  font-family: var(--display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.round-no {
+  display: grid;
+  place-items: center;
+  inline-size: 0.9375rem;
+  block-size: 0.9375rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  font-size: 0.5625rem;
+  line-height: 1;
+}
+
+.round-moves {
+  font-family: var(--body);
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+/* The one you're on is lit; the ones you've played carry their result. */
+.round.is-now {
+  border-color: var(--you);
+  background: color-mix(in srgb, var(--you) 14%, transparent);
+  color: var(--you);
+}
+
+.round.is-now .round-no { background: var(--you); color: var(--you-ink); }
+
+.round.is-won { border-color: color-mix(in srgb, var(--win) 45%, transparent); color: var(--win); }
+.round.is-won .round-no { background: var(--win); color: #ffffff; }
+
+.round.is-lost { border-color: color-mix(in srgb, var(--loss) 40%, transparent); color: var(--loss); }
+.round.is-lost .round-no { background: var(--loss); color: #ffffff; }
+
+.round.is-tied .round-no { background: var(--muted); color: var(--paper); }
+
+.round.is-won .round-moves,
+.round.is-lost .round-moves,
+.round.is-tied .round-moves {
+  font-family: var(--display);
+  font-size: 0.8125rem;
+}
+
+.result-day {
+  padding-block-start: 0.5rem;
+  font-family: var(--display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 1px 0.25rem #0e2a1a73;
+}
+
+/* ---- the intro ---------------------------------------------------------- */
+
+.intro {
+  block-size: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: linear-gradient(to bottom, var(--sky-high), var(--turf-near));
+}
+
+.intro-card {
+  inline-size: 100%;
+  max-inline-size: 24rem;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 0.625rem;
+  padding: 1.5rem 1.375rem 1.375rem;
+  border-radius: 1rem;
+  background: var(--paper);
+  box-shadow: 0 1.5rem 3rem #0e2a1a3d;
+}
+
+.intro-eyebrow {
+  font-family: var(--display);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.intro-title {
+  font-family: var(--display);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.intro-body {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.intro-body strong { color: var(--ink); }
+
+.intro-rounds {
+  inline-size: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-block: 0.25rem 0.375rem;
+  list-style: none;
+}
+
+.intro-rounds li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.intro-rounds span {
+  display: grid;
+  place-items: center;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  font-family: var(--display);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.intro-streak {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--you);
+}

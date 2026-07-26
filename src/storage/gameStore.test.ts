@@ -27,12 +27,16 @@ class FakeStorage {
   }
 }
 
-const played: SavedGame = {
-  streak: recordPlay(emptyStreak(), '2026-07-25'),
-  picks: { date: '2026-07-25', playerIds: ['rb-3', 'wr-1'] },
+const midDay: SavedGame = {
+  streak: recordPlay(emptyStreak(), '2026-07-26'),
+  day: {
+    date: '2026-07-26',
+    started: true,
+    rounds: [{ playerIds: ['a'], locked: true }, { playerIds: ['b', 'c'] }],
+  },
 };
 
-const fresh = (): SavedGame => ({ streak: emptyStreak(), picks: null });
+const fresh = (): SavedGame => ({ streak: emptyStreak(), day: null });
 
 describe('gameStore', () => {
   let storage: FakeStorage;
@@ -41,52 +45,28 @@ describe('gameStore', () => {
     storage = new FakeStorage();
   });
 
-  it('starts a first-time player with an empty streak and no picks', () => {
+  it('starts a first-time player with an empty streak and no day', () => {
     expect(loadGame(storage)).toEqual(fresh());
   });
 
-  it('reads back what it saved, so a refresh keeps the streak', () => {
-    saveGame(storage, played);
+  it('reads back a day in progress, so a refresh keeps your place', () => {
+    saveGame(storage, midDay);
 
-    expect(loadGame(storage)).toEqual(played);
+    expect(loadGame(storage)).toEqual(midDay);
   });
 
-  it('remembers which difficulty the picks were made against', () => {
-    saveGame(storage, {
-      streak: emptyStreak(),
-      picks: { date: '2026-07-26', difficulty: 'hard', playerIds: ['a', 'b', 'c'] },
-    });
+  it('remembers which rounds were locked in and which are still open', () => {
+    saveGame(storage, midDay);
+    const back = loadGame(storage);
 
-    expect(loadGame(storage).picks?.difficulty).toBe('hard');
+    expect(back.day?.rounds[0].locked).toBe(true);
+    expect(back.day?.rounds[1].locked).toBeUndefined();
   });
 
-  it('remembers that a week was locked in, not just what was picked', () => {
-    const locked: SavedGame = {
-      streak: emptyStreak(),
-      picks: { date: '2026-07-26', playerIds: ['a', 'b'], locked: true },
-    };
-    saveGame(storage, locked);
+  it('treats a day with no start flag as one that has not been opened', () => {
+    saveGame(storage, { streak: emptyStreak(), day: { date: '2026-07-26', rounds: [] } });
 
-    expect(loadGame(storage).picks?.locked).toBe(true);
-  });
-
-  it('treats a set of picks with no lock as still open', () => {
-    saveGame(storage, {
-      streak: emptyStreak(),
-      picks: { date: '2026-07-26', playerIds: ['a', 'b'] },
-    });
-
-    expect(loadGame(storage).picks?.locked).toBeUndefined();
-  });
-
-  it('keeps a half-finished set of picks, so one pick survives a refresh', () => {
-    const halfway: SavedGame = {
-      streak: emptyStreak(),
-      picks: { date: '2026-07-25', playerIds: ['rb-3'] },
-    };
-    saveGame(storage, halfway);
-
-    expect(loadGame(storage)).toEqual(halfway);
+    expect(loadGame(storage).day?.started).toBeUndefined();
   });
 
   it('falls back to an empty game when the stored value is not JSON', () => {
@@ -101,9 +81,21 @@ describe('gameStore', () => {
     expect(loadGame(storage)).toEqual(fresh());
   });
 
-  it('falls back to an empty game when the saved picks are not a list of players', () => {
+  it('falls back to an empty game when a round is not a list of players', () => {
     storage.poison(
-      JSON.stringify({ streak: emptyStreak(), picks: { date: '2026-07-25', playerIds: 'rb-3' } }),
+      JSON.stringify({
+        streak: emptyStreak(),
+        day: { date: '2026-07-26', rounds: [{ playerIds: 'a' }] },
+      }),
+    );
+
+    expect(loadGame(storage)).toEqual(fresh());
+  });
+
+  it('falls back to an empty game when a previous version is still stored', () => {
+    // v2 kept a single `picks` object and no rounds, so it can't be read.
+    storage.poison(
+      JSON.stringify({ streak: emptyStreak(), picks: { date: '2026-07-26', playerIds: ['a'] } }),
     );
 
     expect(loadGame(storage)).toEqual(fresh());
@@ -114,6 +106,6 @@ describe('gameStore', () => {
   });
 
   it('survives storage that refuses to write', () => {
-    expect(() => saveGame(new FakeStorage(true), played)).not.toThrow();
+    expect(() => saveGame(new FakeStorage(true), midDay)).not.toThrow();
   });
 });

@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { dateKey } from './core/puzzle';
-import type { Difficulty, Player, RosterSlot, StatKey, StatLine } from './core/types';
+import type { Player, RosterSlot, StatKey, StatLine } from './core/types';
 import { nflAdapter } from './sports/nfl/nflAdapter';
 import { PuzzleScreen } from './ui/PuzzleScreen';
-import { useGame } from './useGame';
+import { useDay } from './useDay';
+import { Intro } from './ui/Intro';
 
 /**
  * The only place a sport is chosen — and swapping the fictional league for the
@@ -28,13 +29,7 @@ export default function App() {
   // sometimes doesn't run.
   const realToday = useMemo(() => dateKey(new Date()), []);
   const today = asked ?? realToday;
-  /*
-   * Asking for a difficulty makes it a practice run, the same way an archive
-   * date does: the day's real puzzle is the one the date chose, and only that
-   * one can build a streak.
-   */
-  const [chosen, setChosen] = useState<Difficulty | null>(null);
-  const game = useGame(adapter, today, chosen, asked === null && chosen === null);
+  const day = useDay(adapter, today, asked === null);
 
   const statLine = useCallback(
     (line: StatLine, player: Player) => adapter.formatStatLine(line, player.slot),
@@ -52,24 +47,38 @@ export default function App() {
   const statKeys = useCallback((slot: RosterSlot) => adapter.statKeys(slot), []);
   const statLabel = useCallback((key: StatKey) => adapter.statLabel(key), []);
 
+  if (!day.started) {
+    return (
+      <Intro
+        season={day.puzzle.season}
+        week={day.puzzle.week}
+        opponentName={day.puzzle.opponent.name}
+        streak={day.streak.current}
+        onStart={day.start}
+      />
+    );
+  }
+
   return (
     <PuzzleScreen
-      puzzle={game.puzzle}
-      picks={game.picks}
-      score={game.score}
-      streak={game.streak}
-      ready={game.ready}
+      puzzle={day.puzzle}
+      picks={day.picks}
+      score={day.score}
+      streak={day.streak}
+      ready={day.picks.every((p) => p !== null)}
       statLine={statLine}
       statKeys={statKeys}
       statLabel={statLabel}
       projectionFor={projectionFor}
       outcomeFor={outcomeFor}
       colorFor={colorFor}
-      difficulty={game.puzzle.difficulty}
-      chosen={chosen}
-      onChooseDifficulty={setChosen}
-      onFill={game.fill}
-      onPlayWeek={game.playWeek}
+      round={day.round}
+      results={day.results}
+      canAdvance={day.canAdvance}
+      complete={day.complete}
+      onNextRound={day.nextRound}
+      onFill={day.fill}
+      onPlayWeek={day.playRound}
     />
   );
 }

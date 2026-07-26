@@ -631,6 +631,47 @@ Storage now records which difficulty a set of picks was made against. Without th
 two spots on medium and switching to hard would carry two answers into a three-question
 puzzle — stale picks for a question that was never asked.
 
+## 2026-07-26 — A day is three rounds
+
+Ryan: *"can you make it so there's an intro? So it's easy mode, and then you have to play it
+medium, hard — three steps. Less like toggle these, and more like welcome to the thing, round
+one, easy."*
+
+The difficulty toggle shipped an hour earlier and is already gone. It was a setting; this is a
+session. A day now opens on a card, then runs easy → medium → hard, and the scorecard across
+the top is where the toggle used to be — the same three chips, no longer a control.
+
+### The streak is for finishing, not for playing
+
+It advances once, when the third round is locked. Rewarding round one would make the other two
+optional, and the whole point of the ladder is that it's a ladder.
+
+### Losing a round doesn't stop you
+
+You always play all three. A daily game that ends when you get one wrong is a daily game most
+people play for ten seconds. The day's result is how many you won, not whether you were
+perfect.
+
+### Refreshing carries you forward
+
+Mid-day, a reload puts you on the next unplayed round rather than replaying the reveal you
+just read. Which round you're on is derived from what's locked in storage; only the brief
+"look at what just happened" pause is component state, and it isn't worth persisting.
+
+### The intro earns its place by saying one thing
+
+That every round can be won. It's the promise the whole design rests on and it was previously
+only discoverable by finishing a round and reading the line count.
+
+### One harness lesson, twice
+
+The browser script broke three times on the same thing: after a pick, the wire advances itself
+to the next gap, so tapping that gap's head *closes* it. Correct product behaviour, wrong
+assumption in the test. The helper is now a state machine that reads the screen rather than a
+fixed sequence that assumes one — worth the rewrite, because fixtures drop it into the middle
+of a day and a script that always expects to start at the intro fails in ways that look like
+product bugs.
+
 ## Open — deliberately not decided
 
 Which sport ships first and where real data comes from. Logged in `BRIEF.md`. Agents must not

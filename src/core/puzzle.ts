@@ -26,7 +26,16 @@ const BANDS: Record<Difficulty, [number, number]> = {
   hard: [0.008, 0.06],
 };
 
-const DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard'];
+/**
+ * A day is three problems, easiest first.
+ *
+ * The order is the point: round one teaches you to read the board with a single
+ * decision, and by round three you're holding a three-man line together. It's
+ * a puzzle set, not a difficulty setting.
+ */
+export const ROUNDS: Difficulty[] = ['easy', 'medium', 'hard'];
+
+const DIFFICULTIES: Difficulty[] = ROUNDS;
 
 /** How many (season, week) pairs to try before settling for the best seen. */
 const SEARCH_DEPTH = 60;

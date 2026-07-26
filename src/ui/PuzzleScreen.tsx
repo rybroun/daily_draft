@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { StreakState } from '../core/streak';
 import type {
-  Difficulty,
+  MatchupResult,
   Player,
   PlayerId,
   Puzzle,
@@ -15,7 +15,7 @@ import { Field } from './Field';
 import { explainSlot } from './explainSlot';
 import { Mark } from './Mark';
 import { ThemeToggle } from './ThemeToggle';
-import { DifficultyPicker } from './DifficultyPicker';
+import { Rounds } from './Rounds';
 import { ResultSummary, SlotBoard } from './Result';
 import { ScoreBug } from './ScoreBug';
 import { Sheet } from './Sheet';
@@ -35,9 +35,11 @@ interface PuzzleScreenProps {
   projectionFor: (player: Player, slot: RosterSlot) => number;
   outcomeFor: (player: Player, slot: RosterSlot) => number;
   colorFor: (slot: RosterSlot) => string;
-  difficulty: Difficulty;
-  chosen: Difficulty | null;
-  onChooseDifficulty: (difficulty: Difficulty | null) => void;
+  round: number;
+  results: (MatchupResult | null)[];
+  canAdvance: boolean;
+  complete: boolean;
+  onNextRound: () => void;
   onFill: (openingIndex: number, playerId: PlayerId) => void;
   onPlayWeek: () => void;
 }
@@ -54,9 +56,11 @@ export function PuzzleScreen({
   projectionFor,
   outcomeFor,
   colorFor,
-  difficulty,
-  chosen,
-  onChooseDifficulty,
+  round,
+  results,
+  canAdvance,
+  complete,
+  onNextRound,
   onFill,
   onPlayWeek,
 }: PuzzleScreenProps) {
@@ -139,15 +143,7 @@ export function PuzzleScreen({
         margin={score?.margin ?? 0}
       />
 
-      <DifficultyPicker
-        current={difficulty}
-        chosen={chosen}
-        onChoose={(next) => {
-          onChooseDifficulty(next);
-          setOpenSpotId(null);
-        }}
-        disabled={score !== null}
-      />
+      <Rounds current={round} results={results} />
 
       <div className="stage">
         <div className="stage-light" aria-hidden="true" />
@@ -164,7 +160,15 @@ export function PuzzleScreen({
         />
 
         {score ? (
-          <ResultSummary score={score} opponentName={puzzle.opponent.name} lines={puzzle.lines} />
+          <ResultSummary
+            score={score}
+            opponentName={puzzle.opponent.name}
+            lines={puzzle.lines}
+            canAdvance={canAdvance}
+            complete={complete}
+            results={results}
+            onNext={onNextRound}
+          />
         ) : (
           <div className="foot">
             <button type="button" className="kickoff" disabled={!ready} onClick={onPlayWeek}>

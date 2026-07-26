@@ -1,4 +1,4 @@
-import type { Player, RosterSlot, Score, SlotResult, StatLine } from '../core/types';
+import type { MatchupResult, Player, RosterSlot, Score, SlotResult, StatLine } from '../core/types';
 import { StatusTag } from './StatusTag';
 
 /**
@@ -8,13 +8,18 @@ import { StatusTag } from './StatusTag';
  * number can't: whether the week was ever yours to win. One you never could
  * have swung is a different experience from one you threw away.
  */
+const COUNT = ['no', 'one', 'two', 'three'];
+
 function headline(score: Score, opponentName: string): string {
+  // A round can ask for one, two or three picks, so the copy has to count.
+  const picks = `your ${COUNT[score.slots.length] ?? score.slots.length} pick${score.slots.length === 1 ? '' : 's'}`;
+
   if (score.result === 'tied') return `A dead heat with ${opponentName}.`;
 
   if (score.result === 'won') {
     return score.alreadyDecided
       ? 'Never in doubt. Your picks were spare change.'
-      : `Your two picks took it off ${opponentName}.`;
+      : `${picks[0].toUpperCase()}${picks.slice(1)} took it off ${opponentName}.`;
   }
 
   // There is no "nothing would have won" case any more: every puzzle is built
@@ -40,17 +45,26 @@ export function ResultSummary({
   score,
   opponentName,
   lines,
+  canAdvance,
+  complete,
+  results,
+  onNext,
 }: {
   score: Score;
   opponentName: string;
   lines: { winning: number; total: number };
+  canAdvance: boolean;
+  complete: boolean;
+  results: (MatchupResult | null)[];
+  onNext: () => void;
 }) {
+  const won = results.filter((r) => r === 'won').length;
   return (
     <section className="result" aria-live="polite">
       <p className="result-headline">{headline(score, opponentName)}</p>
 
       {/*
-        Your two picks against the best two available, as one bar. The gap is
+        Your picks against the best available, as one bar. The gap is
         the whole judgement, so it's shown as a length rather than a third
         number the reader has to subtract for themselves.
       */}
@@ -79,6 +93,16 @@ export function ResultSummary({
         way through, and this is how narrow it was.
       */}
       <p className="result-lines">{solutions(score, lines)}</p>
+      {canAdvance ? (
+        <button type="button" className="kickoff" onClick={onNext}>
+          Next round
+        </button>
+      ) : complete ? (
+        <p className="result-day">
+          {won} of {results.length} today. Come back tomorrow.
+        </p>
+      ) : null}
+
       <p className="result-hint">Tap a pick to see what you passed on.</p>
     </section>
   );
