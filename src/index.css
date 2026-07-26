@@ -1649,6 +1649,15 @@ body {
 
 .intro-body strong { color: var(--ink); }
 
+/*
+  One line, never two. "Where the season stood." wrapped at this width and the
+  second line cost more height than the heading was worth.
+*/
+.intro-title.is-tight {
+  font-size: 1.75rem;
+  white-space: nowrap;
+}
+
 /* The briefing card carries lists rather than prose, so it breathes less. */
 .intro-card.is-briefing {
   gap: 0.25rem;

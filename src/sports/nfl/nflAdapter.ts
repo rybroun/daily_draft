@@ -8,11 +8,27 @@ import {
   SLOT_COLORS,
   SLOT_STATS,
   STAT_LABELS,
-  NUMBER_ONE,
   TEAM_NAMES,
   fantasyPoints,
 } from './league';
 import { gameNote, project, ranked, seasonYears, standingsFor } from './season';
+import numberOnes from './number-ones.json';
+
+/**
+ * What was number one the week each game was played.
+ *
+ * Kept as plain JSON beside the season data rather than in code, because it's a
+ * table someone will want to extend by hand — the file carries its own note on
+ * where each field comes from, how a week maps to a date, and which parts are
+ * deliberately blank rather than missing.
+ */
+interface Week {
+  song?: string;
+  artist?: string;
+  headline?: string;
+}
+
+const MOMENTS = (numberOnes as { seasons: Record<string, Record<string, Week>> }).seasons;
 
 /**
  * A real NFL season, as a league you're in.
@@ -25,8 +41,14 @@ import { gameNote, project, ranked, seasonYears, standingsFor } from './season';
  * choosing between Julio Jones and Antonio Brown on a Tuesday in November.
  */
 
-/** The positions worth naming on the opening card. Kickers are not one. */
-const FEATURED: RosterSlot[] = ['QB', 'RB', 'WR', 'TE'];
+/**
+ * The positions named on the opening card — every one the formation fields.
+ *
+ * There is no defence here because there is no defence in the data: the season
+ * files carry individual players at these five positions only, and team defence
+ * would need both a new pull and a spot on the field to stand in.
+ */
+const FEATURED: RosterSlot[] = ['QB', 'RB', 'WR', 'TE', 'K'];
 
 /** How deep each position's starter tier and waiver tier run. */
 const TIERS: Record<RosterSlot, { starters: number; wire: number }> = {
@@ -151,9 +173,21 @@ export const nflAdapter: SportAdapter = {
 
   standings: (season, week) => standingsFor(season, week),
 
+  /*
+   * Song first — it's the line that actually puts you in the year. Headlines
+   * are only present for weeks whose events were checked against a source, so
+   * most weeks return one line and some return two.
+   */
   moment: (season, week) => {
-    const hit = NUMBER_ONE[season]?.[week];
-    return hit ? [{ label: 'No. 1 that week', detail: `“${hit.song}” — ${hit.artist}` }] : [];
+    const entry = MOMENTS[String(season)]?.[String(week)];
+    if (!entry) return [];
+
+    const lines: { label: string; detail: string }[] = [];
+    if (entry.song && entry.artist) {
+      lines.push({ label: 'No. 1 song', detail: `“${entry.song}” by ${entry.artist}` });
+    }
+    if (entry.headline) lines.push({ label: 'In the news', detail: entry.headline });
+    return lines;
   },
 
   /*

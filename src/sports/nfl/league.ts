@@ -116,48 +116,6 @@ export function fantasyPoints(stats: Record<StatKey, number>): number {
 }
 
 /** Fantasy managers, not NFL clubs — this is a league, and you're in it. */
-/**
- * What was number one on the Billboard Hot 100 that week.
- *
- * Nothing to do with football, which is the point — a date is an abstraction
- * until something you remember is attached to it, and "Hello" was inescapable
- * in a way that "week 12 of 2015" is not.
- *
- * Keyed by NFL week. The 2007 season opened Sunday 9 September and the 2015
- * season Sunday 13 September, so week N falls on that date plus seven times
- * N-1; each week is matched to the Billboard issue dated the Saturday before
- * it. Verified against Wikipedia's number-ones lists rather than recalled —
- * week 17 of 2015 is played on 3 January 2016 and takes the 2 January chart.
- */
-export const NUMBER_ONE: Record<number, Record<number, { song: string; artist: string }>> = {
-  2007: {
-    7: { song: 'Crank That (Soulja Boy)', artist: 'Soulja Boy Tell\'em' },
-    8: { song: 'Crank That (Soulja Boy)', artist: 'Soulja Boy Tell\'em' },
-    9: { song: 'Crank That (Soulja Boy)', artist: 'Soulja Boy Tell\'em' },
-    10: { song: 'Kiss Kiss', artist: 'Chris Brown feat. T-Pain' },
-    11: { song: 'Kiss Kiss', artist: 'Chris Brown feat. T-Pain' },
-    12: { song: 'Kiss Kiss', artist: 'Chris Brown feat. T-Pain' },
-    13: { song: 'No One', artist: 'Alicia Keys' },
-    14: { song: 'No One', artist: 'Alicia Keys' },
-    15: { song: 'No One', artist: 'Alicia Keys' },
-    16: { song: 'No One', artist: 'Alicia Keys' },
-    17: { song: 'No One', artist: 'Alicia Keys' },
-  },
-  2015: {
-    7: { song: 'The Hills', artist: 'The Weeknd' },
-    8: { song: 'The Hills', artist: 'The Weeknd' },
-    9: { song: 'The Hills', artist: 'The Weeknd' },
-    10: { song: 'Hello', artist: 'Adele' },
-    11: { song: 'Hello', artist: 'Adele' },
-    12: { song: 'Hello', artist: 'Adele' },
-    13: { song: 'Hello', artist: 'Adele' },
-    14: { song: 'Hello', artist: 'Adele' },
-    15: { song: 'Hello', artist: 'Adele' },
-    16: { song: 'Hello', artist: 'Adele' },
-    17: { song: 'Hello', artist: 'Adele' },
-  },
-};
-
 export const TEAM_NAMES = [
   'Ludlow Ramblers', 'Harbor Wolves', 'Kettle Bandits', 'Old Mill Foundry',
   'Ninth Street Storm', 'Cobb County Hooligans', 'Pine Ridge Sentinels',

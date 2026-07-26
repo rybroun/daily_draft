@@ -437,11 +437,30 @@ describe('the week as a moment in time', () => {
   it('has a number one for every week the game can deal', () => {
     for (const { season, week } of everyWeek) {
       const moment = a.moment!(season, week);
-      expect(moment).toHaveLength(1);
-      expect(moment[0].label).toBe('No. 1 that week');
-      // “Song” — Artist
-      expect(moment[0].detail).toMatch(/^“.+” — .+$/);
+      // The song is always there; a headline only where one was verified.
+      expect(moment[0].label).toBe('No. 1 song');
+      expect(moment[0].detail).toMatch(/^“.+” by .+$/);
     }
+  });
+
+  it('carries a headline only where one was checked, never an invented one', () => {
+    const withNews = everyWeek
+      .map(({ season, week }) => ({ season, week, lines: a.moment!(season, week) }))
+      .filter(({ lines }) => lines.some((l) => l.label === 'In the news'));
+
+    // Sparse on purpose — the file says so, and a blank week shows one line.
+    expect(withNews.length).toBeGreaterThan(0);
+    for (const { lines } of withNews) {
+      expect(lines).toHaveLength(2);
+      expect(lines[1].detail.length).toBeGreaterThan(10);
+    }
+  });
+
+  it('puts the week Paris was attacked in the week it was attacked', () => {
+    // 13 November 2015, which is the Friday before week 10's Sunday.
+    const week10 = a.moment!(2015, 10);
+    expect(week10.map((l) => l.detail).join(' ')).toContain('Paris');
+    expect(a.moment!(2015, 9).some((l) => l.label === 'In the news')).toBe(false);
   });
 
   it('knows Adele saw out 2015 and Alicia Keys saw out 2007', () => {

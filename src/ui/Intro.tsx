@@ -96,7 +96,23 @@ export function Intro({ season, week, standings, leaders, moment, streak, onStar
         <p className="intro-eyebrow">
           {season} · Week {week}
         </p>
-        <h1 className="intro-title">Where the season stood.</h1>
+        <h1 className="intro-title is-tight">Where things stood.</h1>
+
+        {/*
+          The world outside the sport, first. A date is an abstraction until
+          something you remember is attached to it, and the song does that
+          faster than any table underneath it can.
+        */}
+        {moment.length > 0 && (
+          <div className="intro-block">
+            {moment.map((row) => (
+              <p key={row.label} className="intro-moment">
+                <span className="intro-moment-label">{row.label}</span>
+                <span className="intro-moment-detail">{row.detail}</span>
+              </p>
+            ))}
+          </div>
+        )}
 
         {/*
           You're being dropped into a week years ago with no idea whether it's
@@ -141,18 +157,6 @@ export function Intro({ season, week, standings, leaders, moment, streak, onStar
                 </li>
               ))}
             </ul>
-          </div>
-        )}
-
-        {/* Nothing to do with football, and the fastest way to be in the year. */}
-        {moment.length > 0 && (
-          <div className="intro-block">
-            {moment.map((row) => (
-              <p key={row.label} className="intro-moment">
-                <span className="intro-moment-label">{row.label}</span>
-                <span className="intro-moment-detail">{row.detail}</span>
-              </p>
-            ))}
           </div>
         )}
 
