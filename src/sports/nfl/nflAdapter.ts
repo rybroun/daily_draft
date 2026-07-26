@@ -11,7 +11,7 @@ import {
   TEAM_NAMES,
   fantasyPoints,
 } from './league';
-import { gameNote, project, ranked, seasonYears } from './season';
+import { gameNote, project, ranked, seasonYears, standingsFor } from './season';
 
 /**
  * A real NFL season, as a league you're in.
@@ -23,6 +23,9 @@ import { gameNote, project, ranked, seasonYears } from './season';
  * below it. That's what makes the waiver decision a real one. Nobody is
  * choosing between Julio Jones and Antonio Brown on a Tuesday in November.
  */
+
+/** The positions worth naming on the opening card. Kickers are not one. */
+const FEATURED: RosterSlot[] = ['QB', 'RB', 'WR', 'TE'];
 
 /** How deep each position's starter tier and waiver tier run. */
 const TIERS: Record<RosterSlot, { starters: number; wire: number }> = {
@@ -144,6 +147,24 @@ export const nflAdapter: SportAdapter = {
   },
 
   slotColor: (slot) => SLOT_COLORS[slot] ?? 'var(--dst)',
+
+  standings: (season, week) => standingsFor(season, week),
+
+  /*
+   * Read straight off `ranked`, which sorts on season form and nothing else —
+   * so this can't see the week being played even by accident.
+   */
+  leaders: (season, week) =>
+    FEATURED.map((slot) => ({
+      slot,
+      players: ranked(season, week, slot)
+        .slice(0, 2)
+        .map((p) => ({
+          name: p.name,
+          team: p.team,
+          detail: `${p.form[0].stats.ppg.toFixed(1)}`,
+        })),
+    })),
 
   outcomeValue: (player) => fantasyPoints(player.outcome.stats),
 

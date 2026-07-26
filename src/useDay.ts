@@ -115,8 +115,17 @@ export function useDay(
    * exactly one more number than you did, and nothing about what you passed on.
    */
   const known = useMemo(
-    () => new Set(rounds.filter((entry) => entry.locked).flatMap((entry) => entry.playerIds)),
-    [rounds],
+    () =>
+      new Set(
+        rounds
+          // Rounds *before* this one. Once the current round locks it joins the
+          // locked set, and counting its picks as "already known" would make the
+          // bar you were chasing collapse to zero at the moment you're shown it.
+          .slice(0, round)
+          .filter((entry) => entry.locked)
+          .flatMap((entry) => entry.playerIds),
+      ),
+    [rounds, round],
   );
 
   /** How each round finished — read back by replaying its own puzzle. */

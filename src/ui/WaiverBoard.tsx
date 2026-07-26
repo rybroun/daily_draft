@@ -69,34 +69,38 @@ export function WaiverBoard({
               <Head />
             </span>
 
-            <span className="pick-who">
+            {/*
+              Who they are and who they're about to play, on one line. It used
+              to be three: name, then position and club under it, then the
+              fixture pushed out to the right margin — which spread five short
+              facts across the full width of a phone and made the card taller
+              than the numbers that are the point of it.
+            */}
+            <span className="pick-line">
               <span className="pick-name">
                 {player.name}
                 {player.status && <StatusTag status={player.status} />}
               </span>
-              <span className="pick-meta">
-                <span className="pick-pos">{player.slot}</span>
-                {player.team}
-                {/*
-                  What they scored, but only for someone you started in a round
-                  you've already played and watched play out. It's the one thing
-                  you carry out of a round, and the reason the wire is worth
-                  re-reading rather than re-guessing.
-                */}
-                {known.has(player.id) && (
-                  <span className="pick-scored">{outcomeFor(player).toFixed(1)}</span>
-                )}
-              </span>
+              <span className="pick-pos">{player.slot}</span>
+              <span className="pick-team">{player.team}</span>
+              {player.next && (
+                <>
+                  <span className="pick-at">{player.next.label}</span>
+                  {player.next.detail && (
+                    <span className="pick-record">{player.next.detail}</span>
+                  )}
+                </>
+              )}
+              {/*
+                What they scored, but only for someone you started in a round
+                you've already played and watched play out. It's the one thing
+                you carry out of a round, and the reason the wire is worth
+                re-reading rather than re-guessing.
+              */}
+              {known.has(player.id) && (
+                <span className="pick-scored">{outcomeFor(player).toFixed(1)}</span>
+              )}
             </span>
-
-            {player.next && (
-              <span className="pick-next">
-                <span className="fixture">{player.next.label}</span>
-                {player.next.detail && (
-                  <span className="fixture-detail">{player.next.detail}</span>
-                )}
-              </span>
-            )}
 
             {/* An aligned table, not a run of text — the columns are the point. */}
             <span className="pick-table">

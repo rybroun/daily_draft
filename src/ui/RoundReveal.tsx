@@ -4,6 +4,15 @@ import type { Player, Puzzle, Score, StatLine } from '../core/types';
 interface RoundRevealProps {
   puzzle: Puzzle;
   score: Score;
+  /**
+   * The bar you were actually chasing, handed in rather than re-derived.
+   *
+   * It has to be the same arithmetic the scoreboard did, or the two disagree
+   * again — and by the time this renders, the picks it excludes have joined
+   * the set of things you know, so recomputing it here would give a different
+   * answer from the one you were playing against a second ago.
+   */
+  need: number;
   statLine: (line: StatLine, player: Player) => string;
   gameNote: (player: Player) => string | null;
   onDone: () => void;
@@ -32,6 +41,7 @@ const PICK_MS = 2300;
 export function RoundReveal({
   puzzle,
   score,
+  need,
   statLine,
   gameNote,
   onDone,
@@ -56,7 +66,6 @@ export function RoundReveal({
     return () => clearTimeout(timer);
   }, [beat, beats, onVerdict, onDone]);
 
-  const needed = score.opponentTotal - (score.yourTotal - score.total);
   const shown = score.slots.slice(0, Math.max(0, Math.min(beat, score.slots.length)));
 
   return (
@@ -79,7 +88,7 @@ export function RoundReveal({
         <p className="reveal-need">
           <span className="reveal-theirs">They scored {score.opponentTotal.toFixed(1)}</span>
           <span className="reveal-label">You needed</span>
-          <span className="reveal-need-figure">{Math.max(0, needed).toFixed(1)}</span>
+          <span className="reveal-need-figure">{Math.max(0, need).toFixed(1)}</span>
           <span className="reveal-label">off the wire</span>
         </p>
 

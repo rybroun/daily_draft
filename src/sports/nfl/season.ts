@@ -111,6 +111,42 @@ function recordThrough(year: number, week: number, team: string): string {
   return record;
 }
 
+/**
+ * How the league stood going into a given week, best record first.
+ *
+ * Context, not information: the puzzle is about five players on a wire, and
+ * knowing that New England were 10-0 doesn't tell you what any of them did.
+ * What it does is put you in the week — you're arriving at a season already in
+ * progress, and a table is the fastest way anyone reads where one has got to.
+ */
+export function standingsFor(year: number, week: number) {
+  const table = Object.keys(season(year).games ?? {}).map((team) => {
+    let won = 0;
+    let lost = 0;
+    let tied = 0;
+    let points = 0;
+    for (const [w, game] of Object.entries(season(year).games?.[team] ?? {})) {
+      if (Number(w) >= week) continue;
+      if (game.result === 'W') won++;
+      else if (game.result === 'L') lost++;
+      else tied++;
+      points += game.for;
+    }
+    const played = won + lost + tied;
+    return { team, won, lost, tied, played, points, rate: played ? (won + tied / 2) / played : 0 };
+  });
+
+  return table
+    .filter((row) => row.played > 0)
+    // Record first, then points scored — an 8-2 that scores 300 is a better
+    // read on "who's good" than an 8-2 that scores 180.
+    .sort((a, b) => b.rate - a.rate || b.points - a.points)
+    .map((row) => ({
+      name: row.team,
+      detail: row.tied > 0 ? `${row.won}–${row.lost}–${row.tied}` : `${row.won}–${row.lost}`,
+    }));
+}
+
 /** The one game being picked for: who, where, and how they've gone so far. */
 export function nextGameFor(year: number, week: number, team: string) {
   const game = season(year).games?.[team]?.[String(week)];

@@ -355,8 +355,6 @@ body {
   inset: 0;
   pointer-events: none;
   background:
-    /* mown stripes */
-    repeating-linear-gradient(to bottom, var(--mow) 0 12.5%, var(--mow-dark) 12.5% 25%),
     /* the sun on the middle of the park */
     radial-gradient(58% 40% at 50% 42%, var(--turf-sun), transparent 76%);
 }
@@ -365,16 +363,93 @@ body {
   Yard lines, chalked on — and only between the goal lines. Running them the
   full height was half of why this read as a pitch rather than a gridiron.
 */
+/*
+  A hundred yards between the goal lines: chalked every five, and the mown band
+  changing on every ten so the paint and the grass share one rhythm.
+
+  They didn't before. The stripes ran on 12.5% of the whole field while the
+  lines ran on 10% of the playing area — two rhythms over one piece of grass,
+  which is why the light and dark never lined up with the chalk.
+*/
 .field-lines {
   position: absolute;
   inset-inline: 0;
   inset-block: var(--endzone);
   pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0 calc(10% - 2px),
-    var(--line-chalk) calc(10% - 2px) 10%
-  );
+  background:
+    /* five-yard lines, thin */
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 calc(5% - 1px),
+      color-mix(in srgb, var(--line-chalk) 50%, transparent) calc(5% - 1px) 5%
+    ),
+    /* ten-yard lines */
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 calc(10% - 2px),
+      var(--line-chalk) calc(10% - 2px) 10%
+    ),
+    /* and the bands, changing on the same tens */
+    repeating-linear-gradient(to bottom, var(--mow) 0 10%, var(--mow-dark) 10% 20%);
+}
+
+/*
+  Yard numbers down both sidelines, counting to the 50 and back the way a real
+  field does. Painted on the grass, so they sit under the players.
+*/
+.yard-number {
+  position: absolute;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  line-height: 1;
+  color: var(--line-chalk);
+  opacity: 0.45;
+  pointer-events: none;
+  user-select: none;
+}
+
+.yard-number.is-left { inset-inline-start: 0.625rem; }
+
+/*
+  Upright on both sidelines. A real field turns the far numbers to face their
+  own touchline, but a phone has only one right way up — mirrored, "10" reads
+  as "01" and looks like a rendering fault rather than a painted field.
+*/
+.yard-number.is-right {
+  inset-inline-end: 0.625rem;
+}
+
+/*
+  The posts. Static, and the piece that says "gridiron" before you've read a
+  single word on the screen.
+*/
+.goalpost {
+  position: absolute;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  inline-size: 4.25rem;
+  block-size: 2rem;
+  pointer-events: none;
+}
+
+.goalpost { z-index: 1; }
+
+.goalpost.is-far { inset-block-start: 0.1875rem; }
+
+.goalpost.is-near {
+  inset-block-end: 0.125rem;
+  scale: 1 -1;
+}
+
+.goalpost svg {
+  inline-size: 100%;
+  block-size: 100%;
+  fill: none;
+  stroke: #f5d949;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  filter: drop-shadow(0 1px 1.5px #0e2a1a66);
 }
 
 /* Grain, drawn inline — keeps the grass from reading as flat vector fill. */
@@ -508,6 +583,18 @@ body {
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: 0;
+}
+
+/* These are real points, not a forecast, and the totals say so. */
+.endzone-actual {
+  margin-inline-start: 0.1875rem;
+  font-family: var(--body);
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  vertical-align: 0.6em;
+  opacity: 0.6;
 }
 
 .endzone.is-them .endzone-total { color: var(--endzone-them-ink); }
@@ -728,6 +815,55 @@ body {
 }
 
 /*
+  The lock. Small, and opposite the figure so the two never crowd each other.
+  Shut is quiet — it's the resting state of five of your eight — and open is in
+  your colour, because it's the one that's asking you to do something.
+*/
+.spot-lock {
+  position: absolute;
+  inset-block-start: -0.1875rem;
+  inset-inline-start: -0.4375rem;
+  display: grid;
+  place-items: center;
+  inline-size: 0.9375rem;
+  block-size: 0.9375rem;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 0.0625rem 0.1875rem #0e2a1a3d;
+}
+
+.spot-lock svg {
+  inline-size: 0.625rem;
+  block-size: 0.625rem;
+  fill: none;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.spot-lock.is-shut svg {
+  stroke: var(--faint);
+}
+
+.spot-lock.is-shut rect {
+  fill: var(--faint);
+  stroke: none;
+}
+
+.spot-lock.is-open {
+  background: var(--you);
+  box-shadow: 0 0.0625rem 0.25rem #0e2a1a4d;
+}
+
+.spot-lock.is-open svg {
+  stroke: var(--you-ink);
+}
+
+.spot-lock.is-open rect {
+  fill: var(--you-ink);
+  stroke: none;
+}
+
+/*
   A pick whose week hasn't happened. Its own neutral, never the team colour —
   "this is mine" and "nobody knows this yet" must not look alike.
 */
@@ -818,7 +954,7 @@ body {
 
 .pick {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr;
   align-items: center;
   gap: 0.125rem 0.5rem;
   inline-size: 100%;
@@ -865,20 +1001,49 @@ body {
   stroke-linecap: round;
 }
 
-.pick-who {
+/* Name, position, club, fixture and their record — one line, packed left. */
+.pick-line {
   display: flex;
-  flex-direction: column;
-  gap: 0.0625rem;
+  align-items: baseline;
+  gap: 0.3125rem;
   min-inline-size: 0;
+  white-space: nowrap;
 }
 
 .pick-name {
   display: flex;
   align-items: center;
   gap: 0.375rem;
+  min-inline-size: 0;
   font-size: 0.9375rem;
   font-weight: 600;
-  line-height: 1.1;
+  line-height: 1.15;
+  /* The name yields first — everything after it is short and fixed. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pick-team,
+.pick-at,
+.pick-record {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.pick-team { color: var(--faint); }
+
+.pick-at {
+  margin-inline-start: auto;
+  font-family: var(--display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.pick-record {
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
 }
 
 .pick-meta {
@@ -936,11 +1101,17 @@ body {
   padding-block-start: 0.125rem;
 }
 
+/*
+  Fixed, narrow columns packed to the left rather than stretched across the
+  card. Spread edge to edge, two numbers that belong together sat an inch
+  apart and the eye had to travel to compare them.
+*/
 .pick-row {
   display: grid;
-  grid-template-columns: 2.5rem repeat(var(--cols, 3), 1fr);
+  grid-template-columns: 2.5rem repeat(var(--cols, 3), 2.625rem);
+  justify-content: start;
   align-items: baseline;
-  gap: 0.1875rem;
+  gap: 0.125rem;
 }
 
 .pick-cell {
@@ -972,10 +1143,12 @@ body {
   inset-block-start: 0;
   z-index: 1;
   display: grid;
-  grid-template-columns: 2.5rem repeat(var(--cols, 3), 1fr);
-  gap: 0.1875rem;
-  padding-inline: 0.5625rem 0.5625rem;
-  padding-inline-start: calc(1.875rem + 1.1875rem);
+  grid-template-columns: 2.5rem repeat(var(--cols, 3), 2.625rem);
+  justify-content: start;
+  gap: 0.125rem;
+  /* Card padding + the face + the card's column gap, so the columns line up. */
+  padding-inline-start: calc(0.5625rem + 1.875rem + 0.5rem);
+  padding-inline-end: 0.5625rem;
   padding-block: 0.125rem;
   /* Opaque, or the rows scroll through it and the labels become unreadable. */
   background: var(--panel);
@@ -1467,6 +1640,109 @@ body {
 }
 
 .intro-body strong { color: var(--ink); }
+
+/* The briefing card carries lists rather than prose, so it breathes less. */
+.intro-card.is-briefing {
+  gap: 0.25rem;
+}
+
+.intro-block {
+  inline-size: 100%;
+  padding-block: 0.3125rem 0.125rem;
+}
+
+.intro-block-head {
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  padding-block-end: 0.25rem;
+}
+
+.intro-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.125rem 0.75rem;
+  list-style: none;
+}
+
+.intro-table li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.375rem;
+  padding-block: 0.0625rem;
+  border-block-end: 1px solid var(--hairline);
+}
+
+.intro-team {
+  font-family: var(--display);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.intro-record {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+/* Who was carrying each position, so the week has names in it before you start. */
+.intro-leaders {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  list-style: none;
+}
+
+.intro-leaders li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding-block: 0.125rem;
+  border-block-end: 1px solid var(--hairline);
+}
+
+.intro-slot {
+  inline-size: 1.5rem;
+  flex: none;
+  font-family: var(--display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+
+.intro-names {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-inline-size: 0;
+}
+
+.intro-leader {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  min-inline-size: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.intro-leader-figure {
+  font-family: var(--display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
 
 .intro-rounds {
   inline-size: 100%;

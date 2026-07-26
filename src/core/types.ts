@@ -153,6 +153,25 @@ export interface SportAdapter {
   projectedValue(player: Player, slot: RosterSlot): number;
 
   /**
+   * How the real league stood going into this week, best first. Optional, and
+   * for the opening card only — it grounds you in a season already in progress
+   * and says nothing about what any candidate is about to do.
+   */
+  standings?(season: number, week: number): { name: string; detail: string }[];
+
+  /**
+   * Who has been best at each position so far, for the same opening card.
+   *
+   * Must be built from visible form only — it's shown before a single pick is
+   * made, so a leaderboard that peeked at the scored week would be handing over
+   * the answer dressed as background.
+   */
+  leaders?(
+    season: number,
+    week: number,
+  ): { slot: RosterSlot; players: { name: string; team: string; detail: string }[] }[];
+
+  /**
    * One line on how this player's real side fared that week — "Seattle won
    * 30–13 at Baltimore". Optional, and for the reveal only.
    *

@@ -113,18 +113,49 @@ export function PuzzleScreen({
    * your openings have to produce between them, to the tenth.
    */
   const totals = useMemo(() => {
-    if (score) return { yours: score.yourTotal, theirs: score.opponentTotal };
-
-    const yours = puzzle.field.reduce(
-      (sum, entry) => sum + (entry.player ? outcomeFor(entry.player, entry.spot.slot) : 0),
-      0,
-    );
     const theirs = puzzle.opponent.lineup.reduce(
       (sum, entry) => sum + outcomeFor(entry.player, entry.spot.slot),
       0,
     );
-    return { yours, theirs };
-  }, [score, puzzle, outcomeFor]);
+
+    /*
+     * Your total is everything you actually know: the starters, plus any
+     * opening you filled with someone you already watched score in a round
+     * you've finished. Those points are real and yours to count.
+     *
+     * What's left out is named rather than merely missing. The gap between the
+     * two totals is the whole question, and "64.6 against 91.8" looks like you
+     * are simply losing until it says which spots aren't in that 64.6 yet.
+     */
+    const yours = puzzle.field.reduce((sum, entry) => {
+      if (entry.player) return sum + outcomeFor(entry.player, entry.spot.slot);
+      const pick = filled.get(entry.spot.id);
+      return pick && known.has(pick.id) ? sum + outcomeFor(pick, entry.spot.slot) : sum;
+    }, 0);
+
+    const unknown = puzzle.openings
+      .filter((spot) => {
+        const pick = filled.get(spot.id);
+        return !pick || !known.has(pick.id);
+      })
+      .map((spot) => spot.slot);
+
+    return { yours, theirs, unknown };
+  }, [puzzle, outcomeFor, filled, known]);
+
+  /*
+   * What your still-unknown spots had to produce between them.
+   *
+   * Computed from what you knew going in, never from the finished score — the
+   * play-out is scored against this, and re-deriving it after the week would
+   * quietly hand back the margin instead of the bar you were playing against.
+   */
+  const need = totals.theirs - totals.yours;
+
+  /** After the week your total is the whole lineup, picks included. */
+  const shown = score
+    ? { yours: score.yourTotal, theirs: score.opponentTotal, unknown: [] as string[] }
+    : totals;
 
   const pick = (playerId: PlayerId) => {
     if (openIndex === -1) return;
@@ -181,9 +212,10 @@ export function PuzzleScreen({
           revealed={score !== null}
           reviewable={complete}
           scoreline={{
-            yours: totals.yours,
-            theirs: totals.theirs,
-            need: score ? null : totals.theirs - totals.yours,
+            yours: shown.yours,
+            theirs: shown.theirs,
+            need: score ? null : need,
+            unknown: shown.unknown,
             result: score?.result ?? null,
             margin: score?.margin ?? 0,
           }}
@@ -266,7 +298,7 @@ export function PuzzleScreen({
                       Your end zone is behind this panel while it's open, and
                       what you need is the one number you're picking against.
                     */
-                    `Need ${Math.max(0, totals.theirs - totals.yours).toFixed(1)} off the wire. ` +
+                    `Need ${Math.max(0, need).toFixed(1)} off the wire. ` +
                     'Form to date — nothing here is from this week.'
               }
               onClose={() => setOpenSpotId(null)}
@@ -294,6 +326,7 @@ export function PuzzleScreen({
         <RoundReveal
           puzzle={puzzle}
           score={score}
+          need={need}
           statLine={statLine}
           gameNote={gameNote}
           onDone={() => setPlayingOut(null)}

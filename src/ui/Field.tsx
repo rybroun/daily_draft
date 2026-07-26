@@ -35,6 +35,8 @@ interface FieldProps {
     theirs: number;
     /** What your openings still have to produce. Null once the week is played. */
     need: number | null;
+    /** Which positions aren't in your total yet, in display order. */
+    unknown: string[];
     result: MatchupResult | null;
     margin: number;
   };
@@ -54,6 +56,31 @@ function Head() {
       <circle cx="16" cy="12" r="6.5" />
       <path d="M4.5 30a11.5 11.5 0 0 1 23 0" />
     </svg>
+  );
+}
+
+/**
+ * Whether a player of yours can be swapped, said on the player.
+ *
+ * An opening reads as "occupied" once you've filled it, and in round two the
+ * spot you answered in round one is both occupied and still yours to change —
+ * which looked exactly like the five starters you can't touch. A ring around
+ * the head wasn't enough: it says *something* is different, not what.
+ *
+ * Only ever on your own side. Nothing about the opponent's lineup is editable,
+ * so a lock there would be answering a question nobody asked.
+ */
+function Lock({ open }: { open: boolean }) {
+  return (
+    <span className={`spot-lock ${open ? 'is-open' : 'is-shut'}`} aria-hidden="true">
+      <svg viewBox="0 0 12 12">
+        {/* The shackle swings clear of the body when the spot is yours to fill. */}
+        <path
+          d={open ? 'M3.6 5.2V3.6a2.4 2.4 0 0 1 4.8 0' : 'M3.6 5.2V3.6a2.4 2.4 0 0 1 4.8 0v1.6'}
+        />
+        <rect x="2.2" y="5.2" width="7.6" height="5.4" rx="1.2" />
+      </svg>
+    </span>
   );
 }
 
@@ -79,6 +106,28 @@ const ZOOM = 1.45;
  */
 const END_ZONE = 10;
 const onGround = (y: number) => END_ZONE + (y / 100) * (100 - END_ZONE * 2);
+
+/**
+ * The numbers painted down each sideline: 10 to 50 and back down to 10, which
+ * is how a hundred yards is marked when it's measured from both ends at once.
+ */
+const YARDS = Array.from({ length: 9 }, (_, i) => {
+  const yard = (i + 1) * 10;
+  return { yard, label: String(yard <= 50 ? yard : 100 - yard), at: onGround(yard) };
+});
+
+/** Uprights, crossbar and the post that holds them off the ground. */
+function Goalpost({ where }: { where: 'far' | 'near' }) {
+  return (
+    <span className={`goalpost is-${where}`} aria-hidden="true">
+      <svg viewBox="0 0 48 24">
+        <path d="M24 23V13" />
+        <path d="M7 13h34" />
+        <path d="M7 13V2M41 13V2" />
+      </svg>
+    </span>
+  );
+}
 
 /**
  * How far the camera may pan before the turf runs out.
@@ -229,6 +278,25 @@ export function Field({
           <div className="field-lines" aria-hidden="true" />
           <div className="halfway" aria-hidden="true" />
 
+          {YARDS.map(({ yard, label, at }) => (
+            <span key={yard}>
+              <span
+                className="yard-number is-left"
+                style={{ top: `${at}%`, translate: '0 -50%' }}
+                aria-hidden="true"
+              >
+                {label}
+              </span>
+              <span
+                className="yard-number is-right"
+                style={{ top: `${at}%`, translate: '0 -50%' }}
+                aria-hidden="true"
+              >
+                {label}
+              </span>
+            </span>
+          ))}
+
           {/*
             The end zones. They're what makes this read as a gridiron rather
             than a pitch, and they're also the clearest place to say whose end
@@ -247,7 +315,10 @@ export function Field({
             <span className="endzone-word" title={opponent.name}>
               Opponent
             </span>
-            <span className="endzone-total">{scoreline.theirs.toFixed(1)}</span>
+            <span className="endzone-total">
+              {scoreline.theirs.toFixed(1)}
+              <span className="endzone-actual">actual</span>
+            </span>
           </div>
           <div className={`endzone is-you${scoreline.result ? ` is-${scoreline.result}` : ''}`}>
             <span className="endzone-word">You</span>
@@ -271,8 +342,14 @@ export function Field({
                   week, so this is the real bar — the same number the play-out
                   will open on when it scores you against it.
                 */
+                /*
+                  Named, not just counted. "Need 26.5" says how far away you are;
+                  "need 26.5 from RB and WR" says what has to produce it, which is
+                  the same thing the two empty heads on the field are asking.
+                */
                 <>
-                  Need <strong>{scoreline.need.toFixed(1)}</strong> off the wire
+                  Need <strong>{scoreline.need.toFixed(1)}</strong>
+                  {scoreline.unknown.length > 0 ? ` from ${scoreline.unknown.join(' + ')}` : ''}
                 </>
               ) : (
                 <>
@@ -280,8 +357,15 @@ export function Field({
                 </>
               )}
             </span>
-            <span className="endzone-total">{scoreline.yours.toFixed(1)}</span>
+            <span className="endzone-total">
+              {scoreline.yours.toFixed(1)}
+              <span className="endzone-actual">actual</span>
+            </span>
           </div>
+
+          {/* The posts stand at the back of each end zone, over the paint. */}
+          <Goalpost where="far" />
+          <Goalpost where="near" />
 
           {/*
             Midfield logo, split across the 50: their colour on their side of it,
@@ -344,6 +428,12 @@ export function Field({
                 >
                   {/* Keyed on the occupant so a fresh pick visibly drops into the slot. */}
                   {occupant ? <Head key={occupant.id} /> : <span className="spot-plus">+</span>}
+
+                  {/*
+                    Only before the week — once it's played nothing is editable
+                    and the field is a scoreline, not a team sheet.
+                  */}
+                  {!theirs && !revealed && <Lock open={isOpening} />}
 
                   {/*
                     A player taken off the wire wears a question mark until the

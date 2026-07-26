@@ -52,7 +52,8 @@ export default function App() {
       <Intro
         season={day.puzzle.season}
         week={day.puzzle.week}
-        opponentName={day.puzzle.opponent.name}
+        standings={adapter.standings?.(day.puzzle.season, day.puzzle.week) ?? []}
+        leaders={adapter.leaders?.(day.puzzle.season, day.puzzle.week) ?? []}
         streak={day.streak.current}
         onStart={day.start}
       />
