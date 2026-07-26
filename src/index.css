@@ -153,6 +153,8 @@ body {
   takes whatever is left over, so the game never has content below a fold.
 */
 .screen {
+  /* Anchors the play-out, which covers this column and not the whole window. */
+  position: relative;
   block-size: 100dvh;
   max-inline-size: 34rem;
   margin-inline: auto;
@@ -1474,7 +1476,12 @@ body {
  * only moment the game has, so it gets the whole screen for a few seconds.
  */
 .reveal {
-  position: fixed;
+  /*
+   * Absolute against `.screen`, not fixed against the viewport. The game lives
+   * in a 34rem column; fixed made the play-out — and only the play-out — spill
+   * across the whole window on anything wider than a phone.
+   */
+  position: absolute;
   inset: 0;
   z-index: 10;
   display: grid;
@@ -1602,4 +1609,24 @@ body {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   opacity: 0.45;
+}
+
+/* On the verdict nothing moves until you tap, so the prompt has to be seen. */
+.reveal-skip.is-waiting {
+  opacity: 0.8;
+  animation: reveal-waiting 1.8s ease-in-out 0.4s infinite;
+}
+
+@keyframes reveal-waiting {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 0.38; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-pick,
+  .reveal-verdict,
+  .reveal-skip.is-waiting {
+    animation: none;
+  }
 }

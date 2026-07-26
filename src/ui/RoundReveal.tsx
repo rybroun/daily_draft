@@ -13,10 +13,12 @@ interface RoundRevealProps {
 /**
  * How long each beat holds.
  *
- * Long enough to read a name and a number, short enough that a three-pick round
- * plays out in about six seconds. The whole game is meant to take a minute.
+ * A pick beat carries a name, a number, a stat line and how their real side
+ * fared — four things, so it gets longer than the target it opens on. Tapping
+ * skips, so this is the pace for someone reading rather than a ceiling.
  */
-const BEAT_MS = 1250;
+const OPENING_MS = 1600;
+const PICK_MS = 2300;
 
 /**
  * The week playing out, one beat at a time.
@@ -39,15 +41,22 @@ export function RoundReveal({
   // Beat 0 is the target, then one per pick, then the verdict.
   const beats = score.slots.length + 2;
   const [beat, setBeat] = useState(0);
+  const onVerdict = beat === beats - 1;
 
   useEffect(() => {
     if (beat >= beats) {
       onDone();
       return;
     }
-    const timer = setTimeout(() => setBeat((b) => b + 1), BEAT_MS);
+    /*
+     * The verdict is where it stops. It used to time out to the summary a beat
+     * later, under a label reading "tap to continue" — so the one line telling
+     * you whether you won flashed past on its way somewhere you didn't ask for.
+     */
+    if (onVerdict) return;
+    const timer = setTimeout(() => setBeat((b) => b + 1), beat === 0 ? OPENING_MS : PICK_MS);
     return () => clearTimeout(timer);
-  }, [beat, beats, onDone]);
+  }, [beat, beats, onVerdict, onDone]);
 
   const needed = score.opponentTotal - (score.yourTotal - score.total);
   const shown = score.slots.slice(0, Math.max(0, Math.min(beat, score.slots.length)));
@@ -88,7 +97,7 @@ export function RoundReveal({
           })}
         </ul>
 
-        {beat > score.slots.length && (
+        {beat >= beats - 1 && (
           <p className={`reveal-verdict is-${score.result}`}>
             {score.result === 'tied'
               ? 'Dead heat'
@@ -96,9 +105,8 @@ export function RoundReveal({
           </p>
         )}
 
-        <p className="reveal-skip">
-          {beat >= beats - 1 ? 'Tap to continue' : 'Tap to skip'} · {puzzle.season} week{' '}
-          {puzzle.week}
+        <p className={`reveal-skip${onVerdict ? ' is-waiting' : ''}`}>
+          {onVerdict ? 'Tap to continue' : 'Tap to skip'} · {puzzle.season} week {puzzle.week}
         </p>
       </div>
     </div>

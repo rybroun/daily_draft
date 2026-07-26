@@ -1,31 +1,27 @@
 # Roadmap — daily_draft
 
-**Updated:** 2026-07-25 · **Lead:** daily-draft-prototype
+**Updated:** 2026-07-26 · **Lead:** daily-draft-prototype
 
-The game is a **waiver-wire puzzle against a named opponent**. Your lineup on a field with two
-holes, their lineup one tap away, a wire showing form and injury tags but never the week
-itself. Fill both spots, play the week, find out whether you beat them.
+The game is a **waiver-wire puzzle against a named opponent**, played as three rounds off one
+shared wire. Your lineup on a field with holes in it, their lineup facing you, a wire showing
+form, fixtures and injury tags but never the week itself. Fill the holes, play the week, find
+out whether you beat them — then do it again with one more hole.
 
-Three builds today: the season-slate prototype, the waiver redesign, and this pass — opponents,
-injuries, projections, and an interface rebuilt around rows instead of boxes. What's in `Now`
-is judgement, not code.
+The sport is settled: **NFL, on real nflverse data for 2007 and 2015**. What's in `Now` is
+judgement about whether it's fun, which is a question only play can answer.
 
 ## Now
 
 | Item | Status | Updated | Notes |
 |---|---|---|---|
-| Play it for a few days and judge whether it's fun | in progress | 2026-07-25 | **Live at https://bananas-mac-mini.tail6d208c.ts.net** (tailnet only). The prototype exists to answer this and nothing else. |
-| Decide whether one week is too random to feel fair | in progress | 2026-07-25 | Partly addressed: the reveal now says when a week was already decided either way. Whether that's enough needs play, not design. |
-| Play it on real data and judge whether it's fun | in progress | 2026-07-26 | Live. 2007 and 2015, weeks 7–17, roughly half the days each. |
-
-| Decide what to do about the projection column | planned | 2026-07-25 | It hands the player the optimal use of visible information, which collapses the decision to reading one number. Floor/ceiling instead of a point estimate is the leading candidate. |
-| Make the picks decide the week more often | planned | 2026-07-25 | Currently 53%. The other 47% of days, nothing the player did changed the result — bad for something meant to be played daily. |
+| Play it on real data and judge whether it's fun | in progress | 2026-07-26 | **Live at https://bananas-mac-mini.tail6d208c.ts.net** (tailnet only). 2007 and 2015, weeks 7–17. The prototype exists to answer this and nothing else. |
+| Decide whether one week is too random to feel fair | in progress | 2026-07-26 | Largely answered structurally: every round is now guaranteed winnable off the wire, so no day is decided before you play it. Whether it *feels* fair still needs play. |
 
 ## Next
 
 | Item | Status | Updated | Notes |
 |---|---|---|---|
-| First real sport adapter | planned | 2026-07-25 | One file behind the existing interface. Follows the sport and data decisions. |
+| Trivia beyond the score in the play-out | planned | 2026-07-26 | The reveal currently gives the factual result ("NYG lost 14–20 at WAS"). Ryan asked for "the trivia of that moment in sports" — a career day, a streak, what the game meant. Needs a source nflverse doesn't carry. |
 | Share-a-result mechanic | planned | 2026-07-25 | The Wordle loop, and the matchup gives it something to say: "beat the Blackbirds by 14.2". Only worth building once the game is fun. |
 | Matchup-quality colour coding per candidate | planned | 2026-07-25 | Sleeper and Yahoo both tint each player by how their opponent has fared against that position. Would add a second readable signal to the wire. |
 | Puzzle archive / play a past week | planned | 2026-07-25 | Selection is already date-seeded, so any past date is already playable. |
@@ -41,6 +37,12 @@ is judgement, not code.
 
 | Item | Shipped | Notes |
 |---|---|---|
+| The play-out holds on the verdict, inside the phone column | 2026-07-26 | Was `position: fixed`, so it spilled across the whole window on desktop; now absolute against the 34rem column. Beats slowed to 1.6s/2.3s, and the verdict no longer times out to the summary under a label reading "tap to continue". |
+| The week plays out instead of quietly updating the scoreline | 2026-07-26 | Full-screen sequence: what you needed → each pick, its points, its stat line and how their real side fared → the verdict. Tap to skip. `gameNote` is an adapter method, not a `Player` field, so it can't leak before the pick. |
+| Every round guaranteed winnable | 2026-07-26 | Replaced difficulty tuning with a proof: all line-ups are enumerated and the day is rejected unless each round has at least one winning combination inside its band. Zero unwinnable days over a year on both adapters. This retired *"make the picks decide the week more often"* — it was 53%, it is now 100%. |
+| A day is three rounds off one shared wire | 2026-07-26 | Welcome → easy (1 spot) → medium (2) → hard (3), openings nested and the wire unchanged throughout, so what round one's reveal taught you is still true in round three. Answers carry forward. Streak advances only on finishing all three. |
+| The projection column removed | 2026-07-26 | It handed over the optimal use of visible information. Replaced with its inputs — upcoming fixtures, defence difficulty, recent form — so the player does the synthesis. Retired the open question about what to do with it. |
+| First real sport adapter — NFL on nflverse data | 2026-07-26 | 2007 and 2015, weeks 7–17. Era-correct team codes recovered from `game_id`; injury designations 2009+; game results for the reveal. One adapter file behind the existing interface, exactly as the seam intended. |
 | Both teams on one field, facing off | 2026-07-25 | Opponent's formation rotated about the centre; tabs gone. Positions grouped into three bands by role. Their injuries are now on screen rather than a tap away. |
 | Light by default, dark by choice | 2026-07-25 | Not tied to `prefers-color-scheme` — a dark phone still opens the game in daylight. Toggle in the masthead, remembered across visits. |
 | Light theme, with dark as a token swap | 2026-07-25 | Same match at three o'clock instead of under floodlights. Palette on light/dark tokens; `slotColor` returns CSS vars so the theme owns position colours. Both schemes play through green. |
