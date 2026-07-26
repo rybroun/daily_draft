@@ -61,6 +61,16 @@
   --win: #12854e;
   --loss: #c62b39;
 
+  /*
+    End-zone paint. Its own token because the team colours are tuned for chips
+    and type — at chip size they read as identity, but flooded across 12% of
+    the screen they have to behave like paint on grass instead.
+  */
+  --endzone-them: var(--them);
+  --endzone-them-ink: var(--them-ink);
+  --endzone-you: var(--you);
+  --endzone-you-ink: var(--you-ink);
+
   --qb: #c42e4e;
   --rb: #0b8457;
   --wr: #1f6fb2;
@@ -106,6 +116,16 @@
   --them-ink: #0a141c;
   --win: #4fd694;
   --loss: #ff5a45;
+
+  /*
+    At night the paint is lit by the same floodlights as the grass, so it sits
+    down into the turf rather than glowing off it. Using --you/--them neat here
+    turned each end zone into a lamp.
+  */
+  --endzone-them: color-mix(in srgb, var(--them) 30%, #0b1d14);
+  --endzone-them-ink: color-mix(in srgb, var(--them) 82%, #ffffff);
+  --endzone-you: color-mix(in srgb, var(--you) 28%, #0b1d14);
+  --endzone-you-ink: color-mix(in srgb, var(--you) 86%, #ffffff);
 
   --qb: #e8556d;
   --rb: #2fb98a;
@@ -414,16 +434,26 @@ body {
   inset: 0;
   pointer-events: none;
   background:
-    /* yard lines, chalked on */
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0 calc(12.5% - 2px),
-      var(--line-chalk) calc(12.5% - 2px) 12.5%
-    ),
     /* mown stripes */
     repeating-linear-gradient(to bottom, var(--mow) 0 12.5%, var(--mow-dark) 12.5% 25%),
     /* the sun on the middle of the park */
     radial-gradient(58% 40% at 50% 42%, var(--turf-sun), transparent 76%);
+}
+
+/*
+  Yard lines, chalked on — and only between the goal lines. Running them the
+  full height was half of why this read as a pitch rather than a gridiron.
+*/
+.field-lines {
+  position: absolute;
+  inset-inline: 0;
+  inset-block: 12%;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 calc(10% - 2px),
+    var(--line-chalk) calc(10% - 2px) 10%
+  );
 }
 
 /* Grain, drawn inline — keeps the grass from reading as flat vector fill. */
@@ -460,41 +490,112 @@ body {
     );
 }
 
+/*
+  The 50. It used to be a five-pixel slab with a glow, which is a centre line on
+  a football pitch; on a gridiron the 50 is just the yard line at the middle,
+  drawn a shade heavier than its neighbours.
+*/
 .halfway::after {
   content: '';
   position: absolute;
   inset-inline: 0;
   inset-block-start: 50%;
-  block-size: 5px;
+  block-size: 3px;
   translate: 0 -50%;
-  background: #ffffff;
-  box-shadow: 0 0 0.75rem #0e2a1a4d;
+  background: var(--line-chalk);
 }
 
-/* Whose end is whose, said once, at the sideline where it can't be missed. */
-.half-tag {
+/*
+  The end zones — the touchdown ground at each end, painted in the team's
+  colour with its name across it. They replaced a pair of small chips at the
+  sideline: this says the same thing at the scale a real field says it, and it
+  is the single strongest signal that the sport here is gridiron.
+*/
+.endzone {
   position: absolute;
-  inset-inline-start: 0.5rem;
-  padding: 0.0625rem 0.3125rem 0;
-  border-radius: 0.1875rem;
-  font-family: var(--display);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  inset-inline: 0;
+  block-size: 12%;
+  display: grid;
+  place-items: center;
   pointer-events: none;
+  overflow: hidden;
 }
 
-.half-tag.is-you {
-  inset-block-end: 0.5rem;
-  background: var(--you);
-  color: var(--you-ink);
+.endzone.is-them {
+  inset-block-start: 0;
+  background: var(--endzone-them);
+  /* The goal line, chalked where the paint stops. */
+  box-shadow: inset 0 -3px 0 var(--line-chalk);
 }
 
-.half-tag.is-them {
-  inset-block-start: 0.5rem;
+.endzone.is-you {
+  inset-block-end: 0;
+  background: var(--endzone-you);
+  box-shadow: inset 0 3px 0 var(--line-chalk);
+}
+
+.endzone-word {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(0.875rem, 4.5vw, 1.375rem);
+  letter-spacing: 0.42em;
+  /* The letter-spacing pads the right side; pull it back so the word centres. */
+  text-indent: 0.42em;
+  text-transform: uppercase;
+  line-height: 1;
+  opacity: 0.72;
+}
+
+.endzone.is-them .endzone-word { color: var(--endzone-them-ink); }
+.endzone.is-you .endzone-word { color: var(--endzone-you-ink); }
+
+/*
+  Midfield logo, straddling the 50: their half above the line, yours below. The
+  split is the point — it says which way the field runs without a label.
+*/
+.midfield {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  /*
+    Small enough to sit in the gap between the two receiver rows. At 5.25rem it
+    ran under both of them and the heads cut it to pieces.
+  */
+  inline-size: 3.25rem;
+  block-size: 3.25rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--line-chalk);
+  overflow: hidden;
+  pointer-events: none;
+  /* Paint on grass, not a sticker on top of it. */
+  opacity: 0.82;
+}
+
+.midfield-half {
+  position: absolute;
+  inset-inline: 0;
+  block-size: 50%;
+}
+
+.midfield-half.is-them {
+  inset-block-start: 0;
   background: var(--them);
-  color: var(--them-ink);
+}
+
+.midfield-half.is-you {
+  inset-block-end: 0;
+  background: var(--you);
+}
+
+.midfield-mark {
+  position: relative;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  fill: #ffffff;
+  opacity: 0.95;
 }
 
 .spot {

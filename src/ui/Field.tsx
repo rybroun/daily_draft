@@ -38,6 +38,17 @@ const FOCUS_Y = 26;
 const ZOOM = 1.45;
 
 /**
+ * How much of each end is end zone.
+ *
+ * The formation spans y 9–91, which would run straight through them, so the
+ * lineups are compressed into the ground between. The adapter's coordinates are
+ * left alone — they describe a formation, not a canvas — and the mapping lives
+ * here because where the paint goes is a display question.
+ */
+const END_ZONE = 12;
+const onGround = (y: number) => END_ZONE + (y / 100) * (100 - END_ZONE * 2);
+
+/**
  * How far the camera may pan before the turf runs out.
  *
  * Centring on a spot near an edge would otherwise pull the field away from that
@@ -78,23 +89,26 @@ export function Field({
     ...entries.map((e) => ({
       spot: e.spot,
       player: e.player,
-      at: { x: e.spot.x, y: e.spot.y },
+      at: { x: e.spot.x, y: onGround(e.spot.y) },
       theirs: false,
     })),
     ...opponent.lineup.map((e) => ({
       spot: e.spot,
       player: e.player,
-      at: { x: 100 - e.spot.x, y: 100 - e.spot.y },
+      at: { x: 100 - e.spot.x, y: onGround(100 - e.spot.y) },
       theirs: true,
     })),
   ];
 
+  // The camera has to aim at where a spot is drawn, not where the formation
+  // says it is, or a zoom would centre on bare turf a few percent away.
+  const focus = zoomedOn ? onGround(zoomedOn.y) : 0;
   const camera = zoomedOn
     ? ({
         '--ox': zoomedOn.x,
-        '--oy': zoomedOn.y,
+        '--oy': focus,
         '--zx': pan(zoomedOn.x, 50),
-        '--zy': pan(zoomedOn.y, FOCUS_Y),
+        '--zy': pan(focus, FOCUS_Y),
         '--zoom': ZOOM,
       } as React.CSSProperties)
     : undefined;
@@ -109,9 +123,35 @@ export function Field({
           aria-label="The matchup"
         >
           <div className="field-turf" aria-hidden="true" />
+          {/* Yard lines belong between the goal lines, not through the paint. */}
+          <div className="field-lines" aria-hidden="true" />
           <div className="halfway" aria-hidden="true" />
-          <span className="half-tag is-them">{code(opponent.name)}</span>
-          <span className="half-tag is-you">You</span>
+
+          {/*
+            The end zones. They're what makes this read as a gridiron rather
+            than a pitch, and they're also the clearest place to say whose end
+            is whose — painted where it is on a real field.
+          */}
+          <div className="endzone is-them" aria-hidden="true">
+            <span className="endzone-word">{code(opponent.name)}</span>
+          </div>
+          <div className="endzone is-you" aria-hidden="true">
+            <span className="endzone-word">You</span>
+          </div>
+
+          {/*
+            Midfield logo, split across the 50: their colour on their side of it,
+            yours on yours. The two halves say which way the field runs without
+            another label to read.
+          */}
+          <div className="midfield" aria-hidden="true">
+            <span className="midfield-half is-them" />
+            <span className="midfield-half is-you" />
+            {/* The same D as the masthead, so midfield carries the game's mark. */}
+            <svg className="midfield-mark" viewBox="0 0 32 32">
+              <path d="M10 7h6.4c5.4 0 8.6 3.4 8.6 9s-3.2 9-8.6 9H10V7zm5.1 4.3v9.4h1.1c2.7 0 4.2-1.7 4.2-4.7s-1.5-4.7-4.2-4.7h-1.1z" />
+            </svg>
+          </div>
 
           {placed.map(({ spot, player, at, theirs }) => {
             const chosen = theirs ? null : (filled.get(spot.id) ?? null);
