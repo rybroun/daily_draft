@@ -149,7 +149,16 @@ npm run build    # → dist/, which is what's live
 
 ## It's live
 
-**https://bananas-mac-mini.tail6d208c.ts.net** — tailnet only, no port needed.
+**Public: https://daily-waivers.pages.dev** — Cloudflare Pages, free tier, no
+account needed to play. This is the link to send people. `npm run deploy` builds
+and publishes it; wrangler is authenticated as ryan.brounley@gmail.com.
+
+Chosen over Tailscale Funnel deliberately. Funnel works and is still on, but it
+serves from this Mac, dies when the Mac does, and its `.ts.net` hostname gets
+blocked by corporate DNS filters as VPN infrastructure — Ryan's own work laptop
+couldn't reach it. A `.pages.dev` domain has none of those problems.
+
+**Tailnet: https://bananas-mac-mini.tail6d208c.ts.net** — no port needed.
 
 `npm run build` *is* the deploy. A LaunchAgent
 (`~/Library/LaunchAgents/com.rybroun.daily-draft.plist`) keeps `vite preview` up on port

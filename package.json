@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview --host 0.0.0.0",
-    "data": "node scripts/build-seasons.mjs"
+    "data": "node scripts/build-seasons.mjs",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name daily-waivers --branch main --commit-dirty=true"
   },
   "dependencies": {
     "react": "^19.2.7",
