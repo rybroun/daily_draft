@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Player, Puzzle, Score, StatLine } from '../core/types';
+import { standing } from './standing';
 
 interface RoundRevealProps {
   puzzle: Puzzle;
@@ -102,6 +103,15 @@ export function RoundReveal({
                 <span className="reveal-name">{player.name}</span>
                 <span className="reveal-points">{slot.picked.value.toFixed(1)}</span>
                 <span className="reveal-stats">{statLine(player.outcome, player)}</span>
+                {/* Where it finished among the five, said as you learn it. */}
+                <span className="reveal-standing">
+                  {standing(
+                    slot.picked.rank,
+                    slot.board.length,
+                    slot.board.filter((e) => e.rank === slot.picked.rank).length > 1,
+                  )}{' '}
+                  on the wire
+                </span>
                 {note && <span className="reveal-note">{note}</span>}
               </li>
             );

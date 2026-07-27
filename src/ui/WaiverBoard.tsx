@@ -8,6 +8,8 @@ interface WaiverBoardProps {
   known: Set<PlayerId>;
   /** What one actually scored. Only ever called for a player in `known`. */
   outcomeFor: (player: Player) => number;
+  /** Where that score finished among this wire's five, for `known` players. */
+  standingOf: Map<PlayerId, string>;
   statKeys: (slot: RosterSlot) => StatKey[];
   statLabel: (key: StatKey) => string;
   onPick: (playerId: PlayerId) => void;
@@ -41,6 +43,7 @@ export function WaiverBoard({
   pickedId,
   known,
   outcomeFor,
+  standingOf,
   statKeys,
   statLabel,
   onPick,
@@ -103,7 +106,12 @@ export function WaiverBoard({
                 re-reading rather than re-guessing.
               */}
               {known.has(player.id) && (
-                <span className="pick-scored">{outcomeFor(player).toFixed(1)}</span>
+                <>
+                  <span className="pick-scored">{outcomeFor(player).toFixed(1)}</span>
+                  {standingOf.has(player.id) && (
+                    <span className="pick-standing">{standingOf.get(player.id)}</span>
+                  )}
+                </>
               )}
             </span>
 

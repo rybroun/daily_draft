@@ -64,9 +64,13 @@ export function Intro({ season, week, standings, leaders, moment, streak, onStar
             It's a week out of football's past. You're heading into Sunday with holes in
             your lineup and one waiver wire between you and your opponent.
           </p>
-          <p className="intro-body is-promise">
-            There is always a lineup that wins. Find it.
-          </p>
+          {/*
+            It used to promise that a winning line-up always exists, which is
+            still true and still enforced — every day is searched until each
+            round has one. Saying so out loud told the player the answer was
+            guaranteed before they'd looked, which takes something off the ask.
+          */}
+          <p className="intro-body is-promise">Find the winning lineup.</p>
 
           <ol className="intro-rounds">
             {ROUNDS.map((level, i) => (

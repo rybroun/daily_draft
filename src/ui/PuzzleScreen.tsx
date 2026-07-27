@@ -15,6 +15,7 @@ import { Field } from './Field';
 import { Mark } from './Mark';
 import { ThemeToggle } from './ThemeToggle';
 import { Rounds } from './Rounds';
+import { standing } from './standing';
 import { SlotBoard } from './SlotBoard';
 import { explainSlot } from './explainSlot';
 import { RoundReveal } from './RoundReveal';
@@ -154,6 +155,30 @@ export function PuzzleScreen({
   const shown = score
     ? { yours: score.yourTotal, theirs: score.opponentTotal, unknown: [] as string[] }
     : totals;
+
+  /*
+   * Where each candidate's week finished among the five on their own wire.
+   *
+   * Only ever read for a player you've already watched score, so it reveals
+   * nothing about anyone you haven't — a "4th of 5" says look again, and not
+   * where to look.
+   */
+  const standingOf = useMemo(() => {
+    const ranks = new Map<PlayerId, string>();
+    for (const spot of puzzle.openings) {
+      const pool = puzzle.waivers.filter((p) => p.slot === spot.slot);
+      const scored = pool
+        .map((p) => ({ id: p.id, value: outcomeFor(p, spot.slot) }))
+        .sort((a, b) => b.value - a.value);
+      scored.forEach((entry) => {
+        // Ties share a place: the first index holding this value is the rank.
+        const rank = scored.findIndex((x) => x.value === entry.value) + 1;
+        const tied = scored.filter((x) => x.value === entry.value).length > 1;
+        ranks.set(entry.id, standing(rank, scored.length, tied));
+      });
+    }
+    return ranks;
+  }, [puzzle.openings, puzzle.waivers, outcomeFor]);
 
   const pick = (playerId: PlayerId) => {
     if (openIndex === -1) return;
@@ -310,6 +335,7 @@ export function PuzzleScreen({
                     pickedId={picks[openIndex]}
                     known={known}
                     outcomeFor={(player) => outcomeFor(player, player.slot)}
+                    standingOf={standingOf}
                     statKeys={statKeys}
                     statLabel={statLabel}
                     onPick={pick}
