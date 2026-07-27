@@ -1,5 +1,5 @@
 /**
- * Where a score finished among the five it was chosen from — "3rd of 5".
+ * Where a score finished among the five it was chosen from — "3rd of 5 waivers".
  *
  * The one thing a played round hands forward. It says whether to stand pat or
  * gamble without saying which of the others to gamble on: a player who came
@@ -9,7 +9,7 @@
  * both read "tied 1st" rather than one of them being quietly demoted.
  */
 export function standing(rank: number, of: number, tied: boolean): string {
-  return `${tied ? 'tied ' : ''}${ordinal(rank)} of ${of}`;
+  return `${tied ? 'tied ' : ''}${ordinal(rank)} of ${of} waivers`;
 }
 
 function ordinal(n: number): string {

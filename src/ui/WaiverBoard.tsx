@@ -105,14 +105,7 @@ export function WaiverBoard({
                 you carry out of a round, and the reason the wire is worth
                 re-reading rather than re-guessing.
               */}
-              {known.has(player.id) && (
-                <>
-                  <span className="pick-scored">{outcomeFor(player).toFixed(1)}</span>
-                  {standingOf.has(player.id) && (
-                    <span className="pick-standing">{standingOf.get(player.id)}</span>
-                  )}
-                </>
-              )}
+
             </span>
 
             {/* An aligned table, not a run of text — the columns are the point. */}
@@ -127,6 +120,22 @@ export function WaiverBoard({
                   ))}
                 </span>
               ))}
+
+              {/*
+                What they actually did, for someone you've already watched play.
+                A third line of the same table rather than a chip beside the
+                name: it's a figure in the same unit as the column it sits
+                under, so it belongs with the figures.
+              */}
+              {known.has(player.id) && (
+                <span className="pick-row is-actual">
+                  <span className="pick-cell is-label">Actual</span>
+                  <span className="pick-cell">{outcomeFor(player).toFixed(1)}</span>
+                  {standingOf.has(player.id) && (
+                    <span className="pick-standing">{standingOf.get(player.id)}</span>
+                  )}
+                </span>
+              )}
             </span>
           </button>
         );

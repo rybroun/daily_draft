@@ -1216,10 +1216,32 @@ body {
   Where that score finished among the five. Enough to know whether to stand pat
   or gamble, and nothing about which of the others to gamble on.
 */
+/* Sits after the figure, taking whatever columns are left. */
 .pick-standing {
+  grid-column: 3 / -1;
+  justify-self: start;
+  padding-inline-start: 0.375rem;
   font-size: 0.6875rem;
   font-weight: 600;
+  line-height: 1.1;
+  white-space: nowrap;
   color: var(--muted);
+}
+
+/* The one line here that is the week itself rather than the run-up to it. */
+.pick-row.is-actual {
+  margin-block-start: 0.125rem;
+  padding-block-start: 0.1875rem;
+  border-block-start: 1px solid var(--hairline);
+}
+
+.pick-row.is-actual .pick-cell {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.pick-row.is-actual .pick-cell.is-label {
+  color: var(--you);
 }
 
 .reveal-standing {

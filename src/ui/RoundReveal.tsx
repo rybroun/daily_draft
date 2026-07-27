@@ -109,8 +109,7 @@ export function RoundReveal({
                     slot.picked.rank,
                     slot.board.length,
                     slot.board.filter((e) => e.rank === slot.picked.rank).length > 1,
-                  )}{' '}
-                  on the wire
+                  )}
                 </span>
                 {note && <span className="reveal-note">{note}</span>}
               </li>
