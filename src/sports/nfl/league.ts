@@ -19,15 +19,37 @@ import type { FieldSpot, RosterSlot, StatKey } from '../../core/types';
 export const FIRST_WEEK = 7;
 export const LAST_WEEK = 17;
 
+/**
+ * Where the eight stand, read from the line of scrimmage backwards.
+ *
+ * Receivers and the tight end on the line, the backs behind it, the passer
+ * deepest of the three — which is the shape anyone who watches the sport reads
+ * without being told, and the reason a handoff looks like a handoff.
+ *
+ * The kicker is off on the touchline rather than in the formation, because he
+ * never is in one. A sport that fields a defensive unit would put it on the
+ * other touchline, at the mirror of these coordinates.
+ *
+ * These are display coordinates and the binding constraint is legibility, not
+ * realism. A name plate is 5.5rem wide, so two spots collide unless they are
+ * either that far apart across, or a plate's height apart down. That is why the
+ * backs are split wide rather than tucked either side of the passer: at x30/x70
+ * they shared a column with him and had to be a full row away, which pushed the
+ * line of scrimmage over the halfway and into the opponent's receivers. Out at
+ * x24/x76 they clear him across, so he can sit just behind them.
+ *
+ * The browser suite fails if any two players overlap, or if any two sharing a
+ * column come within 8px, on a 667-tall phone as well as a tall one.
+ */
 export const FORMATION: FieldSpot[] = [
-  { id: 'wr1', slot: 'WR', x: 13, y: 59 },
-  { id: 'wr2', slot: 'WR', x: 38, y: 59 },
-  { id: 'te1', slot: 'TE', x: 62, y: 59 },
-  { id: 'wr3', slot: 'WR', x: 87, y: 59 },
-  { id: 'rb1', slot: 'RB', x: 18, y: 76 },
-  { id: 'qb1', slot: 'QB', x: 50, y: 76 },
-  { id: 'rb2', slot: 'RB', x: 82, y: 76 },
-  { id: 'k1', slot: 'K', x: 50, y: 91 },
+  { id: 'wr1', slot: 'WR', x: 12, y: 58 },
+  { id: 'wr2', slot: 'WR', x: 36, y: 58 },
+  { id: 'te1', slot: 'TE', x: 63, y: 58 },
+  { id: 'wr3', slot: 'WR', x: 88, y: 58 },
+  { id: 'rb1', slot: 'RB', x: 24, y: 73 },
+  { id: 'rb2', slot: 'RB', x: 76, y: 73 },
+  { id: 'qb1', slot: 'QB', x: 50, y: 81 },
+  { id: 'k1', slot: 'K', x: 12, y: 93 },
 ];
 
 export const OPENABLE: RosterSlot[] = ['RB', 'WR', 'TE'];

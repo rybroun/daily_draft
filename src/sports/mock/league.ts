@@ -26,15 +26,16 @@ export const LAST_WEEK = 14;
  * back where it belongs.
  */
 export const FORMATION: FieldSpot[] = [
-  { id: 'wr1', slot: 'WR', x: 13, y: 59 },
-  { id: 'wr2', slot: 'WR', x: 38, y: 59 },
-  { id: 'te1', slot: 'TE', x: 62, y: 59 },
-  { id: 'wr3', slot: 'WR', x: 87, y: 59 },
-  { id: 'rb1', slot: 'RB', x: 18, y: 76 },
-  { id: 'qb1', slot: 'QB', x: 50, y: 76 },
-  { id: 'rb2', slot: 'RB', x: 82, y: 76 },
-  { id: 'k1', slot: 'K', x: 30, y: 91 },
-  { id: 'dst1', slot: 'DST', x: 70, y: 91 },
+  { id: 'wr1', slot: 'WR', x: 12, y: 58 },
+  { id: 'wr2', slot: 'WR', x: 36, y: 58 },
+  { id: 'te1', slot: 'TE', x: 63, y: 58 },
+  { id: 'wr3', slot: 'WR', x: 88, y: 58 },
+  { id: 'rb1', slot: 'RB', x: 24, y: 73 },
+  { id: 'rb2', slot: 'RB', x: 76, y: 73 },
+  { id: 'qb1', slot: 'QB', x: 50, y: 81 },
+  // The kicking game and the defence on opposite touchlines, out of the play.
+  { id: 'k1', slot: 'K', x: 12, y: 93 },
+  { id: 'dst1', slot: 'DST', x: 88, y: 93 },
 ];
 
 /** The positions you actually stream off waivers. */
