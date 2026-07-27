@@ -119,29 +119,27 @@ export function PuzzleScreen({
     );
 
     /*
-     * Your total is everything you actually know: the starters, plus any
-     * opening you filled with someone you already watched score in a round
-     * you've finished. Those points are real and yours to count.
+     * Your total is your starters and nothing else. The openings are the
+     * question, so their points sit outside it until the week is played.
+     *
+     * A pick you'd already watched score used to be counted in here, on the
+     * reasoning that you knew the number so it was yours to count. That made
+     * the bar move as you picked: re-take a player you know and the target
+     * dropped by exactly his score, while the play-out went on scoring you
+     * against the original figure. Worse, enough known points and it read
+     * "you needed 0". The bar is the target for the round and it holds.
      *
      * What's left out is named rather than merely missing. The gap between the
      * two totals is the whole question, and "64.6 against 91.8" looks like you
      * are simply losing until it says which spots aren't in that 64.6 yet.
      */
-    const yours = puzzle.field.reduce((sum, entry) => {
-      if (entry.player) return sum + outcomeFor(entry.player, entry.spot.slot);
-      const pick = filled.get(entry.spot.id);
-      return pick && known.has(pick.id) ? sum + outcomeFor(pick, entry.spot.slot) : sum;
-    }, 0);
+    const yours = puzzle.field.reduce(
+      (sum, entry) => sum + (entry.player ? outcomeFor(entry.player, entry.spot.slot) : 0),
+      0,
+    );
 
-    const unknown = puzzle.openings
-      .filter((spot) => {
-        const pick = filled.get(spot.id);
-        return !pick || !known.has(pick.id);
-      })
-      .map((spot) => spot.slot);
-
-    return { yours, theirs, unknown };
-  }, [puzzle, outcomeFor, filled, known]);
+    return { yours, theirs, unknown: puzzle.openings.map((spot) => spot.slot) };
+  }, [puzzle, outcomeFor]);
 
   /*
    * What your still-unknown spots had to produce between them.
