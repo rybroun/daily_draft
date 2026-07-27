@@ -17,6 +17,8 @@ interface RawPlayer {
   pos: RosterSlot;
   weeks: Record<string, Record<string, number>>;
   status?: Record<string, { status: string; practice: string | null }>;
+  /** True when a headshot for this player exists on disk. */
+  face?: boolean;
 }
 
 interface RawGame {
@@ -224,6 +226,9 @@ export function toPlayer(p: RawPlayer, year: number, week: number): Player {
     name: p.name,
     team: p.team,
     slot: p.pos,
+    // Fetched by scripts/fetch_headshots.py and served from public/. The build
+    // records which players actually have one, so this is never a broken image.
+    ...(p.face ? { image: `/headshots/${p.id}.png` } : {}),
     ...(designation ? { status: TAG[designation.status] ?? designation.status } : {}),
     form: [averageOf('Season', games, p.pos), averageOf('Last 3', recent, p.pos)],
     next: nextGameFor(year, week, p.team),

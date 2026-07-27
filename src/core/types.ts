@@ -42,6 +42,11 @@ export interface Player {
   /** Which opening this player is eligible to fill. */
   slot: RosterSlot;
   /**
+   * A portrait, if the sport has one. A path the interface can render; core
+   * never looks at it. Absent is normal and must degrade to the anonymous head.
+   */
+  image?: string;
+  /**
    * Availability, in the adapter's own words — "OUT", "Q". Opaque to core, and
    * known *before* kickoff, so it's legitimately part of what you get to see.
    */

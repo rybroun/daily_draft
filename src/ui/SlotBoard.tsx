@@ -35,10 +35,12 @@ export function SlotBoard({
             style={
               {
                 '--i': i,
-                // Same production ramp as the field, on a list already ordered by it.
-                '--spine': `var(--band-${
-                  entry.rank === 1 ? 'high' : entry.rank === slot.board.length ? 'low' : 'mid'
-                })`,
+                /*
+                  The board is already ordered by what the week was worth and
+                  the rank is printed beside every row, so the spine says the
+                  same thing a third time. It marks your own pick instead.
+                */
+                '--spine': isPick ? 'var(--you)' : 'var(--avatar)',
               } as React.CSSProperties
             }
           >

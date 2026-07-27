@@ -13,8 +13,11 @@ interface WaiverBoardProps {
   onPick: (playerId: PlayerId) => void;
 }
 
-/** The same anonymous head that stands on the field, so a row reads as a person. */
-function Head() {
+/** The same face that stands on the field, so a row reads as the same person. */
+function Head({ player }: { player: Player }) {
+  if (player.image) {
+    return <img className="pick-face-img" src={player.image} alt="" loading="lazy" decoding="async" />;
+  }
   return (
     <svg className="pick-head" viewBox="0 0 32 32" aria-hidden="true">
       <circle cx="16" cy="12" r="6.5" />
@@ -66,7 +69,7 @@ export function WaiverBoard({
             onClick={() => onPick(player.id)}
           >
             <span className="pick-face">
-              <Head />
+              <Head player={player} />
             </span>
 
             {/*
@@ -83,13 +86,14 @@ export function WaiverBoard({
               </span>
               <span className="pick-pos">{player.slot}</span>
               <span className="pick-team">{player.team}</span>
+              {/* Fixture and record travel together, hard against the right. */}
               {player.next && (
-                <>
+                <span className="pick-fixture">
                   <span className="pick-at">{player.next.label}</span>
                   {player.next.detail && (
                     <span className="pick-record">{player.next.detail}</span>
                   )}
-                </>
+                </span>
               )}
 
               {/*

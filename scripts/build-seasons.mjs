@@ -10,6 +10,15 @@
  */
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
 
+/*
+ * Which players have a portrait on disk, recorded here rather than guessed at
+ * runtime — a missing file would otherwise be a broken image on the field.
+ * Populate with `python3 scripts/fetch_headshots.py`.
+ */
+const FACES = existsSync('public/headshots')
+  ? new Set(readdirSync('public/headshots').map((f) => f.replace(/\.png$/, '')))
+  : new Set();
+
 const KEPT_POSITIONS = new Set(['QB', 'RB', 'WR', 'TE', 'K']);
 const REAL_DESIGNATIONS = new Set(['Out', 'Doubtful', 'Questionable']);
 
@@ -51,7 +60,15 @@ for (const year of years) {
           }),
       );
       const status = statusById.get(p.id);
-      return { id: p.id, name: p.name, team: p.team, pos: p.pos, weeks, ...(status ? { status } : {}) };
+      return {
+        id: p.id,
+        name: p.name,
+        team: p.team,
+        pos: p.pos,
+        weeks,
+        ...(FACES.has(p.id) ? { face: true } : {}),
+        ...(status ? { status } : {}),
+      };
     })
     .filter((p) => Object.keys(p.weeks).length >= 4);
 
@@ -70,8 +87,9 @@ for (const year of years) {
   };
 
   const designations = players.reduce((n, p) => n + Object.keys(p.status ?? {}).length, 0);
+  const faces = players.filter((p) => p.face).length;
   console.log(
-    `${year}: ${players.length} players, ${designations} designations, ` +
+    `${year}: ${players.length} players, ${faces} with a portrait, ${designations} designations, ` +
       `${Object.keys(games).length} teams' results` +
       (statusById.size ? '' : ' (no injury report published for this season)'),
   );

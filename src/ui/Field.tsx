@@ -49,8 +49,19 @@ const onCard = (name: string) => {
   return rest.length === 0 ? name : `${first[0]}. ${rest.join(' ')}`;
 };
 
-/** A head: circle for the skull, arc for the shoulders. Deliberately anonymous. */
-function Head() {
+/**
+ * A face where there is one, and the anonymous head where there isn't.
+ *
+ * The glyph was never the point — it stood in until there were portraits. A
+ * board of real faces is a board of people you either recognise or don't, and
+ * recognising one is half of what makes the week feel like a week.
+ */
+function Head({ player }: { player: Player | null }) {
+  if (player?.image) {
+    return (
+      <img className="head-face" src={player.image} alt="" loading="lazy" decoding="async" />
+    );
+  }
   return (
     <svg className="head-glyph" viewBox="0 0 32 32" aria-hidden="true">
       <circle cx="16" cy="12" r="6.5" />
@@ -151,49 +162,13 @@ interface Placed {
   theirs: boolean;
 }
 
-/**
- * How a head is coloured: by what they're producing, not by what they play.
- *
- * Position was the old colour code, but the position is already written next to
- * every name, so the colour was saying a second time what the label already
- * said. What it wasn't saying is the thing you actually scan a field for —
- * who's carrying it and who isn't.
- *
- * `unknown` is its own colour rather than yours. Your pick used to wear the
- * team orange, which made "mine" and "not yet known" the same colour on a
- * screen where they are the two most different things.
+/*
+ * Heads were banded high/mid/low by what they were producing, and the figures
+ * took those colours. Taken out on 2026-07-26: with sixteen figures on screen
+ * the colour was doing more work than the numbers, and the one thing the field
+ * has to say instantly is which spot you still have to fill. Everything is one
+ * grey now, so the question mark is the only loud thing on the grass.
  */
-type Band = 'high' | 'mid' | 'low' | 'unknown';
-
-/**
- * Banded within position across both lineups, never across all of them: seven
- * points is a fine day for a kicker and a wasted one for a quarterback, so a
- * single league-wide ramp would just colour the field by position again.
- */
-function bandsFor(figures: { key: string; slot: string; value: number | null }[]): Map<string, Band> {
-  const bands = new Map<string, Band>();
-  const bySlot = new Map<string, { key: string; value: number }[]>();
-
-  for (const f of figures) {
-    if (f.value === null) {
-      bands.set(f.key, 'unknown');
-      continue;
-    }
-    const group = bySlot.get(f.slot) ?? [];
-    group.push({ key: f.key, value: f.value });
-    bySlot.set(f.slot, group);
-  }
-
-  for (const group of bySlot.values()) {
-    const ranked = [...group].sort((a, b) => b.value - a.value);
-    const third = Math.ceil(ranked.length / 3);
-    ranked.forEach((entry, i) => {
-      bands.set(entry.key, i < third ? 'high' : i < ranked.length - third ? 'mid' : 'low');
-    });
-  }
-
-  return bands;
-}
 
 export function Field({
   entries,
@@ -227,27 +202,6 @@ export function Field({
       theirs: true,
     })),
   ];
-
-  /*
-   * The figure a head is showing, or null when it's showing a question mark.
-   * One place, so the colour and the number can never disagree about a player.
-   */
-  const figureOf = (entry: Placed): number | null => {
-    const occupant = entry.player ?? (entry.theirs ? null : (filled.get(entry.spot.id) ?? null));
-    if (!occupant) return null;
-    const isOpening = !entry.theirs && entry.player === null;
-    if (isOpening && !revealed) {
-      return known.has(occupant.id) ? outcomeFor(occupant, entry.spot.slot) : null;
-    }
-    return figureFor(occupant, entry.spot.slot);
-  };
-
-  const keyOf = (entry: Placed) => `${entry.theirs ? 'x' : 'o'}-${entry.spot.id}`;
-  const bands = bandsFor(
-    placed
-      .filter((entry) => entry.player ?? (!entry.theirs && filled.has(entry.spot.id)))
-      .map((entry) => ({ key: keyOf(entry), slot: entry.spot.slot, value: figureOf(entry) })),
-  );
 
   // The camera has to aim at where a spot is drawn, not where the formation
   // says it is, or a zoom would centre on bare turf a few percent away.
@@ -383,12 +337,10 @@ export function Field({
             </svg>
           </div>
 
-          {placed.map((entry) => {
-            const { spot, player, at, theirs } = entry;
+          {placed.map(({ spot, player, at, theirs }) => {
             const chosen = theirs ? null : (filled.get(spot.id) ?? null);
             const occupant = player ?? chosen;
             const isOpening = !theirs && player === null;
-            const band = occupant ? (bands.get(keyOf(entry)) ?? 'unknown') : 'unknown';
             const focused = !theirs && zoomedOn?.id === spot.id;
 
             const classes = [
@@ -396,7 +348,6 @@ export function Field({
               theirs ? 'is-theirs' : 'is-ours',
               isOpening ? 'is-opening' : 'is-set',
               occupant ? 'is-filled' : 'is-empty',
-              `is-${band}`,
               focused ? 'is-focused' : '',
               zoomedOn && !focused ? 'is-hushed' : '',
               !zoomedOn && isOpening && !occupant ? 'is-active' : '',
@@ -439,7 +390,11 @@ export function Field({
                   onClick={() => onSpotTap(spot.id)}
                 >
                   {/* Keyed on the occupant so a fresh pick visibly drops into the slot. */}
-                  {occupant ? <Head key={occupant.id} /> : <span className="spot-plus">+</span>}
+                  {occupant ? (
+                    <Head key={occupant.id} player={occupant} />
+                  ) : (
+                    <span className="spot-plus">+</span>
+                  )}
 
                   {/*
                     Only before the week — once it's played nothing is editable
