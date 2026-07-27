@@ -20,8 +20,8 @@
     "HEADLINES: DELIBERATELY SPARSE. Only weeks whose events were verified against a",
     "source are filled in; the rest are blank rather than invented, because a made-up",
     "front page printed as fact is worse than no front page. This is the field to",
-    "backfill from the NYT archive API — one headline per week, dated to that Sunday",
-    "or the days just before it."
+    "backfill from a newspaper archive API — one headline per week, dated to that",
+    "Sunday or the days just before it."
   ],
   "seasons": {
     "2007": {

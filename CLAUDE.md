@@ -151,7 +151,7 @@ npm run build    # → dist/, which is what's live
 
 **Public: https://daily-waivers.pages.dev** — Cloudflare Pages, free tier, no
 account needed to play. This is the link to send people. `npm run deploy` builds
-and publishes it; wrangler is authenticated as ryan.brounley@gmail.com.
+and publishes it; wrangler is already authenticated on this machine.
 
 Chosen over Tailscale Funnel deliberately. Funnel works and is still on, but it
 serves from this Mac, dies when the Mac does, and its `.ts.net` hostname gets

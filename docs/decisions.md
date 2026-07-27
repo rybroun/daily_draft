@@ -481,9 +481,10 @@ without a word of explanation.
 A "D" in a solid block, top left, drawn as a path rather than set in type so it renders
 identically before the webfont lands and at any size.
 
-Ryan asked for The Athletic's logo. Declined: it's a real publication's trademark, and putting
-it on this would read as their product. The mark above is the same idea — a single bold
-letterform in a solid block — belonging to this game.
+Ryan asked for a well-known sports publication's logo. Declined: it's a real company's
+trademark, and putting it on this would read as their product when it has nothing to do with
+them. The mark above is the same idea — a single bold letterform in a solid block — belonging
+to this game and to nobody else.
 
 ## 2026-07-25 — Light is the default, not the device's
 
