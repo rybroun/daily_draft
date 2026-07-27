@@ -78,18 +78,22 @@ export function useDay(
   const stored = rounds[round];
 
   /*
-   * Answers carry forward. The openings nest and the wire never changes, so the
-   * spot you filled in round one is still that spot in round two — and now you
-   * know what its five candidates actually did. Keeping your old answer in place
-   * makes the choice explicit: stand by it, or use what the reveal told you.
+   * Every round starts blank.
+   *
+   * Answers used to carry forward — the openings nest and the wire never
+   * changes, so the spot you filled in round one is still that spot in round
+   * two, and leaving your answer there made the choice explicit: stand by it or
+   * change it. In practice a filled spot reads as a question already settled,
+   * which is the opposite of what the board has to say. The openings are the
+   * ask, and all of them are.
+   *
+   * Nothing is lost by clearing them. What you learned is still yours: a player
+   * you started and watched score carries that score on their wire card, so
+   * picking them again is a deliberate act rather than the default.
    */
   const picks = useMemo<(PlayerId | null)[]>(
-    () =>
-      Array.from(
-        { length: openings },
-        (_, i) => stored?.playerIds[i] ?? rounds[round - 1]?.playerIds[i] ?? null,
-      ),
-    [stored, openings, rounds, round],
+    () => Array.from({ length: openings }, (_, i) => stored?.playerIds[i] ?? null),
+    [stored, openings],
   );
 
   const ready = picks.every((pick) => pick !== null);
