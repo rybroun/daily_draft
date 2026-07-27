@@ -822,6 +822,39 @@ body {
 }
 
 /*
+  A player losing their place. They swell and go, which is the only moment on
+  this screen where something is taken away rather than added — the empty spot
+  underneath is already the answer, so this is just the sentence before it.
+*/
+.spot.is-departing {
+  z-index: 4;
+  pointer-events: none;
+  animation: depart 0.9s cubic-bezier(0.3, 0, 0.7, 1) forwards;
+}
+
+/*
+  Peaks at 1.7 rather than 2.1. A player on the touchline swells past the
+  sideline and gets clipped by the frame, and the last thing this should look
+  like is a rendering fault.
+*/
+@keyframes depart {
+  0% { opacity: 1; scale: 1; }
+  30% { opacity: 1; scale: 1.28; }
+  100% { opacity: 0; scale: 1.7; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spot.is-departing {
+    animation: depart-plain 0.9s linear forwards;
+  }
+
+  @keyframes depart-plain {
+    0%, 60% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+}
+
+/*
   The lock. Small, and opposite the figure so the two never crowd each other.
   Shut is quiet — it's the resting state of five of your eight — and open is in
   your colour, because it's the one that's asking you to do something.

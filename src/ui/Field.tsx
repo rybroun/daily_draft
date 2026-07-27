@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import type {
   FieldEntry,
   FieldSpot,
@@ -115,6 +116,9 @@ const ZOOM = 1.45;
  * paint, the goal lines and this mapping have to agree or players stand in the
  * end zone, and three copies of one number do not stay agreed.
  */
+/** How long a departing player takes to swell and fade. */
+const DEPART_MS = 900;
+
 const END_ZONE = 10;
 const onGround = (y: number) => END_ZONE + (y / 100) * (100 - END_ZONE * 2);
 
@@ -202,6 +206,41 @@ export function Field({
       theirs: true,
     })),
   ];
+
+  /*
+   * Who just lost their place.
+   *
+   * Advancing a round takes one of your starters off the field to make the
+   * opening. Without something marking it, a player you had been counting on is
+   * simply absent the next time you look, and the spot that opened reads as
+   * though it had always been open — so the round quietly gets harder and
+   * nothing says why.
+   *
+   * Diffed here rather than announced from above, because the only thing that
+   * defines a departure is that a spot held someone last render and holds
+   * nobody now. That is true however the change was caused.
+   */
+  const held = useRef<Map<SpotId, Player> | null>(null);
+  const [departing, setDeparting] = useState<{ spot: FieldSpot; player: Player }[]>([]);
+
+  useEffect(() => {
+    const now = new Map<SpotId, Player>();
+    for (const entry of entries) if (entry.player) now.set(entry.spot.id, entry.player);
+
+    // First render establishes the baseline; nobody has left yet.
+    const before = held.current;
+    held.current = now;
+    if (!before) return;
+
+    const gone = entries
+      .filter((entry) => entry.player === null && before.has(entry.spot.id))
+      .map((entry) => ({ spot: entry.spot, player: before.get(entry.spot.id)! }));
+    if (gone.length === 0) return;
+
+    setDeparting(gone);
+    const timer = setTimeout(() => setDeparting([]), DEPART_MS);
+    return () => clearTimeout(timer);
+  }, [entries]);
 
   // The camera has to aim at where a spot is drawn, not where the formation
   // says it is, or a zoom would centre on bare turf a few percent away.
@@ -336,6 +375,27 @@ export function Field({
               <path d="M10 7h6.4c5.4 0 8.6 3.4 8.6 9s-3.2 9-8.6 9H10V7zm5.1 4.3v9.4h1.1c2.7 0 4.2-1.7 4.2-4.7s-1.5-4.7-4.2-4.7h-1.1z" />
             </svg>
           </div>
+
+          {/*
+            Drawn over the empty spot they left, not in place of it — the gap
+            is already the answer, and this is the sentence before it.
+          */}
+          {departing.map(({ spot, player }) => (
+            <div
+              key={`gone-${spot.id}`}
+              className="spot is-ours is-departing"
+              style={{ left: `${spot.x}%`, top: `${onGround(spot.y)}%` }}
+              aria-hidden="true"
+            >
+              <span className="spot-head">
+                <Head player={player} />
+              </span>
+              <span className="spot-name">
+                <span className="spot-pos">{spot.slot}</span>
+                <span className="spot-who">{onCard(player.name)}</span>
+              </span>
+            </div>
+          ))}
 
           {placed.map(({ spot, player, at, theirs }) => {
             const chosen = theirs ? null : (filled.get(spot.id) ?? null);
