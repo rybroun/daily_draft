@@ -17,7 +17,15 @@ import type { FieldSpot, RosterSlot, StatKey } from '../../core/types';
  * or six behind them and the two lines say different things.
  */
 export const FIRST_WEEK = 7;
-export const LAST_WEEK = 17;
+
+/**
+ * The last week is a property of the season, not of the league.
+ *
+ * It was a constant at 17 until 2021 and 2025 arrived, which play eighteen —
+ * the seventeen-game schedule came in for 2021. Hard-coded, those seasons would
+ * simply never deal their final week and nothing would say so.
+ */
+export const LAST_WEEK = 18;
 
 /**
  * Where the eight stand, read from the line of scrimmage backwards.

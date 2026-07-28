@@ -28,7 +28,8 @@ describe('the 2015 season is really 2015', () => {
   it('offers only weeks with enough history behind them to read', () => {
     for (const season of SEASONS) {
       expect(Math.min(...a.weeks(season))).toBeGreaterThanOrEqual(7);
-      expect(Math.max(...a.weeks(season))).toBe(17);
+      // Seventeen games from 2021, and seventeen weeks before it.
+      expect(Math.max(...a.weeks(season))).toBe(season >= 2021 ? 18 : 17);
     }
   });
 
@@ -116,8 +117,17 @@ describe('form is history and nothing else', () => {
   });
 
   it('only offers players with enough games behind them to have form', () => {
+    /*
+     * Finite, not positive. This asserted ppg > 0 and passed for two seasons by
+     * luck: a blocking tight end can go a whole season without a fantasy point,
+     * and a quarterback having a bad one can go negative — Charlie Batch was on
+     * -0.1 going into week 9 of 2007. Both are real players a real wire would
+     * offer, and both are traps worth being allowed to fall into.
+     */
     for (const { player } of everyone) {
-      expect(player.form[0].stats.ppg).toBeGreaterThan(0);
+      expect(player.form).toHaveLength(2);
+      expect(Number.isFinite(player.form[0].stats.ppg)).toBe(true);
+      expect(Number.isFinite(player.form[1].stats.ppg)).toBe(true);
     }
   });
 
@@ -273,7 +283,7 @@ describe('a day is one matchup that gets harder', () => {
 
 describe('both seasons are in the rotation', () => {
   it('offers every season it holds', () => {
-    expect(SEASONS).toEqual([2007, 2015]);
+    expect(SEASONS).toEqual([1999, 2001, 2007, 2015, 2021, 2025]);
   });
 
   it('deals from both across a year of dates', () => {
@@ -350,28 +360,52 @@ describe('the next game, and who it is against', () => {
 });
 
 describe('the league is grouped the way football groups it', () => {
-  const SEASON_WEEKS = everyWeek.filter(({ week }) => week === 10);
+  const eras = [
+    { season: 1999, divisions: 6, clubs: 31 },
+    { season: 2001, divisions: 6, clubs: 31 },
+    { season: 2007, divisions: 8, clubs: 32 },
+    { season: 2015, divisions: 8, clubs: 32 },
+    { season: 2021, divisions: 8, clubs: 32 },
+    { season: 2025, divisions: 8, clubs: 32 },
+  ];
 
-  it('puts all thirty-two clubs in eight divisions of four', () => {
-    for (const { season, week } of SEASON_WEEKS) {
-      const table = a.standings!(season, week);
-      const divisions = new Map<string, string[]>();
-      for (const row of table) {
-        const group = divisions.get(row.group!) ?? [];
-        group.push(row.name);
-        divisions.set(row.group!, group);
-      }
+  const grouped = (season: number, week: number) => {
+    const rows = a.standings!(season, week);
+    const byGroup = new Map<string, typeof rows>();
+    for (const row of rows) byGroup.set(row.group!, [...(byGroup.get(row.group!) ?? []), row]);
+    return { rows, byGroup };
+  };
 
-      expect(divisions.size).toBe(8);
-      for (const clubs of divisions.values()) expect(clubs).toHaveLength(4);
-      expect(table).toHaveLength(32);
-      expect(new Set(table.map((r) => r.name)).size).toBe(32);
+  it('places every club in exactly one division, in every era it holds', () => {
+    for (const { season, divisions, clubs } of eras) {
+      const { rows, byGroup } = grouped(season, 10);
+      expect(byGroup.size).toBe(divisions);
+      expect(rows).toHaveLength(clubs);
+      expect(new Set(rows.map((r) => r.name)).size).toBe(clubs);
+      // "Unaligned" is what a club falls through to when the map has no era for it.
+      expect(rows.every((r) => r.group !== 'Unaligned')).toBe(true);
     }
   });
 
-  it('names the divisions the way the league does', () => {
-    const groups = new Set(a.standings!(2015, 10).map((r) => r.group));
-    expect(groups).toEqual(
+  it('knows the Texans did not exist before 2002', () => {
+    expect(a.standings!(2001, 10).map((r) => r.name)).not.toContain('HOU');
+    expect(a.standings!(2007, 10).map((r) => r.name)).toContain('HOU');
+  });
+
+  it('knows where the Rams, Chargers and Raiders were playing', () => {
+    expect(a.standings!(2001, 10).map((r) => r.name)).toEqual(
+      expect.arrayContaining(['STL', 'SD', 'OAK']),
+    );
+    expect(a.standings!(2021, 10).map((r) => r.name)).toEqual(
+      expect.arrayContaining(['LA', 'LAC', 'LV']),
+    );
+  });
+
+  it('names the divisions the way the league named them at the time', () => {
+    expect(new Set(a.standings!(2001, 10).map((r) => r.group))).toEqual(
+      new Set(['AFC East', 'AFC Central', 'AFC West', 'NFC East', 'NFC Central', 'NFC West']),
+    );
+    expect(new Set(a.standings!(2025, 10).map((r) => r.group))).toEqual(
       new Set([
         'AFC East', 'AFC North', 'AFC South', 'AFC West',
         'NFC East', 'NFC North', 'NFC South', 'NFC West',
@@ -380,18 +414,13 @@ describe('the league is grouped the way football groups it', () => {
   });
 
   it('leads each division with the best record in it', () => {
-    for (const { season, week } of SEASON_WEEKS) {
-      const rate = (record: string) => {
-        const [w, l, t = 0] = record.split('–').map(Number);
-        return (w + t / 2) / (w + l + t);
-      };
-      const byGroup = new Map<string, { name: string; detail: string }[]>();
-      for (const row of a.standings!(season, week)) {
-        byGroup.set(row.group!, [...(byGroup.get(row.group!) ?? []), row]);
-      }
-      for (const rows of byGroup.values()) {
-        const best = Math.max(...rows.map((r) => rate(r.detail)));
-        expect(rate(rows[0].detail)).toBe(best);
+    const rate = (record: string) => {
+      const [w, l, t = 0] = record.split('–').map(Number);
+      return (w + t / 2) / (w + l + t);
+    };
+    for (const { season } of eras) {
+      for (const rows of grouped(season, 12).byGroup.values()) {
+        expect(rate(rows[0].detail)).toBe(Math.max(...rows.map((r) => rate(r.detail))));
       }
     }
   });
@@ -407,12 +436,25 @@ describe('the league is grouped the way football groups it', () => {
 });
 
 describe('the week as a moment in time', () => {
-  it('has a number one for every week the game can deal', () => {
-    for (const { season, week } of everyWeek) {
+  /*
+   * Charted seasons, not all of them. 2007 and 2015 are complete; the four
+   * added later carry no flavour yet and the card simply omits the lines.
+   * Listed explicitly so that filling one in and getting the shape wrong fails
+   * here rather than showing up as a blank line on the briefing.
+   */
+  const CHARTED = [2007, 2015];
+
+  it('has a number one for every week of every charted season', () => {
+    for (const { season, week } of everyWeek.filter((w) => CHARTED.includes(w.season))) {
       const moment = a.moment!(season, week);
-      // The song is always there; a headline only where one was verified.
       expect(moment[0].label).toBe('No. 1 song');
       expect(moment[0].detail).toMatch(/^“.+” by .+$/);
+    }
+  });
+
+  it('says nothing at all for a season it has no flavour for', () => {
+    for (const { season, week } of everyWeek.filter((w) => !CHARTED.includes(w.season))) {
+      expect(a.moment!(season, week)).toEqual([]);
     }
   });
 

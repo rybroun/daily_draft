@@ -44,6 +44,12 @@ const DATA = raw as unknown as { seasons: Record<string, RawSeason> };
 const season = (year: number): RawSeason => DATA.seasons[String(year)];
 
 export const seasonYears = Object.keys(DATA.seasons).map(Number).sort();
+
+/** How many weeks this season actually played, read off its own results. */
+export function lastWeekOf(year: number): number {
+  const weeks = Object.values(season(year).games ?? {}).flatMap((team) => Object.keys(team));
+  return weeks.length ? Math.max(...weeks.map(Number)) : 0;
+}
 export const hasInjuryReport = (year: number) => season(year).hasInjuryReport;
 
 /** Enough of a record that the season line and the last three can disagree. */
@@ -114,30 +120,78 @@ function recordThrough(year: number, week: number, team: string): string {
 }
 
 /**
- * Which division each club plays in.
+ * Which division each club plays in, and when.
  *
- * Football is tracked by division and always has been — playoff seeding runs
- * off it, and no broadcast or table anywhere shows a flat thirty-two.
+ * Football is tracked by division and always has been, but the divisions
+ * themselves move. Three eras are bundled here and a fourth would need its own:
  *
- * One map covers both seasons: the current alignment dates from the 2002
- * expansion, and 2007 and 2015 field the same thirty-two clubs under the same
- * codes. A season from before 2002, or after the Chargers and Rams moved,
- * would need its own.
+ *   1995–2001  six divisions, thirty-one clubs. No Houston — the Texans were
+ *              an expansion team in 2002 — so the AFC Central runs to six and
+ *              Seattle is in the AFC, Arizona in the NFC East.
+ *   2002–2015  the realignment: eight divisions of four, Houston added.
+ *   2016–      the same eight, after the Rams, Chargers and Raiders moved and
+ *              STL, SD and OAK became LA, LAC and LV.
+ *
+ * Getting this wrong is quiet: every club still lands in *a* division and the
+ * card still renders, it just says something untrue. The tests check that every
+ * club in a season is placed exactly once and that the era has the right number
+ * of divisions, which is what catches it.
  */
-const DIVISIONS: Record<string, string[]> = {
-  'AFC East': ['BUF', 'MIA', 'NE', 'NYJ'],
-  'AFC North': ['BAL', 'CIN', 'CLE', 'PIT'],
-  'AFC South': ['HOU', 'IND', 'JAX', 'TEN'],
-  'AFC West': ['DEN', 'KC', 'OAK', 'SD'],
-  'NFC East': ['DAL', 'NYG', 'PHI', 'WAS'],
-  'NFC North': ['CHI', 'DET', 'GB', 'MIN'],
-  'NFC South': ['ATL', 'CAR', 'NO', 'TB'],
-  'NFC West': ['ARI', 'SEA', 'SF', 'STL'],
-};
+const ALIGNMENTS: { until: number; divisions: Record<string, string[]> }[] = [
+  {
+    until: 2001,
+    divisions: {
+      'AFC East': ['BUF', 'IND', 'MIA', 'NE', 'NYJ'],
+      'AFC Central': ['BAL', 'CIN', 'CLE', 'JAX', 'PIT', 'TEN'],
+      'AFC West': ['DEN', 'KC', 'OAK', 'SD', 'SEA'],
+      'NFC East': ['ARI', 'DAL', 'NYG', 'PHI', 'WAS'],
+      'NFC Central': ['CHI', 'DET', 'GB', 'MIN', 'TB'],
+      'NFC West': ['ATL', 'CAR', 'NO', 'SF', 'STL'],
+    },
+  },
+  {
+    until: 2015,
+    divisions: {
+      'AFC East': ['BUF', 'MIA', 'NE', 'NYJ'],
+      'AFC North': ['BAL', 'CIN', 'CLE', 'PIT'],
+      'AFC South': ['HOU', 'IND', 'JAX', 'TEN'],
+      'AFC West': ['DEN', 'KC', 'OAK', 'SD'],
+      'NFC East': ['DAL', 'NYG', 'PHI', 'WAS'],
+      'NFC North': ['CHI', 'DET', 'GB', 'MIN'],
+      'NFC South': ['ATL', 'CAR', 'NO', 'TB'],
+      'NFC West': ['ARI', 'SEA', 'SF', 'STL'],
+    },
+  },
+  {
+    until: Infinity,
+    divisions: {
+      'AFC East': ['BUF', 'MIA', 'NE', 'NYJ'],
+      'AFC North': ['BAL', 'CIN', 'CLE', 'PIT'],
+      'AFC South': ['HOU', 'IND', 'JAX', 'TEN'],
+      'AFC West': ['DEN', 'KC', 'LAC', 'LV'],
+      'NFC East': ['DAL', 'NYG', 'PHI', 'WAS'],
+      'NFC North': ['CHI', 'DET', 'GB', 'MIN'],
+      'NFC South': ['ATL', 'CAR', 'NO', 'TB'],
+      'NFC West': ['ARI', 'LA', 'SEA', 'SF'],
+    },
+  },
+];
 
-const DIVISION_OF = new Map(
-  Object.entries(DIVISIONS).flatMap(([division, clubs]) => clubs.map((c) => [c, division] as const)),
-);
+const alignments = new Map<number, Map<string, string>>();
+
+function divisionOf(year: number): Map<string, string> {
+  const cached = alignments.get(year);
+  if (cached) return cached;
+
+  const era = ALIGNMENTS.find((a) => year <= a.until)!;
+  const map = new Map(
+    Object.entries(era.divisions).flatMap(([division, clubs]) =>
+      clubs.map((club) => [club, division] as const),
+    ),
+  );
+  alignments.set(year, map);
+  return map;
+}
 
 /**
  * How the league stood going into a given week, by division and best first.
@@ -168,7 +222,7 @@ export function standingsFor(year: number, week: number) {
     .filter((row) => row.played > 0)
     .sort(
       (a, b) =>
-        (DIVISION_OF.get(a.team) ?? '').localeCompare(DIVISION_OF.get(b.team) ?? '') ||
+        (divisionOf(year).get(a.team) ?? '').localeCompare(divisionOf(year).get(b.team) ?? '') ||
         // Record first, then points scored — an 8-2 that scores 300 is a better
         // read on "who's good" than an 8-2 that scores 180.
         b.rate - a.rate ||
@@ -176,7 +230,7 @@ export function standingsFor(year: number, week: number) {
     )
     .map((row) => ({
       name: row.team,
-      group: DIVISION_OF.get(row.team) ?? 'Unaligned',
+      group: divisionOf(year).get(row.team) ?? 'Unaligned',
       detail: row.tied > 0 ? `${row.won}–${row.lost}–${row.tied}` : `${row.won}–${row.lost}`,
     }));
 }

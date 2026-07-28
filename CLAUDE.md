@@ -28,9 +28,17 @@ was good; you are being asked who was about to be, against a specific opponent.
    for a sport that doesn't exist, and the core tests run against it — but it is no longer
    the only adapter.
 
-   Adding a season is two commands: `python3 scripts/fetch_season.py <year>` then
-   `npm run data`. **Injury reports only exist from 2009 onward**, so earlier seasons play
-   without designations rather than with invented ones.
+   Adding a season is three commands: `python3 scripts/fetch_season.py <year>`, then
+   `python3 scripts/fetch_headshots.py`, then `npm run data`.
+
+   **Live seasons: 1999, 2001, 2007, 2015, 2021 and 2025.** nflverse player stats
+   begin in 1999, so nothing earlier is reachable from this source — the eighties
+   would need a different one. Three things vary by era and each has bitten once:
+   **injury reports only exist from 2009**, seasons **from 2021 play eighteen weeks**
+   rather than seventeen, and **division alignment has changed twice** (six divisions
+   and no Houston before 2002; STL/SD/OAK became LA/LAC/LV from 2016). All three are
+   handled per season and asserted by test.
+
 3. **60 seconds, then done.** If a puzzle takes longer to play than that, the design is wrong.
 4. **The wire is the only thing hidden.** Revised 2026-07-26 — this rule used to cover the
    whole screen, and Ryan narrowed it deliberately.

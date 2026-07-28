@@ -3,7 +3,6 @@ import type { Player, RosterSlot, SpotId, SportAdapter } from '../../core/types'
 import {
   FIRST_WEEK,
   FORMATION,
-  LAST_WEEK,
   OPENABLE,
   SLOT_COLORS,
   SLOT_STATS,
@@ -12,7 +11,7 @@ import {
   TEAM_NAMES,
   fantasyPoints,
 } from './league';
-import { gameNote, project, ranked, seasonYears, standingsFor } from './season';
+import { gameNote, lastWeekOf, project, ranked, seasonYears, standingsFor } from './season';
 import numberOnes from './number-ones.json';
 
 /**
@@ -136,7 +135,12 @@ export const nflAdapter: SportAdapter = {
 
   seasons: () => seasonYears,
 
-  weeks: () => Array.from({ length: LAST_WEEK - FIRST_WEEK + 1 }, (_, i) => FIRST_WEEK + i),
+  // Asked per season, because 2021 onward play eighteen weeks and the rest play
+  // seventeen. Read from that season's own results rather than assumed.
+  weeks: (season) => {
+    const last = lastWeekOf(season);
+    return Array.from({ length: last - FIRST_WEEK + 1 }, (_, i) => FIRST_WEEK + i);
+  },
 
   formation: () => FORMATION,
 
