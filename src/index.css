@@ -2151,6 +2151,7 @@ body {
    */
   position: absolute;
   inset: 0;
+  overflow: hidden;
   z-index: 10;
   display: grid;
   place-items: center;
@@ -2276,6 +2277,11 @@ body {
 
 .reveal-verdict.is-won { color: var(--win); }
 .reveal-verdict.is-lost { color: var(--loss); }
+
+/* The room warms on a win, the way the grass used to when you landed on it. */
+.reveal.is-won {
+  background: linear-gradient(to bottom, #1c5233, #06180d);
+}
 
 .reveal-skip,
 .reveal-when {

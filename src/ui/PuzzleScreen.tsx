@@ -14,7 +14,6 @@ import type {
 import { Field } from './Field';
 import { Mark } from './Mark';
 import { ThemeToggle } from './ThemeToggle';
-import { Confetti } from './Confetti';
 import { Rounds } from './Rounds';
 import { standing } from './standing';
 import { SlotBoard } from './SlotBoard';
@@ -239,12 +238,6 @@ export function PuzzleScreen({
       */}
       <div className={`stage${score ? ` is-${score.result}` : ''}`}>
         <div className="stage-light" aria-hidden="true" />
-        {/*
-          Only once the play-out has been dismissed. Mounted on the score alone
-          it fired while the overlay still covered the field, so the burst was
-          over before you were handed back the board it was celebrating.
-        */}
-        {score?.result === 'won' && playingOut !== round && <Confetti />}
 
         <Field
           entries={puzzle.field}
@@ -373,10 +366,20 @@ export function PuzzleScreen({
         <RoundReveal
           puzzle={puzzle}
           score={score}
+          canAdvance={canAdvance}
           need={need}
           statLine={statLine}
           gameNote={gameNote}
-          onDone={() => setPlayingOut(null)}
+          /*
+            The way out of the play-out is the way into the next round. There
+            used to be a field in between showing the same result over again — a
+            page whose only purpose was to be left. The last round still lands
+            there, because that is where the day's boards are.
+          */
+          onDone={() => {
+            setPlayingOut(null);
+            if (canAdvance) onNextRound();
+          }}
         />
       )}
     </main>

@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { Player, Puzzle, Score, StatLine } from '../core/types';
+import { Confetti } from './Confetti';
 import { standing } from './standing';
 
 interface RoundRevealProps {
   puzzle: Puzzle;
   score: Score;
+  /** True when another round follows this one. Decides what the way out says. */
+  canAdvance: boolean;
   /**
    * The bar you were actually chasing, handed in rather than re-derived.
    *
@@ -42,6 +45,7 @@ const PICK_MS = 2300;
 export function RoundReveal({
   puzzle,
   score,
+  canAdvance,
   need,
   statLine,
   gameNote,
@@ -71,7 +75,7 @@ export function RoundReveal({
 
   return (
     <div
-      className="reveal"
+      className={`reveal is-${score.result}`}
       role="button"
       tabIndex={0}
       aria-label="Skip ahead"
@@ -80,6 +84,17 @@ export function RoundReveal({
         if (e.key === 'Enter' || e.key === ' ') setBeat((b) => b + 1);
       }}
     >
+      {/*
+        The celebration belongs on the verdict, which is where you find out. It
+        used to fall on the field you were handed afterwards — a screen whose
+        only job was to show the result a second time before you left it.
+
+        Gated on the verdict beat, not on mounting. The play-out runs for the
+        best part of ten seconds before it gets there, and a 2.4s burst started
+        at the top is long over by the time there is anything to celebrate.
+      */}
+      {score.result === 'won' && onVerdict && <Confetti />}
+
       <div className="reveal-inner">
         {/*
           What they actually scored comes first, because it is why this number
@@ -151,7 +166,7 @@ export function RoundReveal({
               setBeat((b) => b + 1);
             }}
           >
-            Continue
+            {canAdvance ? 'Next round' : 'See the day'}
           </button>
         ) : (
           <p className="reveal-skip">Tap to skip</p>
