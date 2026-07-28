@@ -35,6 +35,7 @@ interface PuzzleScreenProps {
   statLine: (line: StatLine, player: Player) => string;
   statKeys: (slot: RosterSlot) => StatKey[];
   statLabel: (key: StatKey) => string;
+  statMeaning?: (key: StatKey) => string;
   outcomeFor: (player: Player, slot: RosterSlot) => number;
   round: number;
   results: (MatchupResult | null)[];
@@ -56,6 +57,7 @@ export function PuzzleScreen({
   statLine,
   statKeys,
   statLabel,
+  statMeaning,
   outcomeFor,
   round,
   results,
@@ -184,9 +186,17 @@ export function PuzzleScreen({
     if (openIndex === -1) return;
     onFill(openIndex, playerId);
 
-    // Straight on to whatever is still empty, so the lineup fills in two taps.
-    const next = puzzle.openings.findIndex((_, i) => i !== openIndex && picks[i] === null);
-    setOpenSpotId(next === -1 ? null : puzzle.openings[next].id);
+    /*
+     * Back to the field, always.
+     *
+     * This used to jump straight to the next empty spot, which fills a lineup
+     * in the fewest taps and is genuinely quicker once you know the game. It
+     * also means tapping a name silently replaces the list under your finger
+     * with a different one, and the spot you just filled scrolls out of sight
+     * before you've seen it filled. The field is where the answer lands, so
+     * that is where a pick should put you.
+     */
+    setOpenSpotId(null);
   };
 
   return (
@@ -338,6 +348,7 @@ export function PuzzleScreen({
                     standingOf={standingOf}
                     statKeys={statKeys}
                     statLabel={statLabel}
+                    statMeaning={statMeaning}
                     onPick={pick}
                   />
                 ))}

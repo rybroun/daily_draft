@@ -124,6 +124,11 @@ export interface SportAdapter {
   /** The short heading for one stat, e.g. "REC". Opaque to core. */
   statLabel(key: StatKey): string;
   /**
+   * The same stat in plain words, for a player who doesn't know the shorthand.
+   * Optional: a sport whose labels are already words doesn't need it.
+   */
+  statMeaning?(key: StatKey): string;
+  /**
    * A colour for a position.
    *
    * Nothing renders this today: the field colours heads by what they're

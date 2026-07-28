@@ -46,6 +46,7 @@ export default function App() {
   );
   const statKeys = useCallback((slot: RosterSlot) => adapter.statKeys(slot), []);
   const statLabel = useCallback((key: StatKey) => adapter.statLabel(key), []);
+  const statMeaning = useCallback((key: StatKey) => adapter.statMeaning?.(key) ?? key, []);
 
   if (!day.started) {
     return (
@@ -72,6 +73,7 @@ export default function App() {
       statLine={statLine}
       statKeys={statKeys}
       statLabel={statLabel}
+      statMeaning={statMeaning}
       outcomeFor={outcomeFor}
       round={day.round}
       results={day.results}

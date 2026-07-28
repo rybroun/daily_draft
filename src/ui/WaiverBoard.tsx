@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Player, PlayerId, RosterSlot, StatKey, StatLine } from '../core/types';
 import { StatusTag } from './StatusTag';
 
@@ -12,6 +13,8 @@ interface WaiverBoardProps {
   standingOf: Map<PlayerId, string>;
   statKeys: (slot: RosterSlot) => StatKey[];
   statLabel: (key: StatKey) => string;
+  /** The same stat in plain words. Absent if the sport doesn't offer them. */
+  statMeaning?: (key: StatKey) => string;
   onPick: (playerId: PlayerId) => void;
 }
 
@@ -46,21 +49,69 @@ export function WaiverBoard({
   standingOf,
   statKeys,
   statLabel,
+  statMeaning,
   onPick,
 }: WaiverBoardProps) {
   const columns = candidates.length ? statKeys(candidates[0].slot) : [];
+  const [explaining, setExplaining] = useState(false);
+
+  /*
+   * The best figure in each column, across the five on screen.
+   *
+   * Marked rather than colour-scaled, and only ever among the five you can
+   * actually see — the evidence for it is the column itself, so a novice can
+   * check it by eye rather than trusting a shade. "Is 43.4 a lot?" is the
+   * question a table of jargon can't answer on its own.
+   */
+  const leaders = new Map<string, number>();
+  for (const key of columns) {
+    // Per row as well as per column: the best season figure and the best recent
+    // one are different questions, and comparing a season line against someone
+    // else's last three would mark the wrong player.
+    for (const line of candidates[0]?.form ?? []) {
+      const values = candidates.map((p) => {
+        const match = p.form.find((l) => l.label === line.label);
+        return Number(match?.stats[key] ?? 0);
+      });
+      leaders.set(`${line.label}:${key}`, Math.max(...values));
+    }
+  }
 
   return (
     <div className="picks">
       {/* Column headings once for the list, rather than repeated on every card. */}
       <div className="picks-head" style={{ '--cols': columns.length } as React.CSSProperties}>
-        <span className="pick-cell is-label" />
+        <span className="pick-cell is-label">
+          {statMeaning && (
+            <button
+              type="button"
+              className="stat-key-toggle"
+              aria-expanded={explaining}
+              onClick={() => setExplaining((open) => !open)}
+            >
+              {explaining ? '×' : '?'}
+              <span className="visually-hidden">What these columns mean</span>
+            </button>
+          )}
+        </span>
         {columns.map((key) => (
           <span key={key} className="pick-cell">
             {statLabel(key)}
           </span>
         ))}
       </div>
+
+      {/* Shown on request. Nobody who knows the shorthand needs it in the way. */}
+      {explaining && statMeaning && (
+        <ul className="stat-key">
+          {columns.map((key) => (
+            <li key={key}>
+              <span className="stat-key-label">{statLabel(key)}</span>
+              <span className="stat-key-meaning">{statMeaning(key)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
       {candidates.map((player) => {
         return (
           <button
@@ -113,11 +164,18 @@ export function WaiverBoard({
               {player.form.map((line: StatLine) => (
                 <span key={line.label} className="pick-row">
                   <span className="pick-cell is-label">{line.label}</span>
-                  {columns.map((key) => (
-                    <span key={key} className="pick-cell">
-                      {line.stats[key] ?? 0}
-                    </span>
-                  ))}
+                  {columns.map((key) => {
+                    const value = Number(line.stats[key] ?? 0);
+                    const best = leaders.get(`${line.label}:${key}`);
+                    return (
+                      <span
+                        key={key}
+                        className={`pick-cell${best !== undefined && value === best && best > 0 ? ' is-best' : ''}`}
+                      >
+                        {line.stats[key] ?? 0}
+                      </span>
+                    );
+                  })}
                 </span>
               ))}
 

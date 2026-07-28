@@ -136,8 +136,29 @@ export function RoundReveal({
           </>
         )}
 
-        <p className={`reveal-skip${onVerdict ? ' is-waiting' : ''}`}>
-          {onVerdict ? 'Tap to continue' : 'Tap to skip'} · {puzzle.season} week {puzzle.week}
+        {/*
+          A real button at the end. "Tap anywhere" is only an affordance if
+          something on screen looks tappable — a line of dim text saying so
+          isn't one, and people sat waiting on the verdict for want of it.
+          Tapping the backdrop still works for anyone who has learnt it.
+        */}
+        {onVerdict ? (
+          <button
+            type="button"
+            className="reveal-done"
+            onClick={(e) => {
+              e.stopPropagation();
+              setBeat((b) => b + 1);
+            }}
+          >
+            Continue
+          </button>
+        ) : (
+          <p className="reveal-skip">Tap to skip</p>
+        )}
+
+        <p className="reveal-when">
+          {puzzle.season} week {puzzle.week}
         </p>
       </div>
     </div>

@@ -82,6 +82,28 @@ export const SLOT_STATS: Record<RosterSlot, StatKey[]> = {
   K: ['ppg', 'fgMade', 'patMade'],
 };
 
+/**
+ * What each column means, for anyone who hasn't played fantasy football.
+ *
+ * The short labels are the ones every scoring page uses and they stay — but
+ * "CAR" and "PPG" are jargon, and a game that opens with a table of them is
+ * asking for knowledge it never taught. Shown on request, not by default.
+ */
+export const STAT_MEANINGS: Record<StatKey, string> = {
+  ppg: 'Fantasy points per game — the one number that decides this',
+  rec: 'Catches per game',
+  recYds: 'Receiving yards per game',
+  rushAtt: 'Carries per game — how often they get the ball',
+  rushYds: 'Rushing yards per game',
+  td: 'Touchdowns per game',
+  passYds: 'Passing yards per game',
+  passTd: 'Touchdown passes per game',
+  int: 'Interceptions thrown per game — lower is better',
+  fumLost: 'Fumbles lost per game — lower is better',
+  fgMade: 'Field goals made per game',
+  patMade: 'Extra points made per game',
+};
+
 export const STAT_LABELS: Record<StatKey, string> = {
   ppg: 'PPG',
   rec: 'REC',

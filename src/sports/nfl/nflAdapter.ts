@@ -8,6 +8,7 @@ import {
   SLOT_COLORS,
   SLOT_STATS,
   STAT_LABELS,
+  STAT_MEANINGS,
   TEAM_NAMES,
   fantasyPoints,
 } from './league';
@@ -156,6 +157,7 @@ export const nflAdapter: SportAdapter = {
   statKeys: (slot) => SLOT_STATS[slot] ?? [],
 
   statLabel: (key) => STAT_LABELS[key] ?? key.toUpperCase(),
+  statMeaning: (key) => STAT_MEANINGS[key] ?? key,
 
   /*
    * Only the stats that describe this position, plus a fumble when there was
