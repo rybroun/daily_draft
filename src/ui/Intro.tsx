@@ -100,10 +100,14 @@ export function Intro({ season, week, standings, leaders, moment, streak, onStar
   return (
     <div className="intro">
       <div className="intro-card is-briefing">
-        <p className="intro-eyebrow">
-          {season} · Week {week}
-        </p>
-        <h1 className="intro-title is-tight">Where things stood.</h1>
+        {/*
+          The week is the heading. "Where things stood" was a label for what the
+          card obviously is — everything under it is where things stood — and it
+          pushed the one fact that actually places you into small grey type.
+        */}
+        <h1 className="intro-title is-tight">
+          Week {week}, {season}
+        </h1>
 
         {/*
           The world outside the sport, first. A date is an abstraction until
@@ -113,7 +117,10 @@ export function Intro({ season, week, standings, leaders, moment, streak, onStar
         {moment.length > 0 && (
           <div className="intro-block">
             {moment.map((row) => (
-              <p key={row.label} className="intro-moment">
+              <p
+                key={row.label}
+                className={`intro-moment${row.label === 'In the news' ? ' is-headline' : ''}`}
+              >
                 <span className="intro-moment-label">{row.label}</span>
                 <span className="intro-moment-detail">{row.detail}</span>
               </p>

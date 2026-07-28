@@ -9,41 +9,48 @@
     "",
     "SHAPE: { song, artist, headline }.",
     "",
-    "HOW TO WORK OUT WHICH WEEK: find the Sunday that NFL week was played, then take",
-    "the chart or front page for that week. Week 1 Sunday was 9 Sep 2007 and 13 Sep",
-    "2015, and weeks run consecutively, so week N is that date plus 7*(N-1). Week 17",
-    "spills into January — 2015's week 17 was played on 3 Jan 2016.",
+    "HOW TO WORK OUT WHICH WEEK: find the Sunday that NFL week was played. Week 1",
+    "Sunday was 9 Sep 2007 and 13 Sep 2015, and weeks run consecutively, so week N",
+    "is that date plus 7*(N-1). Week 17 spills into January — 2015's week 17 was",
+    "played on 3 Jan 2016.",
     "",
-    "SONGS: Billboard Hot 100, taking the issue dated the Saturday before the Sunday.",
-    "Source: Wikipedia, 'List of Billboard Hot 100 number ones of <year>'. Complete.",
+    "SONGS: Billboard Hot 100, taking the issue dated the Saturday before the",
+    "Sunday. Source: Wikipedia, 'List of Billboard Hot 100 number ones of <year>'.",
+    "Complete for both seasons.",
     "",
-    "HEADLINES: DELIBERATELY SPARSE. Only weeks whose events were verified against a",
-    "source are filled in; the rest are blank rather than invented, because a made-up",
-    "front page printed as fact is worse than no front page. This is the field to",
-    "backfill from a newspaper archive API — one headline per week, dated to that",
-    "Sunday or the days just before it."
+    "HEADLINES: the biggest story of the seven days ending on that Sunday. EVERY",
+    "ONE IS CHECKED against its own Wikipedia article — never a summary of a month,",
+    "which is where the errors live, and never recalled. Weeks with no entry are",
+    "blank on purpose: an invented front page printed as fact is worse than none,",
+    "and a wrong date is worse still because it reads as authoritative. Fill the",
+    "gaps the same way — one event, one article, one date confirmed."
   ],
   "seasons": {
     "2007": {
       "7": {
         "song": "Crank That (Soulja Boy)",
-        "artist": "Soulja Boy Tell'em"
+        "artist": "Soulja Boy Tell'em",
+        "headline": "Bhutto returns to Pakistan; Karachi bombing kills 138"
       },
       "8": {
         "song": "Crank That (Soulja Boy)",
-        "artist": "Soulja Boy Tell'em"
+        "artist": "Soulja Boy Tell'em",
+        "headline": "California wildfires force a million from their homes"
       },
       "9": {
         "song": "Crank That (Soulja Boy)",
-        "artist": "Soulja Boy Tell'em"
+        "artist": "Soulja Boy Tell'em",
+        "headline": "Musharraf suspends Pakistan's constitution"
       },
       "10": {
         "song": "Kiss Kiss",
-        "artist": "Chris Brown feat. T-Pain"
+        "artist": "Chris Brown feat. T-Pain",
+        "headline": "Hollywood writers strike, shutting down film and television"
       },
       "11": {
         "song": "Kiss Kiss",
-        "artist": "Chris Brown feat. T-Pain"
+        "artist": "Chris Brown feat. T-Pain",
+        "headline": "Cyclone Sidr devastates Bangladesh, killing thousands"
       },
       "12": {
         "song": "Kiss Kiss",
@@ -74,11 +81,13 @@
     "2015": {
       "7": {
         "song": "The Hills",
-        "artist": "The Weeknd"
+        "artist": "The Weeknd",
+        "headline": "Hurricane Patricia becomes the strongest storm ever recorded"
       },
       "8": {
         "song": "The Hills",
-        "artist": "The Weeknd"
+        "artist": "The Weeknd",
+        "headline": "Airliner brought down over Sinai, killing all 224 aboard"
       },
       "9": {
         "song": "The Hills",
@@ -95,7 +104,8 @@
       },
       "12": {
         "song": "Hello",
-        "artist": "Adele"
+        "artist": "Adele",
+        "headline": "Turkey shoots down a Russian jet on the Syrian border"
       },
       "13": {
         "song": "Hello",
@@ -104,7 +114,8 @@
       },
       "14": {
         "song": "Hello",
-        "artist": "Adele"
+        "artist": "Adele",
+        "headline": "Paris climate agreement adopted by 195 nations"
       },
       "15": {
         "song": "Hello",
