@@ -18,19 +18,34 @@
     "Sunday. Source: Wikipedia, 'List of Billboard Hot 100 number ones of <year>'.",
     "Complete for both seasons.",
     "",
-    "HEADLINES: the biggest story of the seven days ending on that Sunday. EVERY",
-    "ONE IS CHECKED against its own Wikipedia article — never a summary of a month,",
-    "which is where the errors live, and never recalled. Weeks with no entry are",
-    "blank on purpose: an invented front page printed as fact is worse than none,",
-    "and a wrong date is worse still because it reads as authoritative. Fill the",
-    "gaps the same way — one event, one article, one date confirmed."
+    "HEADLINES — WHAT TO PICK, in order of preference:",
+    "",
+    "  1. SPORT, and a sport other than American football. A World Series, a",
+    "     rugby final, an NBA trade, a title fight. The player is already deep in",
+    "     one sport; another one places the week without competing with it, and a",
+    "     second NFL story would just be more of what's already on screen.",
+    "  2. Something that lifts. 'Biggest story of the week' selects hard for",
+    "     catastrophe — left alone this set became wildfires, a suspended",
+    "     constitution, a cyclone and two assassinations. Where a real, checkable",
+    "     alternative sits in the same seven days, take it.",
+    "  3. The week's actual biggest story, when neither of the above exists.",
+    "     Some weeks have no bright side and shouldn't be given a false one:",
+    "     November 2015 really was Paris.",
+    "",
+    "HEADLINES — HOW TO CHECK: every one is verified against its own Wikipedia",
+    "article. Never a month summary, which is where the errors live — an early",
+    "attempt at bulk extraction dated the Kenyan general election to November when",
+    "it was 27 December. Never recalled from memory either. Weeks with no entry",
+    "are blank on purpose: an invented front page printed as fact is worse than",
+    "none, and a wrong date is worse still because it reads as authoritative.",
+    "One event, one article, one date confirmed."
   ],
   "seasons": {
     "2007": {
       "7": {
         "song": "Crank That (Soulja Boy)",
         "artist": "Soulja Boy Tell'em",
-        "headline": "Bhutto returns to Pakistan; Karachi bombing kills 138"
+        "headline": "South Africa beat England to win the Rugby World Cup"
       },
       "8": {
         "song": "Crank That (Soulja Boy)",
@@ -87,7 +102,7 @@
       "8": {
         "song": "The Hills",
         "artist": "The Weeknd",
-        "headline": "Airliner brought down over Sinai, killing all 224 aboard"
+        "headline": "Royals beat the Mets to take the World Series"
       },
       "9": {
         "song": "The Hills",
