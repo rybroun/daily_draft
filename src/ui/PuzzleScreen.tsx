@@ -14,6 +14,7 @@ import type {
 import { Field } from './Field';
 import { Mark } from './Mark';
 import { ThemeToggle } from './ThemeToggle';
+import { Confetti } from './Confetti';
 import { Rounds } from './Rounds';
 import { standing } from './standing';
 import { SlotBoard } from './SlotBoard';
@@ -231,8 +232,19 @@ export function PuzzleScreen({
 
       <Rounds current={round} results={results} />
 
-      <div className="stage">
+      {/*
+        The field itself knows how it went. The play-out says so and then hands
+        you back to a board that looked exactly as it did before you played,
+        which is a flat way to end the only moment the round has.
+      */}
+      <div className={`stage${score ? ` is-${score.result}` : ''}`}>
         <div className="stage-light" aria-hidden="true" />
+        {/*
+          Only once the play-out has been dismissed. Mounted on the score alone
+          it fired while the overlay still covered the field, so the burst was
+          over before you were handed back the board it was celebrating.
+        */}
+        {score?.result === 'won' && playingOut !== round && <Confetti />}
 
         <Field
           entries={puzzle.field}

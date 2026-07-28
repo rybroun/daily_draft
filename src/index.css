@@ -225,6 +225,100 @@ body {
   );
 }
 
+/*
+  How the round went, felt rather than read.
+
+  A win lifts the light on the grass; a loss drains it. Both settle rather than
+  flash, because you arrive here from the play-out already knowing the answer —
+  this is the room changing after the sentence, not the sentence.
+*/
+.stage.is-won::after,
+.stage.is-lost::after,
+.stage.is-tied::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  animation: mood 0.9s ease-out both;
+}
+
+.stage.is-won::after {
+  background: radial-gradient(70% 55% at 50% 62%, #fff6c880, transparent 72%);
+}
+
+.stage.is-lost::after {
+  background: linear-gradient(to bottom, #0a1a1200, #0a1a1259);
+}
+
+.stage.is-tied::after {
+  background: linear-gradient(to bottom, #0a1a1200, #0a1a1226);
+}
+
+@keyframes mood {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* A loss also takes the colour out of the grass, briefly and then for good. */
+.stage.is-lost .field-turf {
+  filter: saturate(0.55);
+  transition: filter 0.9s ease-out;
+}
+
+/*
+  The burst. Twelve pieces, hand-placed — the day is deterministic everywhere
+  else and a celebration that fell differently on every refresh of the same
+  finished round would be the one thing on screen that isn't reproducible.
+*/
+.confetti {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti-piece {
+  position: absolute;
+  inset-block-start: -8%;
+  inline-size: 0.4375rem;
+  block-size: 0.6875rem;
+  border-radius: 0.0625rem;
+  opacity: 0;
+  animation: fall 2.4s cubic-bezier(0.35, 0.15, 0.5, 1) forwards;
+}
+
+.confetti-piece.is-a { background: var(--you); }
+.confetti-piece.is-b { background: #f5d949; }
+.confetti-piece.is-c { background: #ffffff; }
+
+/*
+  The fall distance is in viewport units, not percent. A percentage translate
+  resolves against the element's own box — 115% of a 11px scrap of paper is
+  twelve pixels, so the first version dropped twelve pixels and vanished while
+  the check happily counted twelve pieces in the DOM.
+*/
+@keyframes fall {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) rotate(0deg); }
+  8% { opacity: 1; }
+  82% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--drift), 95vh, 0) rotate(var(--spin));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confetti { display: none; }
+
+  .stage.is-won::after,
+  .stage.is-lost::after,
+  .stage.is-tied::after {
+    animation: none;
+  }
+}
+
 /* Sunlight falling across the middle of the pitch. */
 .stage-light {
   position: absolute;
@@ -592,6 +686,10 @@ body {
 .endzone.is-them .endzone-total { color: var(--endzone-them-ink); }
 .endzone.is-you .endzone-total,
 .endzone.is-you .endzone-call { color: var(--endzone-you-ink); }
+
+/* Won or lost, said in the colour the rest of the game uses for it. */
+.endzone.is-you.is-won .endzone-call strong { color: #d9ffe9; }
+.endzone.is-you.is-lost .endzone-call strong { color: #ffe0da; }
 
 .endzone.is-them .endzone-word { color: var(--endzone-them-ink); }
 .endzone.is-you .endzone-word { color: var(--endzone-you-ink); }
