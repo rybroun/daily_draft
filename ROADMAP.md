@@ -1,20 +1,21 @@
 # Roadmap — daily_draft
 
-**Updated:** 2026-07-26 · **Lead:** daily-draft-prototype
+**Updated:** 2026-09-06 · **Lead:** daily-draft-prototype
 
 The game is a **waiver-wire puzzle against a named opponent**, played as three rounds off one
 shared wire. Your lineup on a field with holes in it, their lineup facing you, a wire showing
 form, fixtures and injury tags but never the week itself. Fill the holes, play the week, find
 out whether you beat them — then do it again with one more hole.
 
-The sport is settled: **NFL, on real nflverse data for 2007 and 2015**. What's in `Now` is
-judgement about whether it's fun, which is a question only play can answer.
+The sport is settled: **NFL, on real nflverse data for six seasons — 1999, 2001, 2007, 2015,
+2021 and 2025**. What's in `Now` is judgement about whether it's fun, which is a question only
+play can answer.
 
 ## Now
 
 | Item | Status | Updated | Notes |
 |---|---|---|---|
-| Play it on real data and judge whether it's fun | in progress | 2026-07-26 | **Live at https://bananas-mac-mini.tail6d208c.ts.net** (tailnet only). 2007 and 2015, weeks 7–17. The prototype exists to answer this and nothing else. |
+| Play it on real data and judge whether it's fun | in progress | 2026-09-06 | **Public at https://daily-waivers.pages.dev**, and on the tailnet at https://bananas-mac-mini.tail6d208c.ts.net. Six seasons, week 7 to the end of each one. The prototype exists to answer this and nothing else. Nothing has been committed since 2026-07-27 — the suite passes (102 tests) and both URLs serve, so this is waiting on a verdict, not on code. |
 | Decide whether one week is too random to feel fair | in progress | 2026-07-26 | Largely answered structurally: every round is now guaranteed winnable off the wire, so no day is decided before you play it. Whether it *feels* fair still needs play. |
 
 ## Next
@@ -43,6 +44,7 @@ judgement about whether it's fun, which is a question only play can answer.
 | Headlines, and the week as the heading | 2026-07-28 | Twelve of the twenty-two weeks now carry the story of that week — wildfires, Musharraf, Sidr, Patricia, Sinai, Paris, San Bernardino. **Every one checked against its own Wikipedia article**, never a month summary: the first attempt at bulk extraction dated the Kenyan election to November when it was 27 December, which is exactly the plausible-but-wrong that would have shipped. The other ten are blank on purpose. "Where things stood" became "Week 8, 2007" — the label described what the card obviously was while pushing the one fact that places you into small grey type. |
 | Winning feels like winning | 2026-07-28 | The play-out said "Won by 2.9" and then handed you back a board that looked exactly as it had before you played. The field now knows: a win lifts the light on the grass and twelve pieces of confetti fall across it; a loss drains the colour and settles a shadow over it. The burst is hand-placed rather than random, because the day is deterministic everywhere else and a celebration that fell differently on each refresh of the same finished round would be the one thing on screen that isn't reproducible. |
 | Three fixes from a novice's first play | 2026-07-28 | Feedback from a colleague of Ryan's who doesn't play fantasy. **Picking now returns you to the field** instead of jumping to the next empty spot — fewer taps once you know the game, disorienting before then. **The columns explain themselves on request**: a "?" opens plain-English meanings for PPG, CAR and the rest, and the top figure in each column of each row is marked with a dot so "is this good?" is answerable by eye. **The play-out ends on a real button** — "tap anywhere" isn't an affordance when nothing looks tappable, and he sat waiting on the verdict. |
+| Third-party names scrubbed before the repo went public | 2026-07-27 | Shipped alongside the public deploy, and the reason is the point: `docs/decisions.md` recorded that a real sports publication's logo had been asked for and declined *because* using their trademark would make this look like their product — and then named them, in a repo about to be world-readable. Same for the newspaper archive named in `number-ones.json` as the place to backfill headlines from; it is one option among several and implying an association isn't intended. Ryan's email address came out of `CLAUDE.md`. Everything else that becomes world-readable was audited at the same time: no keys, tokens or credentials, no `.env`, and the only tracked settings file is a permissions allowlist. |
 | Public at daily-waivers.pages.dev | 2026-07-27 | Anyone can play it now — Cloudflare Pages, free tier, repo stays private since only `dist/` is uploaded. `npm run deploy` builds and publishes. Tailscale Funnel was tried first and works, but serves from the Mac, dies with it, and its `.ts.net` hostname is blocked by corporate DNS filters as VPN infrastructure; Ryan's work laptop couldn't reach it, and neither would anyone else's. Verified with the full browser suite and the arithmetic audit run against the public URL. |
 | The starter you lose is shown losing their place | 2026-07-27 | Advancing a round takes one of your starters off the field to make the new opening. Nothing marked it, so a player you'd been counting on was simply absent next time you looked and the spot read as though it had always been open — the round got harder and nothing said why. They now swell and fade where they stood, over the gap they leave. Diffed in `Field` from "this spot held someone last render and holds nobody now", so it's true however the change was caused, and it honours `prefers-reduced-motion`. |
 | The week you know reads as a stat line, not a badge | 2026-07-27 | The score and standing moved off the name line and became a third row of the card's own table — `ACTUAL · 2.8 · 4th of 5 waivers`, aligned under the same columns as SEASON and LAST 3. It's a figure in the same unit as the column above it, so it belongs with the figures rather than tacked beside the name. One phrasing everywhere now. |
