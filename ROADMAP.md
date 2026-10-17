@@ -16,6 +16,7 @@ play can answer.
 | Item | Status | Updated | Notes |
 |---|---|---|---|
 | Play it on real data and judge whether it's fun | blocked | 2026-10-17 | **Needs Ryan: play a day at https://daily-waivers.pages.dev and say whether you'd come back tomorrow — yes, no, or what's missing.** Open since 2026-07-25. Nothing in the code is waiting: 116 tests pass and the public URL serves. The tailnet mirror is still **unreachable** — the reboot brought the daemon back and the `serve` mapping is intact, but the `ts.net` host doesn't resolve and fails by IP too, so use the `pages.dev` link. The app itself is fine: `127.0.0.1:4173` answers 200. |
+| Publish the share button to the public site | blocked | 2026-10-17 | **Needs Ryan: a Cloudflare API token, creatable from his phone at dash.cloudflare.com → My Profile → API Tokens → the "Edit Cloudflare Workers" template.** `wrangler`'s stored OAuth token has expired and cannot refresh in a non-interactive shell, so `npm run deploy` fails before uploading. The build itself is fine. **`daily-waivers.pages.dev` is therefore still serving the 2026-07-27 build** — playable, but with no share button on it. Nothing else is affected; the code is committed and pushed. |
 | Decide whether one week is too random to feel fair | blocked | 2026-10-17 | **Needs Ryan: after playing, did a round ever feel lost to luck rather than to a bad read?** Answered structurally already — every round is proven winnable off the wire, so no day is decided before you play it. Only the feel is open, and only play answers it. |
 
 ## Next
