@@ -764,3 +764,55 @@ still not said the word, so no agent should act as though he has.
 
 Whether one week is too random to feel fair is now the most important open question in the
 project, and only playing it will answer it.
+
+## 2026-10-17 — Unblocking the project from Ryan
+
+`~/CLAUDE.md` gained a section, *Who decides — don't make Ryan the blocker*: reversible
+technical calls are the agent's, product and taste calls are the agent's to default and
+report, and only money, legal, external or irreversible things are Ryan's. It also says
+blocked doesn't mean stopped — mark the item with the exact question and move to the next one
+that isn't blocked. These three decisions follow from applying it to this board.
+
+### The two verdict rows became `blocked`, with the question written out
+
+"Play it and judge whether it's fun" and "Decide whether one week is too random to feel fair"
+sat as `in progress` from 2026-07-25 to today. Nothing was in progress. No code was waiting on
+anything — the suite passed and the public URL served the whole time — so `in progress` was
+describing an agent working, when what was actually happening was a question sitting unasked
+on a dashboard for twelve weeks.
+
+They are `blocked` now, and each row leads with the literal question in bold, because the one
+thing the old rows never did was say what answer would unblock them. "Judge whether it's fun"
+is not a question you can answer on a phone; *"play a day and say whether you'd come back
+tomorrow — yes, no, or what's missing"* is.
+
+### Share-a-result built now, against its own roadmap note
+
+The row said "only worth building once the game is fun", which was right when one person had
+played it and wrong once that verdict had stalled for twelve weeks. The note assumed the
+verdict would arrive on its own. It didn't, and the reason is structural: the game has had
+exactly one regular player, and asking him to be both the only player and the judge of
+whether others would play is asking for a guess.
+
+A shareable result is the cheapest way to turn that into evidence. It needs no data source
+that isn't already on disk, no backend, and nothing sent anywhere by any agent — it's a
+clipboard string the player chooses to paste. It is also the lever on the blocked rows rather
+than another feature stacked behind them, which is why it was picked over the matchup-colour
+and trivia items. The trivia item additionally needs a source nflverse doesn't carry, so it
+would have opened a second question rather than closing one.
+
+Reversible: it's additive, and deleting the share button restores the previous game exactly.
+
+### The tailnet link came off the board as a live URL
+
+Tailscale is down machine-wide — the app auto-updated to 1.102.3 and its network extension is
+stuck "activated waiting to upgrade", so the CLI won't start and nothing resolves on the
+tailnet. Verified today: the app's own CLI errors out and the `ts.net` URL returns no response
+at all, while `daily-waivers.pages.dev` returns 200.
+
+The roadmap had been handing a reader that `ts.net` URL since July. It stays mentioned, marked
+down and with the reason, rather than deleted — the LaunchAgent and the `serve` mapping are
+both still configured and will work the moment the extension finishes upgrading, so a reader
+who deletes the setup because the roadmap went quiet about it would have to rebuild it. Fixing
+it needs a reboot and Ryan signing in on the Mac, which no agent can do: that's the one bin
+that is genuinely his.

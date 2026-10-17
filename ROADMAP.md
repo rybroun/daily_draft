@@ -1,6 +1,6 @@
 # Roadmap — daily_draft
 
-**Updated:** 2026-09-06 · **Lead:** daily-draft-prototype
+**Updated:** 2026-10-17 · **Lead:** daily-draft-prototype
 
 The game is a **waiver-wire puzzle against a named opponent**, played as three rounds off one
 shared wire. Your lineup on a field with holes in it, their lineup facing you, a wire showing
@@ -15,15 +15,15 @@ play can answer.
 
 | Item | Status | Updated | Notes |
 |---|---|---|---|
-| Play it on real data and judge whether it's fun | in progress | 2026-09-06 | **Public at https://daily-waivers.pages.dev**, and on the tailnet at https://bananas-mac-mini.tail6d208c.ts.net. Six seasons, week 7 to the end of each one. The prototype exists to answer this and nothing else. Nothing has been committed since 2026-07-27 — the suite passes (102 tests) and both URLs serve, so this is waiting on a verdict, not on code. |
-| Decide whether one week is too random to feel fair | in progress | 2026-07-26 | Largely answered structurally: every round is now guaranteed winnable off the wire, so no day is decided before you play it. Whether it *feels* fair still needs play. |
+| Play it on real data and judge whether it's fun | blocked | 2026-10-17 | **Needs Ryan: play a day at https://daily-waivers.pages.dev and say whether you'd come back tomorrow — yes, no, or what's missing.** Open since 2026-07-25. Nothing in the code is waiting: 102 tests pass and the public URL serves. The tailnet mirror is **down** — Tailscale's network extension is stuck mid-upgrade machine-wide, which needs a reboot and Ryan signing in, so use the `pages.dev` link. |
+| Decide whether one week is too random to feel fair | blocked | 2026-10-17 | **Needs Ryan: after playing, did a round ever feel lost to luck rather than to a bad read?** Answered structurally already — every round is proven winnable off the wire, so no day is decided before you play it. Only the feel is open, and only play answers it. |
+| Share-a-result mechanic | in progress | 2026-10-17 | Pulled up from `Next` because both rows above need Ryan and this one doesn't. Also the most direct lever on them: the fun verdict has sat with one player for twelve weeks, and a shareable result is how the game reaches more than one. Deliberately overrides the old "only worth building once the game is fun" note — see `docs/decisions.md`. |
 
 ## Next
 
 | Item | Status | Updated | Notes |
 |---|---|---|---|
 | Trivia beyond the score in the play-out | planned | 2026-07-26 | The reveal currently gives the factual result ("NYG lost 14–20 at WAS"). Ryan asked for "the trivia of that moment in sports" — a career day, a streak, what the game meant. Needs a source nflverse doesn't carry. |
-| Share-a-result mechanic | planned | 2026-07-25 | The Wordle loop, and the matchup gives it something to say: "beat the Blackbirds by 14.2". Only worth building once the game is fun. |
 | Matchup-quality colour coding per candidate | planned | 2026-07-25 | Sleeper and Yahoo both tint each player by how their opponent has fared against that position. Would add a second readable signal to the wire. |
 | Puzzle archive / play a past week | planned | 2026-07-25 | Selection is already date-seeded, so any past date is already playable. |
 
