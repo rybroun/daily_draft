@@ -1774,6 +1774,67 @@ body {
   text-shadow: 0 1px 0.25rem #0e2a1a73;
 }
 
+/*
+  The share button sits on the grass, not on paper.
+
+  Deliberately quieter than `.kickoff`: that button is the one thing to do on
+  its screen, whereas this one competes with "come back tomorrow" and with the
+  boards the hint above it just invited you to open. An outline on the turf
+  reads as secondary without needing a second colour, which the field spends
+  elsewhere.
+*/
+.share {
+  padding-block-start: 0.5rem;
+}
+
+.share-button {
+  padding: 0.4375rem 0.875rem;
+  border: 1px solid #ffffff5c;
+  border-radius: 999px;
+  background: #ffffff1f;
+  color: #ffffff;
+  font-family: var(--display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.share-button:hover {
+  background: #ffffff2e;
+}
+
+.share-button:active {
+  transform: translateY(1px);
+}
+
+/* Holds its line whether or not it says anything, so the foot can't jump. */
+.share-said {
+  min-block-size: 1rem;
+  padding-block-start: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #ffffffc4;
+  text-shadow: 0 1px 0.25rem #0e2a1a73;
+}
+
+/* The fallback when neither the share sheet nor the clipboard would have it. */
+.share-text {
+  margin-block-start: 0.375rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.375rem;
+  background: #0e2a1a8f;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  text-align: start;
+  white-space: pre-wrap;
+  user-select: all;
+}
+
 .reveal-decided {
   font-size: 0.8125rem;
   font-weight: 600;

@@ -20,6 +20,7 @@ import { SlotBoard } from './SlotBoard';
 import { explainSlot } from './explainSlot';
 import { RoundReveal } from './RoundReveal';
 import { Sheet } from './Sheet';
+import { ShareResult } from './ShareResult';
 import { WaiverBoard } from './WaiverBoard';
 import { applyTheme, storedTheme } from '../theme';
 import type { Theme } from '../theme';
@@ -286,6 +287,17 @@ export function PuzzleScreen({
                 </p>
                 {/* The boards are only reachable now, so say so. */}
                 <p className="day-hint">Tap any pick to see the whole wire ranked.</p>
+                {/*
+                  Nulls dropped rather than shown as a fourth state: a round
+                  reads back null only when its saved answers no longer score
+                  against a puzzle we can rebuild, which is a storage fault and
+                  not a result anyone played.
+                */}
+                <ShareResult
+                  date={puzzle.date}
+                  results={results.filter((r): r is MatchupResult => r !== null)}
+                  streak={streak.current}
+                />
               </div>
             ) : null
           ) : (

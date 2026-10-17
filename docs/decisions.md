@@ -816,3 +816,59 @@ both still configured and will work the moment the extension finishes upgrading,
 who deletes the setup because the roadmap went quiet about it would have to rebuild it. Fixing
 it needs a reboot and Ryan signing in on the Mac, which no agent can do: that's the one bin
 that is genuinely his.
+
+## 2026-10-17 — Sharing a result without giving the day away
+
+### The share string says the day, the glyphs and the streak — and nothing else
+
+Wordle's share works because the grid is a brag that gives away no letters. The same
+constraint binds harder here, for a reason specific to this game: puzzle selection is
+deterministic from the date, so **everyone plays the same day**. A result is therefore read
+by people who haven't played it yet, and anything that narrows the week down is a spoiler
+they can act on. Season and week together put the real box scores one search away. The
+opponent's name does the same job more slowly. A player's name gives up an answer outright.
+
+So the string is the date, one glyph per round, the tally, the streak and the public link.
+`shareText` lives in `core/` rather than in the component, because what may be said about a
+finished day is a rule of the game and not a detail of the screen it's shown on.
+
+The test that enforces it pins the **entire** output rather than searching for leaked
+substrings. The first version searched for the week number among the string's digits and
+passed by luck: the stub's week was 2 and the tally reads "2/3". A search can only find
+leaks you thought of; pinning the whole string means anything that wasn't passed in fails
+the test by existing.
+
+### Green, yellow and black, not green, yellow and red
+
+Red reads as an error, and losing a round is an ordinary outcome of a hard round, not a
+mistake. The three chosen glyphs also differ in lightness as well as hue, so the pattern
+still parses for someone who can't separate red from green — which a red/green pair, the
+most common form of colour blindness, does not.
+
+### Three ways out of the page, in the order they work on a phone
+
+The native share sheet first, because on a phone it opens Messages or WhatsApp, which is
+where a result is actually going. Then the clipboard. Then, if neither will have it, the
+text itself rendered selectable.
+
+The third rung isn't defensive padding: `navigator.share` doesn't exist on most desktop
+browsers, and `navigator.clipboard` is absent over plain HTTP and can be refused by
+permission policy. Both good paths genuinely fail in normal conditions, and a share button
+that silently does nothing is worse than no share button.
+
+**A dismissed share sheet is a decision, not a failure.** It rejects with an `AbortError`,
+which is the one error that stops the ladder instead of advancing it — falling through to
+the clipboard would copy something the player had just chosen not to send.
+
+The ladder lives in `ui/deliverShare.ts` taking its two channels as arguments rather than
+reaching for `navigator` itself, so it can be tested against fakes the way storage is. That
+followed the project's existing idiom — hand-rolled fakes, no jsdom, no testing-library —
+rather than adding a browser driver to verify one button. What that does *not* cover is the
+real `navigator` calls in a real browser, which nothing here has been able to exercise.
+
+### The link in the string is hard-coded, not `window.location`
+
+The game is served from three places: the public Pages deployment, the tailnet mirror, and a
+dev server. Two of those are unreachable by whoever you paste the result to. Reading the
+origin would mean a result shared from the tailnet carries a link that doesn't work, and
+silently so. Wherever it was played, the link has to be the public one.
